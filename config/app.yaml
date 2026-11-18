@@ -1,1 +1,15 @@
-# Runtime settings: intervals, retention, thresholds
+app_name: "DockPilot"
+environment: "development"
+host: "127.0.0.1"
+port: 8000
+database_url: "postgresql+asyncpg://dockpilot:dockpilot@127.0.0.1:5432/dockpilot"
+docker_host: "tcp://127.0.0.1:2375"
+cors_origins:
+  - "http://localhost:4200"
+  - "http://127.0.0.1:4200"
+collection_interval_seconds: 5
+retention_days: 30
+log_tail_default: 200
+jwt_secret: "dev-secret-key-change-in-production-min-32-chars-long"
+jwt_access_expire_minutes: 15
+jwt_refresh_expire_days: 7
