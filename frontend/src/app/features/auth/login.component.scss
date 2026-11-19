@@ -1,0 +1,119 @@
+.login-container {
+  min-height: 100vh;
+  width: 100vw;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--dp-background, var(--background-color, #0f172a));
+  padding: 16px;
+  box-sizing: border-box;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 420px;
+  background-color: var(--dp-surface, var(--surface-color, #1e293b));
+  border: 1px solid var(--dp-border, var(--border-color, #334155));
+  border-radius: 12px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.4);
+  padding: 24px;
+}
+
+.login-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  margin-bottom: 24px;
+
+  .brand-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+
+    .brand-icon {
+      font-size: 32px;
+      width: 32px;
+      height: 32px;
+      color: var(--dp-primary, var(--primary-color, #3b82f6));
+    }
+
+    .brand-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--dp-text-primary, var(--text-primary, #f8fafc));
+      margin: 0;
+    }
+  }
+
+  .brand-subtitle {
+    font-size: 0.875rem;
+    color: var(--dp-text-secondary, var(--text-secondary, #94a3b8));
+  }
+}
+
+.error-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background-color: rgba(239, 68, 68, 0.12);
+  border: 1px solid var(--dp-status-error, var(--danger-color, #ef4444));
+  border-radius: 6px;
+  padding: 12px 16px;
+  margin-bottom: 20px;
+  color: var(--dp-status-error, var(--danger-color, #ef4444));
+  font-size: 0.875rem;
+
+  .error-icon {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+  }
+
+  .error-text {
+    flex: 1;
+  }
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+  .form-field {
+    width: 100%;
+
+    mat-icon[matPrefix] {
+      margin-right: 8px;
+      color: var(--dp-text-muted, var(--text-muted, #64748b));
+    }
+  }
+
+  .submit-button {
+    height: 44px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    background-color: var(--dp-primary, var(--primary-color, #3b82f6));
+    color: #ffffff;
+    border-radius: 6px;
+    margin-top: 8px;
+
+    &:hover:not(:disabled) {
+      background-color: var(--dp-primary-hover, var(--primary-hover, #2563eb));
+    }
+
+    &:disabled {
+      opacity: 0.6;
+    }
+
+    .spinner {
+      display: inline-block;
+    }
+  }
+}
