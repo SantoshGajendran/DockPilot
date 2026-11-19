@@ -13,3 +13,7 @@ log_tail_default: 200
 jwt_secret: "dev-secret-key-change-in-production-min-32-chars-long"
 jwt_access_expire_minutes: 15
 jwt_refresh_expire_days: 7
+max_login_attempts: 5
+lockout_duration_minutes: 15
+default_admin_user: "admin"
+default_admin_password: "dockpilot_admin_2026"

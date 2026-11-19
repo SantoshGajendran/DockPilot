@@ -19,6 +19,10 @@ class Settings(BaseSettings):
     jwt_secret: str = "dev-secret-key-change-in-production-min-32-chars-long"
     jwt_access_expire_minutes: int = 15
     jwt_refresh_expire_days: int = 7
+    max_login_attempts: int = 5
+    lockout_duration_minutes: int = 15
+    default_admin_user: str = "admin"
+    default_admin_password: str = "dockpilot_admin_2026"
 
 @lru_cache
 def get_settings() -> Settings:
