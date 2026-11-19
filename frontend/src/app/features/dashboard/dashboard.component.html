@@ -1,0 +1,231 @@
+<div class="dashboard-container">
+  <!-- Banners / Alerts -->
+  <div class="banners-section" *ngIf="store.isStale() || ((store.data()?.active_alerts_count ?? 0) > 0)">
+    <div class="banner banner-stale" *ngIf="store.isStale()">
+      <mat-icon>sync_problem</mat-icon>
+      <span class="banner-text">Live updates paused. Reconnecting to telemetry stream...</span>
+    </div>
+
+    <div class="banner banner-alert" *ngIf="(store.data()?.active_alerts_count ?? 0) > 0">
+      <mat-icon>warning</mat-icon>
+      <span class="banner-text">{{ store.data()?.active_alerts_count }} active alerts require attention</span>
+    </div>
+  </div>
+
+  <!-- Row 1: Host Metrics Cards -->
+  <div class="metrics-grid" *ngIf="store.data()?.host as host">
+    <!-- CPU Card -->
+    <mat-card class="metric-card">
+      <mat-card-header>
+        <mat-icon mat-card-avatar class="card-icon cpu-icon">memory</mat-icon>
+        <mat-card-title>Host CPU</mat-card-title>
+        <mat-card-subtitle>Load: {{ formatLoadAvg(host.load_avg) }}</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="metric-value">{{ host.cpu_percent | number:'1.1-1' }}%</div>
+        <mat-progress-bar
+          mode="determinate"
+          [value]="host.cpu_percent"
+          [class.progress-warn]="host.cpu_percent > 70 && host.cpu_percent <= 85"
+          [class.progress-danger]="host.cpu_percent > 85">
+        </mat-progress-bar>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Memory Card -->
+    <mat-card class="metric-card">
+      <mat-card-header>
+        <mat-icon mat-card-avatar class="card-icon mem-icon">storage</mat-icon>
+        <mat-card-title>Host Memory</mat-card-title>
+        <mat-card-subtitle>{{ formatBytes(host.memory_used_bytes) }} / {{ formatBytes(host.memory_total_bytes) }}</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="metric-value">{{ host.memory_percent | number:'1.1-1' }}%</div>
+        <mat-progress-bar
+          mode="determinate"
+          [value]="host.memory_percent"
+          [class.progress-warn]="host.memory_percent > 75 && host.memory_percent <= 90"
+          [class.progress-danger]="host.memory_percent > 90">
+        </mat-progress-bar>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Disk Card -->
+    <mat-card class="metric-card">
+      <mat-card-header>
+        <mat-icon mat-card-avatar class="card-icon disk-icon">dns</mat-icon>
+        <mat-card-title>Host Disk</mat-card-title>
+        <mat-card-subtitle>{{ formatBytes(host.disk_used_bytes) }} / {{ formatBytes(host.disk_total_bytes) }}</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="metric-value">{{ host.disk_percent | number:'1.1-1' }}%</div>
+        <mat-progress-bar
+          mode="determinate"
+          [value]="host.disk_percent"
+          [class.progress-warn]="host.disk_percent > 80 && host.disk_percent <= 90"
+          [class.progress-danger]="host.disk_percent > 90">
+        </mat-progress-bar>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Uptime Card -->
+    <mat-card class="metric-card">
+      <mat-card-header>
+        <mat-icon mat-card-avatar class="card-icon uptime-icon">schedule</mat-icon>
+        <mat-card-title>Server Uptime</mat-card-title>
+        <mat-card-subtitle>
+          <span class="status-indicator" [class.connected]="store.data()?.docker_connected"></span>
+          Docker {{ store.data()?.docker_connected ? 'Connected' : 'Disconnected' }}
+        </mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="metric-value uptime-text">{{ formatUptime(host.uptime_seconds) }}</div>
+        <div class="metric-footnote">Updated: {{ store.data()?.timestamp | date:'mediumTime' }}</div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Row 2: Containers & Top Consumers Grid -->
+  <div class="charts-grid">
+    <!-- Container Status Donut Card -->
+    <mat-card class="chart-card containers-card">
+      <mat-card-header>
+        <mat-card-title>Containers</mat-card-title>
+        <mat-card-subtitle>State distribution</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <div *ngIf="!store.hasContainers()" class="empty-state">
+          <mat-icon class="empty-icon">inventory_2</mat-icon>
+          <p class="empty-text">No containers running</p>
+          <span class="empty-hint">Deploy or start a container to view telemetry</span>
+        </div>
+
+        <div *ngIf="store.hasContainers()" class="donut-wrapper">
+          <div class="chart-container donut-container">
+            <canvas
+              baseChart
+              [data]="store.containerStateChartData()"
+              [options]="donutChartOptions"
+              [type]="'doughnut'">
+            </canvas>
+            <div class="donut-center-total">
+              <span class="total-number">{{ store.data()?.containers?.total ?? 0 }}</span>
+              <span class="total-label">Total</span>
+            </div>
+          </div>
+
+          <div class="state-chips" *ngIf="store.data()?.containers as c">
+            <span class="state-chip" [style.--chip-color]="stateColors.running">
+              <span class="dot"></span>
+              <span class="name">{{ stateLabels.running }}:</span>
+              <strong>{{ c.running }}</strong>
+            </span>
+            <span class="state-chip" [style.--chip-color]="stateColors.exited">
+              <span class="dot"></span>
+              <span class="name">{{ stateLabels.exited }}:</span>
+              <strong>{{ c.exited }}</strong>
+            </span>
+            <span class="state-chip" [style.--chip-color]="stateColors.restarting">
+              <span class="dot"></span>
+              <span class="name">{{ stateLabels.restarting }}:</span>
+              <strong>{{ c.restarting }}</strong>
+            </span>
+            <span class="state-chip" [style.--chip-color]="stateColors.unhealthy">
+              <span class="dot"></span>
+              <span class="name">{{ stateLabels.unhealthy }}:</span>
+              <strong>{{ c.unhealthy }}</strong>
+            </span>
+            <span class="state-chip" [style.--chip-color]="stateColors.paused">
+              <span class="dot"></span>
+              <span class="name">{{ stateLabels.paused }}:</span>
+              <strong>{{ c.paused }}</strong>
+            </span>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Top Consumers Card -->
+    <mat-card class="chart-card consumers-card">
+      <mat-card-header>
+        <mat-card-title>Top Consumers</mat-card-title>
+        <mat-card-subtitle>Top resource utilization</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <div *ngIf="!store.hasContainers()" class="empty-state">
+          <mat-icon class="empty-icon">speed</mat-icon>
+          <p class="empty-text">No containers running</p>
+        </div>
+
+        <mat-tab-group *ngIf="store.hasContainers()" animationDuration="0ms" class="consumers-tabs">
+          <!-- CPU Tab -->
+          <mat-tab label="CPU %">
+            <div class="tab-chart-container" *ngIf="(store.data()?.top_cpu?.length ?? 0) > 0">
+              <canvas
+                baseChart
+                [data]="store.topCpuChartData()"
+                [options]="barChartOptions"
+                [type]="'bar'">
+              </canvas>
+            </div>
+            <div class="empty-tab" *ngIf="(store.data()?.top_cpu?.length ?? 0) === 0">
+              <span>No active CPU consumption reported</span>
+            </div>
+          </mat-tab>
+
+          <!-- Memory Tab -->
+          <mat-tab label="RAM %">
+            <div class="tab-chart-container" *ngIf="(store.data()?.top_memory?.length ?? 0) > 0">
+              <canvas
+                baseChart
+                [data]="store.topMemoryChartData()"
+                [options]="barChartOptions"
+                [type]="'bar'">
+              </canvas>
+            </div>
+            <div class="empty-tab" *ngIf="(store.data()?.top_memory?.length ?? 0) === 0">
+              <span>No active RAM consumption reported</span>
+            </div>
+          </mat-tab>
+        </mat-tab-group>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Row 3: Recent Events Activity Feed -->
+  <mat-card class="events-card">
+    <mat-card-header>
+      <mat-icon mat-card-avatar class="card-icon events-icon">history</mat-icon>
+      <mat-card-title>Recent Docker Events</mat-card-title>
+      <mat-card-subtitle>Activity log from Docker engine</mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content>
+      <div *ngIf="(store.data()?.recent_events?.length ?? 0) === 0" class="empty-events">
+        <p>No recent events recorded</p>
+      </div>
+
+      <div class="events-table-wrapper" *ngIf="(store.data()?.recent_events?.length ?? 0) > 0">
+        <table class="events-table">
+          <thead>
+            <tr>
+              <th>Action</th>
+              <th>Actor</th>
+              <th>Type</th>
+              <th>Time</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let ev of store.data()?.recent_events">
+              <td>
+                <span class="event-badge">{{ ev.action }}</span>
+              </td>
+              <td class="actor-cell">{{ ev.actor_name }}</td>
+              <td class="type-cell">{{ ev.actor_type }}</td>
+              <td class="time-cell">{{ ev.timestamp | date:'medium' }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>
