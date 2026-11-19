@@ -1,8 +1,41 @@
+from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.core.config import get_settings
-from app.api.v1.router import api_router
+from sqlalchemy import func, select
+
 from app.api.v1 import health
+from app.api.v1.router import api_router
+from app.core.config import get_settings
+from app.core.constants import Role
+from app.core.database import async_session
+from app.core.security import hash_password
+from app.models.user import User
+
+
+async def bootstrap_default_admin() -> None:
+    settings = get_settings()
+    try:
+        async with async_session() as session:
+            result = await session.execute(select(func.count(User.id)))
+            count = result.scalar() or 0
+            if count == 0:
+                admin_user = User(
+                    username=settings.default_admin_user,
+                    hashed_password=hash_password(settings.default_admin_password),
+                    role=Role.ADMIN,
+                    is_active=True,
+                )
+                session.add(admin_user)
+                await session.commit()
+    except Exception:
+        pass
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    await bootstrap_default_admin()
+    yield
+
 
 def create_app() -> FastAPI:
     settings = get_settings()
@@ -10,6 +43,7 @@ def create_app() -> FastAPI:
         title=settings.app_name,
         docs_url="/docs" if settings.environment == "development" else None,
         redoc_url=None,
+        lifespan=lifespan,
     )
     app.add_middleware(
         CORSMiddleware,
@@ -21,5 +55,6 @@ def create_app() -> FastAPI:
     app.include_router(health.router)
     app.include_router(api_router, prefix="/api/v1")
     return app
+
 
 app = create_app()
