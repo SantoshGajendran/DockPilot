@@ -48,8 +48,8 @@ class OverviewCollectorService:
     def get_snapshot(self) -> Optional[OverviewResponse]:
         return self._snapshot
 
-    def subscribe(self) -> asyncio.Queue[OverviewResponse]:
-        queue: asyncio.Queue[OverviewResponse] = asyncio.Queue()
+    def subscribe(self, maxsize: int = 50) -> asyncio.Queue[OverviewResponse]:
+        queue: asyncio.Queue[OverviewResponse] = asyncio.Queue(maxsize=maxsize)
         self._subscribers.add(queue)
         return queue
 
@@ -62,7 +62,7 @@ class OverviewCollectorService:
             try:
                 queue.put_nowait(snapshot)
             except asyncio.QueueFull:
-                pass
+                logger.warning("Subscriber queue is full, dropping update")
             except Exception as e:
                 logger.warning("Error pushing to subscriber queue: %s", e)
 

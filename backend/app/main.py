@@ -3,6 +3,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import func, select
 
+from app.api.deps import get_docker_gateway
 from app.api.v1 import health
 from app.api.v1.router import api_router
 from app.core.config import get_settings
@@ -11,6 +12,7 @@ from app.core.database import async_session
 from app.core.security import hash_password
 from app.models.audit import AuditLog
 from app.models.user import User
+from app.services.overview_service import OverviewCollectorService
 
 
 async def bootstrap_default_admin() -> None:
@@ -46,7 +48,21 @@ async def bootstrap_default_admin() -> None:
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await bootstrap_default_admin()
-    yield
+    gw_override = app.dependency_overrides.get(get_docker_gateway)
+    if gw_override:
+        docker_gw = gw_override()
+    else:
+        try:
+            docker_gw = get_docker_gateway()
+        except Exception:
+            docker_gw = None
+    collector = OverviewCollectorService(docker_gateway=docker_gw)
+    app.state.overview_collector = collector
+    await collector.start()
+    try:
+        yield
+    finally:
+        await collector.stop()
 
 
 def create_app() -> FastAPI:

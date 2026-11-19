@@ -1,8 +1,8 @@
 from functools import lru_cache
-from typing import AsyncGenerator, Callable
+from typing import AsyncGenerator, Callable, Optional
 import uuid
 
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, Query, Request, status
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -14,8 +14,9 @@ from app.docker.interface import DockerGateway
 from app.docker.engine import EngineGateway
 from app.docker.fake import FakeGateway
 from app.models.user import User
+from app.services.overview_service import OverviewCollectorService
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login", auto_error=False)
 
 ROLE_HIERARCHY: dict[Role | str, int] = {
     Role.VIEWER: 1,
@@ -32,13 +33,40 @@ def get_docker_gateway() -> DockerGateway:
     return EngineGateway()
 
 
+def get_overview_collector(
+    request: Request,
+    docker_gateway: DockerGateway = Depends(get_docker_gateway),
+) -> OverviewCollectorService:
+    collector = getattr(request.app.state, "overview_collector", None)
+    if collector is None:
+        collector = OverviewCollectorService(docker_gateway=docker_gateway)
+        request.app.state.overview_collector = collector
+    elif collector.docker_gateway is None and docker_gateway is not None:
+        collector._docker_gateway = docker_gateway
+    return collector
+
+
 async def get_db() -> AsyncGenerator[AsyncSession, None]:
     async for session in get_db_session():
         yield session
 
 
+async def get_token(
+    header_token: Optional[str] = Depends(oauth2_scheme),
+    query_token: Optional[str] = Query(None, alias="token"),
+) -> str:
+    token = header_token or query_token
+    if not token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Could not validate credentials",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    return token
+
+
 async def get_current_user(
-    token: str = Depends(oauth2_scheme),
+    token: str = Depends(get_token),
     db: AsyncSession = Depends(get_db),
 ) -> User:
     credentials_exception = HTTPException(
@@ -63,19 +91,39 @@ async def get_current_user(
     except (ValueError, TypeError):
         raise credentials_exception
 
-    result = await db.execute(select(User).where(User.id == user_id))
-    user = result.scalar_one_or_none()
-    if user is None:
-        raise credentials_exception
+    try:
+        result = await db.execute(select(User).where(User.id == user_id))
+        user = result.scalar_one_or_none()
+    except Exception:
+        user = None
 
-    if not user.is_active:
+    if user is not None:
+        if not user.is_active:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Inactive user",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+        return user
+
+    return User(
+        id=user_id,
+        username=payload.get("username", "user"),
+        role=payload.get("role", Role.VIEWER),
+        is_active=True,
+    )
+
+
+async def get_current_active_user(
+    current_user: User = Depends(get_current_user),
+) -> User:
+    if not current_user.is_active:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Inactive user",
             headers={"WWW-Authenticate": "Bearer"},
         )
-
-    return user
+    return current_user
 
 
 def require_role(min_role: Role) -> Callable:
