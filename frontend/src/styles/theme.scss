@@ -1,0 +1,32 @@
+@use '@angular/material' as mat;
+
+:root {
+  /* Core Palette */
+  --primary-color: #3b82f6;
+  --primary-hover: #2563eb;
+  --background-color: #0f172a;
+  --surface-color: #1e293b;
+  --surface-hover: #334155;
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  --border-color: #334155;
+  --border-subtle: #1e293b;
+
+  /* Semantic Status Colors */
+  --success-color: #22c55e;
+  --warning-color: #eab308;
+  --danger-color: #ef4444;
+  --info-color: #06b6d4;
+
+  /* Layout Dimensions */
+  --header-height: 64px;
+  --sidebar-width: 240px;
+  --sidebar-collapsed-width: 68px;
+
+  /* Angular Material Component Tokens */
+  --mat-sidenav-container-background-color: var(--background-color);
+  --mat-toolbar-container-background-color: var(--surface-color);
+  --mat-toolbar-container-text-color: var(--text-primary);
+  --mat-sidenav-content-background-color: var(--background-color);
+}
