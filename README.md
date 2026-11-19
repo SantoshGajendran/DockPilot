@@ -97,7 +97,7 @@ npm start
 ## Running Tests
 
 ### Backend Unit Tests
-Execute the pytest suite (29 unit tests):
+Execute the pytest suite (46 unit tests):
 ```bash
 cd backend && pytest -v
 ```
@@ -107,7 +107,7 @@ python -m pytest backend/tests -v
 ```
 
 ### Frontend Unit Tests & Build
-Execute the Jest unit test suite (34 unit tests):
+Execute the Jest unit test suite (51 unit tests across 11 suites):
 ```bash
 cd frontend && npm test
 ```
@@ -148,3 +148,21 @@ cd frontend && npm run build
   - Angular signals-driven `AuthService` with automatic silent token refresh on application boot (`APP_INITIALIZER`).
   - Functional router guards: `authGuard` redirecting unauthenticated users to `/login` with `returnUrl`, and `roleGuard` enforcing RBAC.
   - `ErrorInterceptor` catching 401 responses and triggering `SessionExpiredDialogComponent` with re-authentication modal dialog.
+
+### Prompt 02: Overview Dashboard
+- **Status:** Complete
+- **Overview Endpoints:**
+  - `GET /api/v1/overview`: Snapshot endpoint returning host resource metrics, container counts grouped by state, top CPU and memory consumers, recent Docker events, and active alert counts.
+  - `GET /api/v1/overview/stream`: Real-time Server-Sent Events (SSE) streaming endpoint pushing updated system metrics at configured collection intervals (`2s`). Supports dual authentication via `Authorization: Bearer <token>` header or `?token=<token>` query parameter for standard browser `EventSource` clients.
+- **Background Collector Service:**
+  - `OverviewCollector` asynchronously samples host telemetry via `psutil` (CPU percent, memory, disk, load averages, uptime) and container stats via `DockerGateway` (`container_stats` and `container_events`).
+  - Broadcasts metric frames to subscriber queues with bounded queue overflow protection and graceful error isolation.
+  - Snapshot caching layer ensures fast responses on cold loads.
+- **Frontend UI & State:**
+  - Lazy-loaded `/dashboard` standalone component driven by a lightweight, reactive Angular signal store (`DashboardStore`).
+  - Host resource gauges displaying CPU, Memory, Disk usage, and Load averages with calibrated threshold warnings.
+  - Chart.js container status donut chart grouping containers into running, exited, restarting, unhealthy, and paused states.
+  - Top resource consumers ranked by CPU (%) and Memory (MiB/GiB).
+  - Live Docker events feed displaying recent container lifecycle events with relative timestamps.
+  - Stale-data watchdog monitoring SSE heartbeat freshness and displaying a visual warning banner when connection drops or pauses.
+  - Empty-server state and error recovery states with manual retry controls.

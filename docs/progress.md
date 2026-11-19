@@ -23,3 +23,19 @@
   - Functional routing guards: `authGuard` and `roleGuard`.
   - HTTP `authInterceptor` attaching Bearer tokens and `ErrorInterceptor` catching 401s to prompt a `SessionExpiredDialogComponent` re-auth modal.
   - 34 unit tests passing; production build verified with zero errors.
+
+## Prompt 02: Overview Dashboard
+- **Status:** Complete
+- **Backend:**
+  - REST snapshot endpoint `GET /api/v1/overview` returning host telemetry (CPU, RAM, disk, load averages, uptime), container counts grouped by state (running, exited, restarting, unhealthy, paused), top containers ranked by CPU and memory, recent Docker events, and active alert counts.
+  - Real-time Server-Sent Events (SSE) streaming endpoint `GET /api/v1/overview/stream` pushing metrics at configured collection interval (`metrics.collection_interval: 2s`) with support for query-param token authentication for native browser `EventSource` and Bearer header authentication.
+  - Background `OverviewCollector` service with thread-safe broadcast queues, bounded queue overflow protection, graceful error isolation on Docker errors, and snapshot caching.
+  - 46 unit tests passing across all backend modules.
+- **Frontend:**
+  - Standalone lazy-loaded `/dashboard` component with Angular Material cards, grid layout, loading skeletons, error state with retry, and empty-server state.
+  - Signal-based `DashboardStore` managing real-time metrics, connection status, stale data watchdog with timeout detection, and fallback polling.
+  - Host resource gauges for CPU, Memory, Disk, and Load averages with color-coded warning thresholds.
+  - Chart.js container status donut chart with interactive hover tooltips.
+  - Top resource consumers widget with dual tabs (CPU % and Memory) and quick-action navigation.
+  - Recent Docker events feed with formatted badges and relative timestamps.
+  - 51 unit tests passing across 11 suites; production build verified with zero errors.
