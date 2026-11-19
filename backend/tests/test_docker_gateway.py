@@ -98,7 +98,7 @@ async def test_engine_gateway_with_mock_client():
     assert success is True
     mock_container.restart.assert_called_once()
     
-    # Test events
+    # Test events stream
     mock_client.events.return_value = iter([{"status": "die", "id": "mock_c1"}])
     events = []
     async for ev in gateway.stream_events():
@@ -106,6 +106,42 @@ async def test_engine_gateway_with_mock_client():
         break
     assert len(events) == 1
     assert events[0]["status"] == "die"
+
+    # Test get_container_stats
+    mock_container.stats.return_value = {
+        "cpu_stats": {
+            "cpu_usage": {"total_usage": 200000000},
+            "system_cpu_usage": 1000000000,
+            "online_cpus": 2,
+        },
+        "precpu_stats": {
+            "cpu_usage": {"total_usage": 100000000},
+            "system_cpu_usage": 500000000,
+        },
+        "memory_stats": {
+            "usage": 104857600,
+            "limit": 1073741824,
+            "stats": {"cache": 0},
+        },
+    }
+    stats = await gateway.get_container_stats("mock_c1")
+    assert stats["cpu_percent"] > 0
+    assert stats["memory_bytes"] == 104857600
+    assert stats["memory_limit"] == 1073741824
+
+    # Test get_recent_events
+    mock_client.events.return_value = [
+        {
+            "Action": "start",
+            "Type": "container",
+            "Actor": {"ID": "mock_c1", "Attributes": {"name": "dockpilot-api"}},
+            "time": 1731960000,
+        }
+    ]
+    recent_events = await gateway.get_recent_events(limit=5)
+    assert len(recent_events) == 1
+    assert recent_events[0]["action"] == "start"
+    assert recent_events[0]["actor_name"] == "dockpilot-api"
 
 @pytest.mark.asyncio
 async def test_engine_gateway_error_handling():
@@ -118,5 +154,8 @@ async def test_engine_gateway_error_handling():
     
     with pytest.raises(ValueError, match="not found"):
         await gateway.inspect_container("unknown_id")
+
+    with pytest.raises(ValueError, match="not found"):
+        await gateway.get_container_stats("unknown_id")
         
     assert await gateway.execute_action("unknown_id", "restart") is False

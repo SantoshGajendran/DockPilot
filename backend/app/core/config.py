@@ -16,6 +16,10 @@ class Settings(BaseSettings):
     collection_interval_seconds: int = 5
     retention_days: int = 30
     log_tail_default: int = 200
+    metrics_interval_seconds: int = 3
+    top_containers_limit: int = 5
+    recent_events_limit: int = 10
+    stale_threshold_multiplier: float = 2.0
     jwt_secret: str = "dev-secret-key-change-in-production-min-32-chars-long"
     jwt_access_expire_minutes: int = 15
     jwt_refresh_expire_days: int = 7

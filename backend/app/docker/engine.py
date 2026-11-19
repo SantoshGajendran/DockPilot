@@ -1,4 +1,6 @@
 import asyncio
+from datetime import datetime, timezone
+import time
 from typing import Any, AsyncGenerator, Dict, List, Optional
 import docker
 from docker.errors import DockerException, NotFound
@@ -103,3 +105,84 @@ class EngineGateway(DockerGateway):
                 yield event
             except (StopIteration, Exception):
                 break
+
+    async def get_container_stats(self, container_id: str) -> Dict[str, Any]:
+        def _stats() -> Dict[str, Any]:
+            try:
+                container = self._client.containers.get(container_id)
+                raw_stats = container.stats(stream=False)
+                
+                # CPU calculation
+                cpu_stats = raw_stats.get("cpu_stats", {}) if isinstance(raw_stats, dict) else {}
+                precpu_stats = raw_stats.get("precpu_stats", {}) if isinstance(raw_stats, dict) else {}
+                
+                cpu_usage = cpu_stats.get("cpu_usage", {}).get("total_usage", 0) if isinstance(cpu_stats, dict) else 0
+                precpu_usage = precpu_stats.get("cpu_usage", {}).get("total_usage", 0) if isinstance(precpu_stats, dict) else 0
+                cpu_delta = cpu_usage - precpu_usage
+                
+                system_cpu_usage = cpu_stats.get("system_cpu_usage", 0) if isinstance(cpu_stats, dict) else 0
+                system_precpu_usage = precpu_stats.get("system_cpu_usage", 0) if isinstance(precpu_stats, dict) else 0
+                system_delta = system_cpu_usage - system_precpu_usage
+                
+                percpu_usage = cpu_stats.get("cpu_usage", {}).get("percpu_usage", []) if isinstance(cpu_stats, dict) else []
+                online_cpus = cpu_stats.get("online_cpus") or (len(percpu_usage) if percpu_usage else 1) or 1
+                
+                cpu_percent = 0.0
+                if system_delta > 0 and cpu_delta > 0:
+                    cpu_percent = round((cpu_delta / system_delta) * online_cpus * 100.0, 2)
+                    
+                # Memory calculation
+                mem_stats = raw_stats.get("memory_stats", {}) if isinstance(raw_stats, dict) else {}
+                usage = mem_stats.get("usage", 0) if isinstance(mem_stats, dict) else 0
+                stats_detail = mem_stats.get("stats", {}) if isinstance(mem_stats, dict) else {}
+                cache = stats_detail.get("inactive_file", 0) or stats_detail.get("cache", 0)
+                used_memory = max(0, usage - cache)
+                limit = mem_stats.get("limit", 0) if isinstance(mem_stats, dict) else 0
+                mem_percent = round((used_memory / limit) * 100.0, 2) if limit > 0 else 0.0
+                
+                return {
+                    "cpu_percent": cpu_percent,
+                    "memory_bytes": used_memory,
+                    "memory_limit": limit,
+                    "memory_percent": mem_percent,
+                    "raw": raw_stats,
+                }
+            except NotFound:
+                raise ValueError(f"Container {container_id} not found")
+            except Exception as e:
+                raise ValueError(f"Error fetching stats for container {container_id}: {e}")
+        return await asyncio.to_thread(_stats)
+
+    async def get_recent_events(self, limit: int = 10) -> List[Dict[str, Any]]:
+        def _get_events() -> List[Dict[str, Any]]:
+            try:
+                now = int(time.time())
+                since = now - 86400
+                events = []
+                event_iterable = self._client.events(since=since, until=now, decode=True)
+                for event in event_iterable:
+                    if not isinstance(event, dict):
+                        continue
+                    actor = event.get("Actor", {}) if isinstance(event, dict) else {}
+                    attributes = actor.get("Attributes", {}) if isinstance(actor, dict) else {}
+                    actor_name = attributes.get("name") or event.get("from") or ""
+                    
+                    time_val = event.get("time") or now
+                    if isinstance(time_val, (int, float)):
+                        ts = datetime.fromtimestamp(time_val, tz=timezone.utc).isoformat()
+                    else:
+                        ts = str(time_val)
+
+                    events.append({
+                        "id": str(event.get("id") or event.get("timeNano") or len(events)),
+                        "action": event.get("Action") or event.get("status") or "",
+                        "actor_type": event.get("Type") or "container",
+                        "actor_name": actor_name,
+                        "timestamp": ts,
+                    })
+                    if len(events) >= limit:
+                        break
+                return events
+            except Exception:
+                return []
+        return await asyncio.to_thread(_get_events)

@@ -19,6 +19,16 @@ class FakeGateway(DockerGateway):
                     "env": ["REDIS_PASSWORD=secret123", "PORT=6379"],
                 }
             }
+        self.stats: Dict[str, Dict[str, Any]] = {}
+        self.events: List[Dict[str, Any]] = [
+            {
+                "id": "ev-1",
+                "action": "start",
+                "actor_type": "container",
+                "actor_name": "dockpilot-redis",
+                "timestamp": "2026-11-18T20:00:00Z",
+            }
+        ]
 
     async def ping(self) -> bool:
         return True
@@ -44,3 +54,18 @@ class FakeGateway(DockerGateway):
 
     async def stream_events(self) -> AsyncGenerator[Dict[str, Any], None]:
         yield {"status": "start", "id": "c1", "from": "redis:7-alpine"}
+
+    async def get_container_stats(self, container_id: str) -> Dict[str, Any]:
+        if container_id in self.containers:
+            if container_id in self.stats:
+                return self.stats[container_id]
+            return {
+                "cpu_percent": 2.5,
+                "memory_bytes": 67108864,
+                "memory_limit": 1073741824,
+                "memory_percent": 6.25,
+            }
+        raise ValueError(f"Container {container_id} not found")
+
+    async def get_recent_events(self, limit: int = 10) -> List[Dict[str, Any]]:
+        return self.events[:limit]

@@ -10,6 +10,10 @@ cors_origins:
 collection_interval_seconds: 5
 retention_days: 30
 log_tail_default: 200
+metrics_interval_seconds: 3
+top_containers_limit: 5
+recent_events_limit: 10
+stale_threshold_multiplier: 2.0
 jwt_secret: "dev-secret-key-change-in-production-min-32-chars-long"
 jwt_access_expire_minutes: 15
 jwt_refresh_expire_days: 7

@@ -26,3 +26,13 @@ class DockerGateway(ABC):
     async def stream_events(self) -> AsyncGenerator[Dict[str, Any], None]:
         """Stream Docker events."""
         pass
+
+    @abstractmethod
+    async def get_container_stats(self, container_id: str) -> Dict[str, Any]:
+        """Get live resource stats for a container."""
+        pass
+
+    @abstractmethod
+    async def get_recent_events(self, limit: int = 10) -> List[Dict[str, Any]]:
+        """Retrieve the most recent Docker lifecycle events."""
+        pass
