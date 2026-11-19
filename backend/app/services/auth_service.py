@@ -11,11 +11,14 @@ from app.core.security import (
     create_access_token,
     create_refresh_token,
     decode_token,
+    hash_password,
     verify_password,
 )
 from app.models.audit import AuditLog
 from app.models.user import User
 from app.schemas.auth import LoginRequest
+
+_DUMMY_PASSWORD_HASH = hash_password("dummy-constant-time-protection-string")
 
 
 async def authenticate_user(
@@ -58,6 +61,8 @@ async def authenticate_user(
     valid_password = False
     if user is not None:
         valid_password = verify_password(credentials.password, user.hashed_password)
+    else:
+        verify_password(credentials.password, _DUMMY_PASSWORD_HASH)
 
     if user is None or not valid_password:
         target_id = None
@@ -189,6 +194,19 @@ async def refresh_tokens(
         if locked_until.tzinfo is None:
             locked_until = locked_until.replace(tzinfo=timezone.utc)
         if locked_until > now:
+            audit = AuditLog(
+                user_id=user.id,
+                username=user.username,
+                action="auth.refresh",
+                target_type="user",
+                target_id=str(user.id),
+                result=AuditResult.FAILURE,
+                payload={"reason": "account_locked"},
+                error_message="Account temporarily locked. Try again later.",
+                ip_address=ip,
+            )
+            db.add(audit)
+            await db.commit()
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Account temporarily locked. Try again later.",

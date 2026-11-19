@@ -6,9 +6,10 @@ from sqlalchemy import func, select
 from app.api.v1 import health
 from app.api.v1.router import api_router
 from app.core.config import get_settings
-from app.core.constants import Role
+from app.core.constants import AuditResult, Role
 from app.core.database import async_session
 from app.core.security import hash_password
+from app.models.audit import AuditLog
 from app.models.user import User
 
 
@@ -26,6 +27,17 @@ async def bootstrap_default_admin() -> None:
                     is_active=True,
                 )
                 session.add(admin_user)
+                await session.flush()
+                audit = AuditLog(
+                    user_id=admin_user.id,
+                    username="system",
+                    action="user.create",
+                    target_type="user",
+                    target_id=str(admin_user.id),
+                    result=AuditResult.SUCCESS,
+                    payload={"bootstrap": True},
+                )
+                session.add(audit)
                 await session.commit()
     except Exception:
         pass
