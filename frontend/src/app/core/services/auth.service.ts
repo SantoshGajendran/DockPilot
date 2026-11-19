@@ -1,16 +1,19 @@
 import { Injectable, signal, computed, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
+import { MatDialog } from '@angular/material/dialog';
 import { Observable, Subject, of } from 'rxjs';
 import { tap, map, catchError } from 'rxjs/operators';
 import { User, UserRole } from '../models/user.model';
 import { LoginRequest, TokenResponse } from '../models/auth.model';
 import { AUTH_ENDPOINTS } from '../constants/auth.constants';
+import { SessionExpiredDialogComponent } from '../../features/auth/session-expired-dialog.component';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly http = inject(HttpClient, { optional: true });
   private readonly router = inject(Router, { optional: true });
+  private readonly dialog = inject(MatDialog, { optional: true });
 
   readonly currentUser = signal<User | null>(null);
   readonly isAuthenticated = computed(() => !!this.currentUser());
@@ -87,6 +90,12 @@ export class AuthService {
   handleSessionExpired(): void {
     this.clearSession();
     this.sessionExpired$.next();
+    if (this.dialog && !this.dialog.openDialogs.some(ref => ref.componentInstance instanceof SessionExpiredDialogComponent)) {
+      this.dialog.open(SessionExpiredDialogComponent, {
+        disableClose: true,
+        autoFocus: true,
+      });
+    }
   }
 
   private clearSession(): void {

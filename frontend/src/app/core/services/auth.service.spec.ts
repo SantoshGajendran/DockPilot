@@ -2,20 +2,29 @@ import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideRouter, Router } from '@angular/router';
+import { MatDialog } from '@angular/material/dialog';
 import { AuthService } from './auth.service';
+import { SessionExpiredDialogComponent } from '../../features/auth/session-expired-dialog.component';
 
 describe('AuthService', () => {
   let service: AuthService;
   let httpMock: HttpTestingController;
   let router: Router;
+  let dialogMock: { open: jest.Mock; openDialogs: any[] };
 
   beforeEach(() => {
+    dialogMock = {
+      open: jest.fn(),
+      openDialogs: []
+    };
+
     TestBed.configureTestingModule({
       providers: [
         AuthService,
         provideHttpClient(),
         provideHttpClientTesting(),
-        provideRouter([])
+        provideRouter([]),
+        { provide: MatDialog, useValue: dialogMock }
       ]
     });
     service = TestBed.inject(AuthService);
@@ -99,6 +108,22 @@ describe('AuthService', () => {
     });
 
     service.handleSessionExpired();
+  });
+
+  it('should open SessionExpiredDialogComponent when MatDialog is provided', () => {
+    service.handleSessionExpired();
+
+    expect(dialogMock.open).toHaveBeenCalledWith(SessionExpiredDialogComponent, {
+      disableClose: true,
+      autoFocus: true
+    });
+  });
+
+  it('should not open second dialog if SessionExpiredDialogComponent is already open', () => {
+    dialogMock.openDialogs = [{ componentInstance: Object.create(SessionExpiredDialogComponent.prototype) }];
+    service.handleSessionExpired();
+
+    expect(dialogMock.open).not.toHaveBeenCalled();
   });
 
   it('should correctly evaluate role hierarchy', () => {
