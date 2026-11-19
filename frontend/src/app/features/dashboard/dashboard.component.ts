@@ -10,7 +10,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { BaseChartDirective } from 'ng2-charts';
 import { Chart, ChartOptions, registerables } from 'chart.js';
 import { DashboardStore } from './dashboard.store';
-import { CONTAINER_STATE_COLORS, CONTAINER_STATE_LABELS } from '../../core/constants/overview.constants';
+import { CONTAINER_STATE_COLORS, CONTAINER_STATE_LABELS, HOST_THRESHOLDS } from '../../core/constants/overview.constants';
 
 Chart.register(...registerables);
 
@@ -36,6 +36,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   readonly stateColors = CONTAINER_STATE_COLORS;
   readonly stateLabels = CONTAINER_STATE_LABELS;
+  readonly thresholds = HOST_THRESHOLDS;
 
   readonly donutChartOptions: ChartOptions<'doughnut'> = {
     responsive: true,

@@ -27,3 +27,9 @@ export const DASHBOARD_CONSTANTS = {
   topCpuColor: '#3b82f6',
   topMemoryColor: '#8b5cf6'
 } as const;
+
+export const HOST_THRESHOLDS = {
+  cpu: { warn: 70, danger: 85 },
+  memory: { warn: 75, danger: 90 },
+  disk: { warn: 80, danger: 90 }
+} as const;

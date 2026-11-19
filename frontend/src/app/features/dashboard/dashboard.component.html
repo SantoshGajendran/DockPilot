@@ -26,8 +26,8 @@
         <mat-progress-bar
           mode="determinate"
           [value]="host.cpu_percent"
-          [class.progress-warn]="host.cpu_percent > 70 && host.cpu_percent <= 85"
-          [class.progress-danger]="host.cpu_percent > 85">
+          [class.progress-warn]="host.cpu_percent > thresholds.cpu.warn && host.cpu_percent <= thresholds.cpu.danger"
+          [class.progress-danger]="host.cpu_percent > thresholds.cpu.danger">
         </mat-progress-bar>
       </mat-card-content>
     </mat-card>
@@ -44,8 +44,8 @@
         <mat-progress-bar
           mode="determinate"
           [value]="host.memory_percent"
-          [class.progress-warn]="host.memory_percent > 75 && host.memory_percent <= 90"
-          [class.progress-danger]="host.memory_percent > 90">
+          [class.progress-warn]="host.memory_percent > thresholds.memory.warn && host.memory_percent <= thresholds.memory.danger"
+          [class.progress-danger]="host.memory_percent > thresholds.memory.danger">
         </mat-progress-bar>
       </mat-card-content>
     </mat-card>
@@ -62,8 +62,8 @@
         <mat-progress-bar
           mode="determinate"
           [value]="host.disk_percent"
-          [class.progress-warn]="host.disk_percent > 80 && host.disk_percent <= 90"
-          [class.progress-danger]="host.disk_percent > 90">
+          [class.progress-warn]="host.disk_percent > thresholds.disk.warn && host.disk_percent <= thresholds.disk.danger"
+          [class.progress-danger]="host.disk_percent > thresholds.disk.danger">
         </mat-progress-bar>
       </mat-card-content>
     </mat-card>
