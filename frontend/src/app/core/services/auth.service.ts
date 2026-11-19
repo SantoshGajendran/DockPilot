@@ -1,12 +1,30 @@
-import { Injectable, signal, computed } from '@angular/core';
+import { Injectable, signal, computed, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Router } from '@angular/router';
+import { Observable, Subject, of } from 'rxjs';
+import { tap, map, catchError } from 'rxjs/operators';
 import { User, UserRole } from '../models/user.model';
+import { LoginRequest, TokenResponse } from '../models/auth.model';
+import { AUTH_ENDPOINTS } from '../constants/auth.constants';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
+  private readonly http = inject(HttpClient, { optional: true });
+  private readonly router = inject(Router, { optional: true });
+
   readonly currentUser = signal<User | null>(null);
   readonly isAuthenticated = computed(() => !!this.currentUser());
   readonly userRole = computed<UserRole | null>(() => this.currentUser()?.role ?? null);
+  readonly sessionExpired$ = new Subject<void>();
+
   private token: string | null = null;
+
+  private get httpClient(): HttpClient {
+    if (!this.http) {
+      throw new Error('HttpClient must be provided to use AuthService HTTP methods');
+    }
+    return this.http;
+  }
 
   getToken(): string | null {
     return this.token;
@@ -21,5 +39,58 @@ export class AuthService {
     if (!current) return false;
     const hierarchy: Record<UserRole, number> = { viewer: 1, operator: 2, admin: 3 };
     return hierarchy[current] >= hierarchy[minRole];
+  }
+
+  login(credentials: LoginRequest): Observable<TokenResponse> {
+    return this.httpClient.post<TokenResponse>(AUTH_ENDPOINTS.login, credentials, { withCredentials: true }).pipe(
+      tap(res => {
+        this.setToken(res.access_token);
+        this.currentUser.set(res.user);
+      })
+    );
+  }
+
+  refreshSession(): Observable<TokenResponse> {
+    return this.httpClient.post<TokenResponse>(AUTH_ENDPOINTS.refresh, {}, { withCredentials: true }).pipe(
+      tap(res => {
+        this.setToken(res.access_token);
+        this.currentUser.set(res.user);
+      })
+    );
+  }
+
+  init(): Observable<boolean> {
+    return this.refreshSession().pipe(
+      map(() => true),
+      catchError(() => {
+        this.clearSession();
+        return of(false);
+      })
+    );
+  }
+
+  logout(): Observable<void> {
+    return this.httpClient.post<void>(AUTH_ENDPOINTS.logout, {}, { withCredentials: true }).pipe(
+      tap(() => {
+        this.clearSession();
+        this.router?.navigate(['/login']);
+      }),
+      catchError(() => {
+        this.clearSession();
+        this.router?.navigate(['/login']);
+        return of(void 0);
+      }),
+      map(() => void 0)
+    );
+  }
+
+  handleSessionExpired(): void {
+    this.clearSession();
+    this.sessionExpired$.next();
+  }
+
+  private clearSession(): void {
+    this.setToken(null);
+    this.currentUser.set(null);
   }
 }
