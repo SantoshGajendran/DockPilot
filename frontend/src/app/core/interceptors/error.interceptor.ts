@@ -1,11 +1,12 @@
-import { HttpInterceptorFn, HttpErrorResponse, HttpContextToken } from '@angular/common/http';
+import { HttpInterceptorFn, HttpErrorResponse } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { catchError, switchMap, throwError } from 'rxjs';
 import { ToastService } from '../services/toast.service';
 import { AuthService } from '../services/auth.service';
 import { AUTH_ENDPOINTS } from '../constants/auth.constants';
+import { IS_RETRY_ATTEMPT, IS_SILENT_REFRESH } from './http-context.tokens';
 
-export const IS_RETRY_ATTEMPT = new HttpContextToken<boolean>(() => false);
+export { IS_RETRY_ATTEMPT, IS_SILENT_REFRESH };
 
 export const errorInterceptor: HttpInterceptorFn = (req, next) => {
   const toast = inject(ToastService);
@@ -21,6 +22,7 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
         req.url.includes('/auth/refresh');
 
       const isRetry = req.context.get(IS_RETRY_ATTEMPT);
+      const isSilentRefresh = req.context.get(IS_SILENT_REFRESH);
 
       if (err.status === 401 && !isAuthEndpoint && !isRetry) {
         return authService.refreshSession().pipe(
@@ -40,7 +42,7 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
         );
       }
 
-      if (err.status === 401 && (isRetry || req.url.includes('/auth/refresh'))) {
+      if (err.status === 401 && (isRetry || (req.url.includes('/auth/refresh') && !isSilentRefresh))) {
         authService.handleSessionExpired();
       }
 

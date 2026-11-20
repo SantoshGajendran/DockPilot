@@ -1,5 +1,5 @@
 import { Injectable, signal, computed, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpContext } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { Observable, Subject, of } from 'rxjs';
@@ -8,6 +8,7 @@ import { User, UserRole } from '../models/user.model';
 import { LoginRequest, TokenResponse } from '../models/auth.model';
 import { AUTH_ENDPOINTS } from '../constants/auth.constants';
 import { SessionExpiredDialogComponent } from '../../features/auth/session-expired-dialog.component';
+import { IS_SILENT_REFRESH } from '../interceptors/http-context.tokens';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -63,7 +64,12 @@ export class AuthService {
   }
 
   init(): Observable<boolean> {
-    return this.refreshSession().pipe(
+    const context = new HttpContext().set(IS_SILENT_REFRESH, true);
+    return this.httpClient.post<TokenResponse>(AUTH_ENDPOINTS.refresh, {}, { withCredentials: true, context }).pipe(
+      tap(res => {
+        this.setToken(res.access_token);
+        this.currentUser.set(res.user);
+      }),
       map(() => true),
       catchError(() => {
         this.clearSession();
