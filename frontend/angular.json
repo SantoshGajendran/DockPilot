@@ -38,6 +38,7 @@
           },
           "configurations": {
             "production": {
+              "baseHref": "/dockpilot/",
               "budgets": [
                 {
                   "type": "initial",
@@ -82,4 +83,3 @@
     }
   }
 }
-

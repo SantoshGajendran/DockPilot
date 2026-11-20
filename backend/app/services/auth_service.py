@@ -238,9 +238,10 @@ async def logout(
     response: Optional[Response] = None,
 ) -> None:
     if response is not None:
+        settings = get_settings()
         response.delete_cookie(
             key="refresh_token",
-            path="/api/v1/auth",
+            path=settings.auth_cookie_path,
         )
     if db is not None:
         audit = AuditLog(

@@ -27,6 +27,7 @@ class Settings(BaseSettings):
     lockout_duration_minutes: int = 15
     default_admin_user: str = "admin"
     default_admin_password: str = "dockpilot_admin_2026"
+    auth_cookie_path: str = "/"
 
 @lru_cache
 def get_settings() -> Settings:

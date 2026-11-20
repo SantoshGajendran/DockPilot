@@ -21,3 +21,4 @@ max_login_attempts: 5
 lockout_duration_minutes: 15
 default_admin_user: "admin"
 default_admin_password: "dockpilot_admin_2026"
+auth_cookie_path: "/"

@@ -32,7 +32,7 @@ async def login(
         value=refresh_token,
         httponly=True,
         samesite="lax",
-        path="/api/v1/auth",
+        path=settings.auth_cookie_path,
         max_age=settings.jwt_refresh_expire_days * 86400,
         secure=False if settings.environment == "development" else True,
     )
@@ -68,7 +68,7 @@ async def refresh(
         value=new_refresh_token,
         httponly=True,
         samesite="lax",
-        path="/api/v1/auth",
+        path=settings.auth_cookie_path,
         max_age=settings.jwt_refresh_expire_days * 86400,
         secure=False if settings.environment == "development" else True,
     )

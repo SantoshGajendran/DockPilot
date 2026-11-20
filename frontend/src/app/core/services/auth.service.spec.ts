@@ -43,7 +43,7 @@ describe('AuthService', () => {
       expect(service.getToken()).toBe('mock-jwt-token');
     });
 
-    const req = httpMock.expectOne('/api/v1/auth/login');
+    const req = httpMock.expectOne('api/v1/auth/login');
     expect(req.request.method).toBe('POST');
     expect(req.request.withCredentials).toBe(true);
     req.flush({
@@ -63,7 +63,7 @@ describe('AuthService', () => {
       expect(navigateSpy).toHaveBeenCalledWith(['/login']);
     });
 
-    const req = httpMock.expectOne('/api/v1/auth/logout');
+    const req = httpMock.expectOne('api/v1/auth/logout');
     expect(req.request.method).toBe('POST');
     expect(req.request.withCredentials).toBe(true);
     req.flush({ status: 'ok' });
@@ -76,7 +76,7 @@ describe('AuthService', () => {
       expect(service.getToken()).toBe('new-mock-jwt');
     });
 
-    const req = httpMock.expectOne('/api/v1/auth/refresh');
+    const req = httpMock.expectOne('api/v1/auth/refresh');
     expect(req.request.method).toBe('POST');
     expect(req.request.withCredentials).toBe(true);
     req.flush({
@@ -93,7 +93,7 @@ describe('AuthService', () => {
       expect(service.getToken()).toBeNull();
     });
 
-    const req = httpMock.expectOne('/api/v1/auth/refresh');
+    const req = httpMock.expectOne('api/v1/auth/refresh');
     expect(req.request.method).toBe('POST');
     req.flush('Unauthorized', { status: 401, statusText: 'Unauthorized' });
   });
@@ -130,7 +130,7 @@ describe('AuthService', () => {
     expect(service.hasRole('viewer')).toBe(false);
 
     service.login({ username: 'operator_user', password: 'password123' }).subscribe();
-    const req = httpMock.expectOne('/api/v1/auth/login');
+    const req = httpMock.expectOne('api/v1/auth/login');
     req.flush({
       access_token: 'mock-jwt-token',
       token_type: 'bearer',

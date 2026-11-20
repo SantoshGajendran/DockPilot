@@ -68,7 +68,7 @@ describe('OverviewService', () => {
       expect(res.containers.running).toBe(2);
     });
 
-    const req = httpMock.expectOne('/api/v1/overview');
+    const req = httpMock.expectOne('api/v1/overview');
     expect(req.request.method).toBe('GET');
     req.flush(mockOverview);
   });
@@ -76,7 +76,7 @@ describe('OverviewService', () => {
   it('should receive overview stream from SseService', (done) => {
     service.getOverviewStream().subscribe(res => {
       expect(res.docker_connected).toBe(true);
-      expect(sseServiceSpy.connect).toHaveBeenCalledWith('/api/v1/overview/stream');
+      expect(sseServiceSpy.connect).toHaveBeenCalledWith('api/v1/overview/stream');
       done();
     });
   });

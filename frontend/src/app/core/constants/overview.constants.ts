@@ -1,6 +1,6 @@
 export const OVERVIEW_ENDPOINTS = {
-  overview: '/api/v1/overview',
-  stream: '/api/v1/overview/stream'
+  overview: 'api/v1/overview',
+  stream: 'api/v1/overview/stream'
 } as const;
 
 export const CONTAINER_STATE_LABELS = {
