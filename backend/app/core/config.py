@@ -16,6 +16,9 @@ class Settings(BaseSettings):
     collection_interval_seconds: int = 5
     retention_days: int = 30
     log_tail_default: int = 200
+    log_search_max_bytes_scanned: int = 10485760
+    log_stream_buffer_max_lines: int = 1000
+    log_backpressure_drop_threshold: int = 500
     metrics_interval_seconds: int = 3
     top_containers_limit: int = 5
     recent_events_limit: int = 10

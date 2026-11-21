@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
-from typing import Any, AsyncGenerator, Dict, List
+from typing import Any, AsyncGenerator, Dict, List, Optional
+
 
 class DockerGateway(ABC):
     @abstractmethod
@@ -41,3 +42,27 @@ class DockerGateway(ABC):
     async def get_recent_events(self, limit: int = 10) -> List[Dict[str, Any]]:
         """Retrieve the most recent Docker lifecycle events."""
         pass
+
+    @abstractmethod
+    async def get_container_logs(
+        self,
+        container_id: str,
+        tail: int = 200,
+        since: Optional[int] = None,
+        until: Optional[int] = None,
+        timestamps: bool = True,
+    ) -> List[Dict[str, Any]]:
+        """Fetch historical log lines for a container."""
+        pass
+
+    @abstractmethod
+    async def stream_container_logs(
+        self,
+        container_id: str,
+        tail: int = 100,
+        since: Optional[int] = None,
+        timestamps: bool = True,
+    ) -> AsyncGenerator[Dict[str, Any], None]:
+        """Stream real-time log lines for a container."""
+        pass
+

@@ -1,4 +1,4 @@
-from typing import Any, AsyncGenerator, Dict, List
+from typing import Any, AsyncGenerator, Dict, List, Optional
 from app.docker.interface import DockerGateway
 
 class FakeGateway(DockerGateway):
@@ -157,3 +157,57 @@ class FakeGateway(DockerGateway):
 
     async def get_recent_events(self, limit: int = 10) -> List[Dict[str, Any]]:
         return self.events[:limit]
+
+    async def get_container_logs(
+        self,
+        container_id: str,
+        tail: int = 200,
+        since: Optional[int] = None,
+        until: Optional[int] = None,
+        timestamps: bool = True,
+    ) -> List[Dict[str, Any]]:
+        if container_id not in self.containers:
+            raise ValueError(f"Container {container_id} not found")
+        mock_logs = [
+            {
+                "stream": "stdout",
+                "timestamp": "2026-11-21T10:00:00.000000000Z",
+                "message": f"[{self.containers[container_id]['name']}] Initializing runtime environment",
+                "level": "INFO",
+            },
+            {
+                "stream": "stdout",
+                "timestamp": "2026-11-21T10:01:00.000000000Z",
+                "message": f"[{self.containers[container_id]['name']}] Service started successfully",
+                "level": "INFO",
+            },
+            {
+                "stream": "stderr",
+                "timestamp": "2026-11-21T10:02:00.000000000Z",
+                "message": f"[{self.containers[container_id]['name']}] Warning: high resource usage detected",
+                "level": "WARN",
+            },
+            {
+                "stream": "stdout",
+                "timestamp": "2026-11-21T10:03:00.000000000Z",
+                "message": f"[{self.containers[container_id]['name']}] Health probe responded HTTP 200 OK",
+                "level": "INFO",
+            },
+        ]
+        return mock_logs[-tail:]
+
+    async def stream_container_logs(
+        self,
+        container_id: str,
+        tail: int = 100,
+        since: Optional[int] = None,
+        timestamps: bool = True,
+    ) -> AsyncGenerator[Dict[str, Any], None]:
+        if container_id not in self.containers:
+            raise ValueError(f"Container {container_id} not found")
+        logs = await self.get_container_logs(
+            container_id, tail=tail, since=since, timestamps=timestamps
+        )
+        for log in logs:
+            yield log
+

@@ -82,3 +82,30 @@
   - Clickable link on container names in `ContainersListComponent` navigating to `/containers/:id`.
   - 85 frontend unit tests passing across 17 suites (`npm test`); production `ng build` passing with 0 errors and 0 warnings.
 
+## Prompt 05: Logs Explorer
+- **Status:** Complete
+- **Backend:**
+  - Configurable log safety parameters in `config/app.yaml` & `backend/app/core/config.py`: `log_search_max_bytes_scanned: 10485760` (10MB hard cap), `log_stream_buffer_max_lines: 1000`, `log_backpressure_drop_threshold: 500`.
+  - Stream demuxing in `backend/app/docker/demux.py`: handles 8-byte Docker multiplex headers (stdout / stderr, payload length), raw TTY fallback, RFC3339 timestamp extraction, and log level detection (ERROR, WARN, INFO, DEBUG).
+  - Extended `DockerGateway` interface, `EngineGateway`, and `FakeGateway` with `get_container_logs` (historical snapshot) and `stream_container_logs` (streaming generator).
+  - Schemas in `backend/app/schemas/logs.py`: `LogEntry` and `LogSearchResponse`.
+  - `LogsService` in `backend/app/services/logs_service.py`:
+    - `stream_container_logs_sse`: Real-time SSE streaming with bounded asyncio queue and backpressure drop marker generation (`[dockpilot warning: skipped X log lines due to slow consumer]`).
+    - `search_logs`: Multi-container search across time windows (`since`, `until`), regex/plain-text filtering, and byte budget enforcement returning partial results if scan exceeds limit.
+  - Endpoints: `GET /api/v1/containers/{id}/logs` (SSE stream or snapshot) and `GET /api/v1/logs/search` (multi-container historical search).
+  - 86 backend tests passing across all suites (`pytest -q`).
+- **Frontend:**
+  - `AnsiParserService` (`frontend/src/app/core/services/ansi-parser.service.ts`): Parses ANSI color codes (30-37, 90-97, 40-47, 100-107, bold/dim/reset) into structured styled spans.
+  - Standalone reusable `LogViewerComponent` (`frontend/src/app/shared/components/log-viewer/`):
+    - Virtual scrolling via `@angular/cdk/scrolling` (`cdk-virtual-scroll-viewport`) for smooth rendering of thousands of lines.
+    - Real-time SSE streaming or static log entry array input.
+    - Timestamp visibility toggle, line-wrapping toggle, pause/resume auto-scroll with manual scroll-up detection, copy to clipboard, and file download.
+    - Inline search query filtering.
+  - Embedded `LogViewerComponent` inside `ContainerDetailComponent` **Logs** tab with live container streaming.
+  - Standalone lazy-loaded route `/logs` (`LogsExplorerComponent`):
+    - Multi-container picker with chip tags.
+    - Time-range presets (`Last 15m`, `Last 1h`, `Last 6h`, `Last 24h`, `Custom`).
+    - Free-text / regex search with case-sensitivity toggle and level filtering.
+    - Signal-based `LogsStore` managing query state, scan limit warning banners, and logs collection.
+  - 100 frontend unit tests passing across 22 suites (`npm test`); production `ng build` passing with 0 errors and 0 warnings.
+

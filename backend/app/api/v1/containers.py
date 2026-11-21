@@ -25,6 +25,7 @@ from app.services.container_detail_service import (
     reveal_container_env,
     stream_container_stats,
 )
+from app.services.logs_service import stream_container_logs_sse
 from app.services.containers_service import (
     delete_container,
     execute_bulk_actions,
@@ -144,6 +145,39 @@ async def get_container_stats_stream(
             "X-Accel-Buffering": "no",
         },
     )
+
+
+@router.get("/{container_id}/logs")
+async def get_container_logs_stream(
+    container_id: str,
+    request: Request,
+    tail: int = Query(100, ge=1, le=5000),
+    since: Optional[int] = Query(None),
+    timestamps: bool = Query(True),
+    follow: bool = Query(True),
+    once: bool = Query(False, include_in_schema=False),
+    user: User = Depends(require_role(Role.VIEWER)),
+    gateway: DockerGateway = Depends(get_docker_gateway),
+) -> StreamingResponse:
+    generator = stream_container_logs_sse(
+        gateway=gateway,
+        container_id=container_id,
+        tail=tail,
+        since=since,
+        timestamps=timestamps,
+        follow=follow,
+        once=once,
+    )
+    return StreamingResponse(
+        generator,
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no",
+        },
+    )
+
 
 
 @router.get("/{container_id}/metrics", response_model=ContainerMetricsHistoryResponse)

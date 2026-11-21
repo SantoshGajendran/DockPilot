@@ -18,6 +18,7 @@ import { ContainerDetailStore } from './container-detail.store';
 import { AuthService } from '../../../core/services/auth.service';
 import { ActionConfirmDialogComponent } from '../dialogs/action-confirm-dialog.component';
 import { DeleteContainerDialogComponent } from '../dialogs/delete-container-dialog.component';
+import { LogViewerComponent } from '../../../shared/components/log-viewer/log-viewer.component';
 import { METRIC_RANGES, MetricRange } from '../../../core/constants/container.constants';
 import { DetailTabType, ContainerDetail } from '../../../core/models/container-detail.model';
 
@@ -41,7 +42,9 @@ const TABS: DetailTabType[] = ['overview', 'metrics', 'logs', 'config', 'events'
     MatProgressSpinnerModule,
     MatDialogModule,
     BaseChartDirective,
+    LogViewerComponent,
   ],
+
   providers: [ContainerDetailStore],
   templateUrl: './container-detail.component.html',
   styleUrls: ['./container-detail.component.scss'],

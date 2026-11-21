@@ -10,6 +10,9 @@ cors_origins:
 collection_interval_seconds: 5
 retention_days: 30
 log_tail_default: 200
+log_search_max_bytes_scanned: 10485760
+log_stream_buffer_max_lines: 1000
+log_backpressure_drop_threshold: 500
 metrics_interval_seconds: 3
 top_containers_limit: 5
 recent_events_limit: 10

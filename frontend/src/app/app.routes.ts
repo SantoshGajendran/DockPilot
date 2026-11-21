@@ -43,6 +43,15 @@ export const routes: Routes = [
           ),
         data: { title: 'Container Details' },
       },
+      {
+        path: 'logs',
+        loadComponent: () =>
+          import('./features/logs/logs-explorer.component').then(
+            (m) => m.LogsExplorerComponent
+          ),
+        data: { title: 'Logs Explorer' },
+      },
+
 
     ],
   },

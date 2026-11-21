@@ -97,7 +97,7 @@ npm start
 ## Running Tests
 
 ### Backend Unit Tests
-Execute the pytest suite (46 unit tests):
+Execute the pytest suite (86 unit tests):
 ```bash
 cd backend && pytest -v
 ```
@@ -107,7 +107,7 @@ python -m pytest backend/tests -v
 ```
 
 ### Frontend Unit Tests & Build
-Execute the Jest unit test suite (51 unit tests across 11 suites):
+Execute the Jest unit test suite (100 unit tests across 22 suites):
 ```bash
 cd frontend && npm test
 ```
@@ -201,4 +201,18 @@ cd frontend && npm run build
   - **Events Tab:** Chronological lifecycle events timeline.
   - Reactive `ContainerDetailStore` using Angular signals and clean lifecycle cleanup.
   - All 75 backend tests (`pytest`) and 85 frontend tests across 17 suites (`npm test`) passing with 0 warnings in production `ng build`.
+
+### Prompt 05: Logs Explorer
+- **Status:** Complete
+- **Backend Endpoints & Demuxing:**
+  - `GET /api/v1/containers/{id}/logs`: Live Server-Sent Events (SSE) log stream with real-time backpressure drop threshold monitoring (`log_backpressure_drop_threshold: 500`), or historical snapshot retrieval (`follow=false`).
+  - `GET /api/v1/logs/search`: Multi-container search over historical time windows (`since`, `until`, `limit`) with regex or substring filtering and a 10MB byte scan safety budget (`log_search_max_bytes_scanned: 10485760`).
+  - 8-byte multiplex header demuxer (`demux_docker_stream`) handling Docker stdout/stderr frame decoding, raw TTY fallback, RFC3339 timestamp extraction, and log level tagging (`INFO`, `WARN`, `ERROR`, `DEBUG`).
+  - Bounded async streaming queue with automatic backpressure markers (`[dockpilot warning: skipped X log lines due to slow consumer]`).
+- **Frontend UI & State:**
+  - Reusable `LogViewerComponent` (`cdk-virtual-scroll-viewport`) rendering thousands of log lines at 60 FPS with auto-scroll, manual scroll-up pause, line-wrap toggle, timestamp toggle, clipboard copy, and file download.
+  - `AnsiParserService` converting standard ANSI color codes and text styling into sanitized HTML spans.
+  - Container detail **Logs** tab integrated with `LogViewerComponent` for real-time live streaming.
+  - Standalone `/logs` explorer page (`LogsExplorerComponent`) with multi-container picker, time-range presets (`Last 15m`, `Last 1h`, `Last 6h`, `Last 24h`, `Custom`), level filtering, and scan budget warnings.
+  - All 86 backend tests (`pytest`) and 100 frontend tests across 22 suites (`npm test`) passing with 0 warnings in production `ng build`.
 

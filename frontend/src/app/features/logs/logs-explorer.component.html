@@ -1,0 +1,105 @@
+<div class="logs-explorer-container">
+  <!-- Container Picker Panel -->
+  <div class="containers-panel">
+    <div class="panel-header">
+      <h3>Containers ({{ store.selectedCount() }}/{{ store.containers().length }})</h3>
+      <button mat-button color="primary" (click)="store.toggleAll()">
+        {{ store.allSelected() ? 'Deselect All' : 'Select All' }}
+      </button>
+    </div>
+
+    <div class="containers-list">
+      @for (c of store.containers(); track c.id) {
+        <div class="container-item" (click)="store.toggleContainer(c.id)">
+          <mat-checkbox
+            [checked]="store.selectedContainerIds().has(c.id)"
+            (change)="store.toggleContainer(c.id)"
+            (click)="$event.stopPropagation()"
+          ></mat-checkbox>
+          <div class="container-label">
+            <span class="c-name">{{ c.name }}</span>
+            <span class="c-img">{{ c.image }}</span>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+
+  <!-- Main Log Explorer Panel -->
+  <div class="main-log-panel">
+    @if (store.isCapped()) {
+      <div class="capped-banner">
+        <mat-icon style="font-size: 18px; width: 18px; height: 18px;">warning</mat-icon>
+        <span>Search limit reached: scan was capped at configured maximum byte scan threshold.</span>
+      </div>
+    }
+
+    <!-- Search & Filter Card -->
+    <div class="search-filter-card">
+      <div class="search-inputs">
+        <div class="search-box">
+          <mat-icon style="font-size: 18px; width: 18px; height: 18px; margin-right: 6px; color: #64748b;">search</mat-icon>
+          <input
+            type="text"
+            placeholder="Search logs (regex or text)..."
+            [value]="store.searchQuery()"
+            (input)="onSearchInput($event)"
+            (keyup.enter)="store.fetchLogs()"
+          />
+        </div>
+
+        <button
+          mat-icon-button
+          [color]="store.isRegex() ? 'primary' : ''"
+          matTooltip="Toggle regex mode"
+          (click)="store.toggleRegex()"
+        >
+          <mat-icon>regular_expression</mat-icon>
+        </button>
+
+        <button mat-flat-button color="primary" (click)="store.fetchLogs()">
+          Search
+        </button>
+      </div>
+
+      <div class="filters-group">
+        <!-- Time Range -->
+        <mat-chip-listbox [value]="store.timeRange()" (change)="store.setTimeRange($event.value)">
+          @for (r of ['15m', '1h', '6h', '24h']; track r) {
+            <mat-chip-option [value]="r">{{ r }}</mat-chip-option>
+          }
+        </mat-chip-listbox>
+
+        <!-- Stream Filter -->
+        <mat-form-field appearance="outline" class="field-small" subscriptSizing="dynamic">
+          <mat-label>Stream</mat-label>
+          <mat-select [value]="store.streamFilter()" (selectionChange)="store.setStreamFilter($event.value)">
+            <mat-option value="all">All</mat-option>
+            <mat-option value="stdout">stdout</mat-option>
+            <mat-option value="stderr">stderr</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <!-- Level Filter -->
+        <mat-form-field appearance="outline" class="field-small" subscriptSizing="dynamic">
+          <mat-label>Level</mat-label>
+          <mat-select [value]="store.levelFilter()" (selectionChange)="store.setLevelFilter($event.value)">
+            <mat-option value="ALL">All Levels</mat-option>
+            <mat-option value="ERROR">ERROR</mat-option>
+            <mat-option value="WARN">WARN</mat-option>
+            <mat-option value="INFO">INFO</mat-option>
+            <mat-option value="DEBUG">DEBUG</mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+    </div>
+
+    <!-- Reusable Virtual Scrolled Log Viewer -->
+    <div class="viewer-wrapper">
+      <dp-log-viewer
+        [lines]="store.displayedLines()"
+        [showContainerName]="true"
+      ></dp-log-viewer>
+    </div>
+  </div>
+</div>

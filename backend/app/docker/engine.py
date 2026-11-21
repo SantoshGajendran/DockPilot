@@ -6,6 +6,7 @@ import docker
 from docker.errors import DockerException, NotFound
 
 from app.core.config import get_settings
+from app.docker.demux import demux_docker_stream
 from app.docker.interface import DockerGateway
 
 def _format_container(container: Any) -> Dict[str, Any]:
@@ -244,3 +245,75 @@ class EngineGateway(DockerGateway):
             except Exception:
                 return []
         return await asyncio.to_thread(_get_events)
+
+    async def get_container_logs(
+        self,
+        container_id: str,
+        tail: int = 200,
+        since: Optional[int] = None,
+        until: Optional[int] = None,
+        timestamps: bool = True,
+    ) -> List[Dict[str, Any]]:
+        def _get_logs() -> List[Dict[str, Any]]:
+            try:
+                container = self._client.containers.get(container_id)
+                attrs = getattr(container, "attrs", {}) or {}
+                config = attrs.get("Config", {}) if isinstance(attrs, dict) else {}
+                is_tty = bool(config.get("Tty", False))
+                raw_bytes = container.logs(
+                    stream=False,
+                    stdout=True,
+                    stderr=True,
+                    tail=tail,
+                    since=since,
+                    until=until,
+                    timestamps=timestamps,
+                )
+                if isinstance(raw_bytes, str):
+                    raw_bytes = raw_bytes.encode("utf-8")
+                return demux_docker_stream(raw_bytes, is_tty=is_tty)
+            except NotFound:
+                raise ValueError(f"Container {container_id} not found")
+            except Exception as e:
+                raise ValueError(f"Failed to fetch logs for {container_id}: {e}")
+        return await asyncio.to_thread(_get_logs)
+
+    async def stream_container_logs(
+        self,
+        container_id: str,
+        tail: int = 100,
+        since: Optional[int] = None,
+        timestamps: bool = True,
+    ) -> AsyncGenerator[Dict[str, Any], None]:
+        loop = asyncio.get_running_loop()
+        try:
+            container = await asyncio.to_thread(self._client.containers.get, container_id)
+            attrs = getattr(container, "attrs", {}) or {}
+            config = attrs.get("Config", {}) if isinstance(attrs, dict) else {}
+            is_tty = bool(config.get("Tty", False))
+            log_stream = container.logs(
+                stream=True,
+                follow=True,
+                stdout=True,
+                stderr=True,
+                tail=tail,
+                since=since,
+                timestamps=timestamps,
+            )
+            iterator = iter(log_stream)
+        except NotFound:
+            raise ValueError(f"Container {container_id} not found")
+        except Exception:
+            return
+
+        while True:
+            try:
+                chunk = await loop.run_in_executor(None, next, iterator)
+                if isinstance(chunk, str):
+                    chunk = chunk.encode("utf-8")
+                lines = demux_docker_stream(chunk, is_tty=is_tty)
+                for line in lines:
+                    yield line
+            except (StopIteration, Exception):
+                break
+

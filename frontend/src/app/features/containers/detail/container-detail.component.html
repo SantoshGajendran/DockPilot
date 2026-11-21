@@ -201,14 +201,8 @@
 
       <!-- TAB 3: LOGS -->
       <mat-tab label="Logs">
-        <div class="tab-content">
-          <div class="logs-terminal">
-            <div>[DockPilot Log Stream initialized for container {{ detail.id | slice:0:12 }}]</div>
-            <div>[State: {{ detail.state }} | Health: {{ detail.health }}]</div>
-            <div>2026-11-21 16:00:00.000 [INFO] Container entrypoint started: {{ detail.command }}</div>
-            <div>2026-11-21 16:00:01.204 [INFO] Ready for connections on mapped ports.</div>
-            <div>2026-11-21 16:05:12.839 [INFO] Healthcheck probe responded 200 OK.</div>
-          </div>
+        <div class="tab-content" style="height: 550px;">
+          <dp-log-viewer [containerId]="detail.id"></dp-log-viewer>
         </div>
       </mat-tab>
 

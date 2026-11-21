@@ -9,6 +9,9 @@ export const CONTAINER_ENDPOINTS = {
   detailStats: (id: string) => `api/v1/containers/${id}/stats`,
   detailMetrics: (id: string, range: string) => `api/v1/containers/${id}/metrics?range=${range}`,
   revealEnv: (id: string) => `api/v1/containers/${id}/env/reveal`,
+  containerLogs: (id: string, tail: number = 200, follow: boolean = true) =>
+    `api/v1/containers/${id}/logs?tail=${tail}&follow=${follow}`,
+  searchLogs: 'api/v1/logs/search',
 } as const;
 
 export const METRIC_RANGES = ['1h', '6h', '24h', '7d'] as const;

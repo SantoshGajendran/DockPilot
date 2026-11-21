@@ -1,0 +1,118 @@
+<div class="log-toolbar">
+  <div class="toolbar-left">
+    <span class="status-indicator">
+      <span class="dot" [class.paused]="isPaused()"></span>
+      <span>{{ isPaused() ? 'Paused' : 'Streaming' }}</span>
+    </span>
+
+    <div class="search-input-box">
+      <mat-icon style="font-size: 16px; width: 16px; height: 16px; margin-right: 4px;">search</mat-icon>
+      <input
+        type="text"
+        placeholder="Filter output..."
+        [value]="filterQuery()"
+        (input)="onFilterChange($event)"
+      />
+    </div>
+
+    <span>{{ filteredLines().length }} lines</span>
+  </div>
+
+  <div class="toolbar-right">
+    <button
+      mat-icon-button
+      [matTooltip]="isPaused() ? 'Resume auto-scroll' : 'Pause auto-scroll'"
+      (click)="togglePause()"
+    >
+      <mat-icon>{{ isPaused() ? 'play_arrow' : 'pause' }}</mat-icon>
+    </button>
+
+    <button
+      mat-icon-button
+      [class.active]="wrapLines()"
+      matTooltip="Toggle line wrap"
+      (click)="wrapLines.set(!wrapLines())"
+    >
+      <mat-icon>wrap_text</mat-icon>
+    </button>
+
+    <button
+      mat-icon-button
+      [class.active]="showTimestamps()"
+      matTooltip="Toggle timestamps"
+      (click)="showTimestamps.set(!showTimestamps())"
+    >
+      <mat-icon>schedule</mat-icon>
+    </button>
+
+    <button
+      mat-icon-button
+      matTooltip="Scroll to bottom"
+      (click)="scrollToBottom()"
+    >
+      <mat-icon>vertical_align_bottom</mat-icon>
+    </button>
+
+    <button
+      mat-icon-button
+      matTooltip="Copy all visible"
+      (click)="copyLogs()"
+    >
+      <mat-icon>content_copy</mat-icon>
+    </button>
+
+    <button
+      mat-icon-button
+      matTooltip="Download as .log"
+      (click)="downloadLogs()"
+    >
+      <mat-icon>download</mat-icon>
+    </button>
+
+    <button
+      mat-icon-button
+      matTooltip="Clear display"
+      (click)="clearLogs()"
+    >
+      <mat-icon>block</mat-icon>
+    </button>
+  </div>
+</div>
+
+<div class="viewport-container">
+  @if (filteredLines().length === 0) {
+    <div class="empty-logs">No log lines to display</div>
+  } @else {
+    <cdk-virtual-scroll-viewport
+      #viewport
+      itemSize="20"
+      class="log-viewport"
+      [class.wrap-lines]="wrapLines()"
+      (scrolledIndexChange)="onScroll($event)"
+    >
+      <div
+        *cdkVirtualFor="let entry of filteredLines(); trackBy: trackByFn"
+        class="log-line"
+        [ngClass]="entry.stream"
+      >
+        @if (showContainerName && entry.container_name) {
+          <span class="container-tag">[{{ entry.container_name }}]</span>
+        }
+
+        @if (showTimestamps() && entry.timestamp) {
+          <span class="log-ts">{{ entry.timestamp | date:'HH:mm:ss.SSS' }}</span>
+        }
+
+        @if (entry.level) {
+          <span class="level-badge" [ngClass]="entry.level">{{ entry.level }}</span>
+        }
+
+        <span class="log-msg">
+          @for (span of parseSpans(entry.message); track $index) {
+            <span [ngClass]="span.classes">{{ span.text }}</span>
+          }
+        </span>
+      </div>
+    </cdk-virtual-scroll-viewport>
+  }
+</div>

@@ -16,6 +16,7 @@ from app.schemas.container_detail import (
     ContainerMetricsHistoryResponse,
     EnvRevealResponse,
 )
+from app.schemas.logs import LogEntry, LogSearchResponse
 
 __all__ = [
     "LoginRequest",
@@ -34,5 +35,8 @@ __all__ = [
     "ContainerLiveStats",
     "ContainerMetricsHistoryResponse",
     "EnvRevealResponse",
+    "LogEntry",
+    "LogSearchResponse",
 ]
+
 

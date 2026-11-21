@@ -14,6 +14,10 @@ from app.services.container_detail_service import (
     get_container_metrics_history,
     record_container_metric,
 )
+from app.services.logs_service import (
+    stream_container_logs_sse,
+    search_logs,
+)
 
 __all__ = [
     "authenticate_user",
@@ -30,5 +34,8 @@ __all__ = [
     "stream_container_stats",
     "get_container_metrics_history",
     "record_container_metric",
+    "stream_container_logs_sse",
+    "search_logs",
 ]
+
 
