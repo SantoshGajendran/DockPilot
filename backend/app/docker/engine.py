@@ -16,6 +16,10 @@ def _format_container(container: Any) -> Dict[str, Any]:
     config = attrs.get("Config", {}) if isinstance(attrs, dict) else {}
     network_settings = attrs.get("NetworkSettings", {}) if isinstance(attrs, dict) else {}
 
+    health_info = state_info.get("Health", {}) if isinstance(state_info, dict) else {}
+    health_status = health_info.get("Status", "none") if isinstance(health_info, dict) else "none"
+    restart_count = attrs.get("RestartCount", 0) if isinstance(attrs, dict) else 0
+
     image_tag = ""
     if hasattr(container, "image") and container.image:
         tags = getattr(container.image, "tags", None)
@@ -34,6 +38,8 @@ def _format_container(container: Any) -> Dict[str, Any]:
         "image": image_tag,
         "state": state_str,
         "status": status,
+        "health": health_status,
+        "restart_count": restart_count,
         "created": attrs.get("Created", "") if isinstance(attrs, dict) else "",
         "ports": network_settings.get("Ports", {}) if isinstance(network_settings, dict) else {},
         "labels": config.get("Labels", {}) if isinstance(config, dict) else {},
@@ -90,6 +96,16 @@ class EngineGateway(DockerGateway):
             except Exception:
                 return False
         return await asyncio.to_thread(_exec)
+
+    async def remove_container(self, container_id: str, force: bool = False) -> bool:
+        def _remove() -> bool:
+            try:
+                container = self._client.containers.get(container_id)
+                container.remove(force=force)
+                return True
+            except Exception:
+                return False
+        return await asyncio.to_thread(_remove)
 
     async def stream_events(self) -> AsyncGenerator[Dict[str, Any], None]:
         loop = asyncio.get_running_loop()

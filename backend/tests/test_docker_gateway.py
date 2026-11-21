@@ -22,6 +22,10 @@ async def test_fake_gateway_contract():
     success = await gateway.execute_action(c_id, "restart")
     assert success is True
     
+    # Test remove
+    assert await gateway.remove_container(c_id) is True
+    assert await gateway.remove_container("non_existent") is False
+    
     events = []
     async for event in gateway.stream_events():
         events.append(event)
@@ -65,10 +69,11 @@ async def test_engine_gateway_with_mock_client():
     mock_container.name = "/dockpilot-api"
     mock_container.status = "running"
     mock_container.attrs = {
-        "State": {"Status": "running"},
+        "State": {"Status": "running", "Health": {"Status": "healthy"}},
         "Config": {"Labels": {"test": "true"}, "Env": ["ENV=prod"]},
         "NetworkSettings": {"Ports": {"8000/tcp": [{"HostPort": "8000"}]}},
         "Created": "2026-11-18T20:00:00Z",
+        "RestartCount": 2,
     }
     mock_container.image.tags = ["dockpilot-api:latest"]
     
@@ -87,6 +92,8 @@ async def test_engine_gateway_with_mock_client():
     assert containers[0]["name"] == "dockpilot-api"
     assert containers[0]["image"] == "dockpilot-api:latest"
     assert containers[0]["state"] == "running"
+    assert containers[0]["health"] == "healthy"
+    assert containers[0]["restart_count"] == 2
     
     # Test inspect
     details = await gateway.inspect_container("mock_c1")
@@ -97,6 +104,10 @@ async def test_engine_gateway_with_mock_client():
     success = await gateway.execute_action("mock_c1", "restart")
     assert success is True
     mock_container.restart.assert_called_once()
+    
+    # Test remove_container
+    assert await gateway.remove_container("mock_c1", force=True) is True
+    mock_container.remove.assert_called_once_with(force=True)
     
     # Test events stream
     mock_client.events.return_value = iter([{"status": "die", "id": "mock_c1"}])
@@ -159,3 +170,4 @@ async def test_engine_gateway_error_handling():
         await gateway.get_container_stats("unknown_id")
         
     assert await gateway.execute_action("unknown_id", "restart") is False
+    assert await gateway.remove_container("unknown_id") is False

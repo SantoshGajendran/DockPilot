@@ -22,3 +22,7 @@ lockout_duration_minutes: 15
 default_admin_user: "admin"
 default_admin_password: "dockpilot_admin_2026"
 auth_cookie_path: "/"
+containers_page_size_default: 20
+containers_page_size_max: 100
+delete_token_expire_seconds: 60
+containers_stream_interval_seconds: 3

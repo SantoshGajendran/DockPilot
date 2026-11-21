@@ -1,0 +1,376 @@
+<div class="containers-page">
+  <!-- Page Header -->
+  <header class="page-header">
+    <div>
+      <h1 class="page-title">Containers</h1>
+      <p class="page-subtitle">Inspect, filter, and control Docker workloads across the host</p>
+    </div>
+    <div class="header-actions">
+      <button mat-stroked-button (click)="store.loadContainers()">
+        <mat-icon>refresh</mat-icon>
+        Refresh
+      </button>
+    </div>
+  </header>
+
+  <!-- Filter Bar -->
+  <section class="filter-card">
+    <div class="filter-row">
+      <!-- Search Input -->
+      <mat-form-field appearance="outline" class="search-field" subscriptSizing="dynamic">
+        <mat-label>Search containers</mat-label>
+        <mat-icon matPrefix>search</mat-icon>
+        <input
+          matInput
+          [ngModel]="store.filters().q"
+          (ngModelChange)="store.setFilter('q', $event)"
+          placeholder="Name, ID or image"
+        />
+      </mat-form-field>
+
+      <!-- State Dropdown -->
+      <mat-form-field appearance="outline" class="select-field" subscriptSizing="dynamic">
+        <mat-label>State</mat-label>
+        <mat-select
+          [ngModel]="store.filters().state"
+          (ngModelChange)="store.setFilter('state', $event)"
+        >
+          <mat-option value="">All States</mat-option>
+          <mat-option value="running">Running</mat-option>
+          <mat-option value="exited">Exited</mat-option>
+          <mat-option value="restarting">Restarting</mat-option>
+          <mat-option value="unhealthy">Unhealthy</mat-option>
+          <mat-option value="paused">Paused</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <!-- Health Dropdown -->
+      <mat-form-field appearance="outline" class="select-field" subscriptSizing="dynamic">
+        <mat-label>Health</mat-label>
+        <mat-select
+          [ngModel]="store.filters().health"
+          (ngModelChange)="store.setFilter('health', $event)"
+        >
+          <mat-option value="">All Health</mat-option>
+          <mat-option value="healthy">Healthy</mat-option>
+          <mat-option value="unhealthy">Unhealthy</mat-option>
+          <mat-option value="starting">Starting</mat-option>
+          <mat-option value="none">None</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <!-- Compose Project Input -->
+      <mat-form-field appearance="outline" class="project-field" subscriptSizing="dynamic">
+        <mat-label>Project</mat-label>
+        <input
+          matInput
+          [ngModel]="store.filters().compose_project"
+          (ngModelChange)="store.setFilter('compose_project', $event)"
+          placeholder="e.g. dockpilot"
+        />
+      </mat-form-field>
+
+      <!-- Presets & Actions -->
+      <div class="filter-actions">
+        <button mat-stroked-button [matMenuTriggerFor]="presetsMenu">
+          <mat-icon>bookmark_border</mat-icon>
+          Presets
+        </button>
+        <mat-menu #presetsMenu="matMenu">
+          <div class="preset-menu-header" (click)="$event.stopPropagation()">
+            <input
+              class="preset-name-input"
+              [(ngModel)]="newPresetName"
+              placeholder="Save current filters..."
+            />
+            <button mat-icon-button (click)="onSavePresetSubmit()" [disabled]="!newPresetName.trim()">
+              <mat-icon>save</mat-icon>
+            </button>
+          </div>
+          <mat-divider></mat-divider>
+          @for (preset of store.presets(); track preset.name) {
+            <button mat-menu-item (click)="store.loadPreset(preset.name)">
+              <mat-icon>label</mat-icon>
+              <span>{{ preset.name }}</span>
+            </button>
+          }
+        </mat-menu>
+
+        <button mat-button color="warn" (click)="store.clearFilters()">Clear</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Bulk Action Bar -->
+  @if (store.selectedCount() > 0) {
+    <aside class="bulk-toolbar" role="region" aria-label="Bulk actions toolbar">
+      <div class="bulk-info">
+        <span class="bulk-badge">{{ store.selectedCount() }}</span>
+        <span>containers selected</span>
+      </div>
+      <div class="bulk-buttons">
+        <button mat-flat-button color="primary" (click)="store.executeBulkAction('start')">
+          <mat-icon>play_arrow</mat-icon>
+          Start
+        </button>
+        <button mat-flat-button color="warn" (click)="store.executeBulkAction('stop')">
+          <mat-icon>stop</mat-icon>
+          Stop
+        </button>
+        <button mat-stroked-button (click)="store.executeBulkAction('restart')">
+          <mat-icon>replay</mat-icon>
+          Restart
+        </button>
+        <button mat-stroked-button (click)="store.executeBulkAction('pause')">
+          <mat-icon>pause</mat-icon>
+          Pause
+        </button>
+        <button mat-stroked-button (click)="store.executeBulkAction('unpause')">
+          <mat-icon>play_circle</mat-icon>
+          Unpause
+        </button>
+        <button mat-button (click)="store.clearSelection()">Cancel</button>
+      </div>
+    </aside>
+  }
+
+  <!-- Error Alert -->
+  @if (store.error()) {
+    <div class="error-banner">
+      <mat-icon>error_outline</mat-icon>
+      <span>{{ store.error() }}</span>
+      <button mat-button (click)="store.loadContainers()">Retry</button>
+    </div>
+  }
+
+  <!-- Table Container -->
+  <div class="table-card mat-elevation-z1">
+    <table mat-table [dataSource]="store.containers()" class="containers-table">
+      <!-- Select Checkbox -->
+      <ng-container matColumnDef="select">
+        <th mat-header-cell *matHeaderCellDef>
+          <mat-checkbox
+            [checked]="store.allSelected()"
+            [indeterminate]="store.isIndeterminate()"
+            (change)="store.toggleSelectAll($event.checked)"
+            aria-label="Select all containers"
+          ></mat-checkbox>
+        </th>
+        <td mat-cell *matCellDef="let c">
+          <mat-checkbox
+            [checked]="store.selectedIds().has(c.id)"
+            (change)="store.toggleSelect(c.id)"
+            [aria-label]="'Select container ' + c.name"
+          ></mat-checkbox>
+        </td>
+      </ng-container>
+
+      <!-- State & Health Column -->
+      <ng-container matColumnDef="state">
+        <th mat-header-cell *matHeaderCellDef (click)="store.setSort('state')" class="sortable-header">
+          State
+        </th>
+        <td mat-cell *matCellDef="let c">
+          <div class="chips-col">
+            <span
+              class="state-chip"
+              [style.background-color]="stateColors[c.state] || stateColors['unknown']"
+            >
+              {{ c.state }}
+            </span>
+            @if (c.health && c.health !== 'none') {
+              <span
+                class="health-chip"
+                [style.background-color]="healthColors[c.health] || healthColors['none']"
+              >
+                {{ c.health }}
+              </span>
+            }
+          </div>
+        </td>
+      </ng-container>
+
+      <!-- Name & Image Column -->
+      <ng-container matColumnDef="name">
+        <th mat-header-cell *matHeaderCellDef (click)="store.setSort('name')" class="sortable-header">
+          Name &amp; Image
+        </th>
+        <td mat-cell *matCellDef="let c">
+          <div class="name-col">
+            <strong class="container-name" [matTooltip]="c.id">{{ c.name }}</strong>
+            <span class="container-image">{{ c.image }}</span>
+          </div>
+        </td>
+      </ng-container>
+
+      <!-- Project Column -->
+      <ng-container matColumnDef="project">
+        <th mat-header-cell *matHeaderCellDef (click)="store.setSort('compose_project')" class="sortable-header">
+          Project
+        </th>
+        <td mat-cell *matCellDef="let c">
+          @if (c.compose_project) {
+            <span class="project-badge">{{ c.compose_project }}</span>
+          } @else {
+            <span class="text-muted">-</span>
+          }
+        </td>
+      </ng-container>
+
+      <!-- Ports Column -->
+      <ng-container matColumnDef="ports">
+        <th mat-header-cell *matHeaderCellDef>Ports</th>
+        <td mat-cell *matCellDef="let c">
+          <span class="ports-text">{{ formatPorts(c.ports) }}</span>
+        </td>
+      </ng-container>
+
+      <!-- CPU Live Column -->
+      <ng-container matColumnDef="cpu">
+        <th mat-header-cell *matHeaderCellDef>CPU</th>
+        <td mat-cell *matCellDef="let c">
+          @let metrics = store.liveMetrics().get(c.id);
+          <div class="metric-cell">
+            <span class="metric-val">{{ metrics ? (metrics.cpu_percent | number:'1.1-1') + '%' : '-' }}</span>
+            <mat-progress-bar
+              mode="determinate"
+              [value]="metrics ? metrics.cpu_percent : 0"
+              class="metric-progress"
+              [class.warn]="metrics && metrics.cpu_percent > 70 && metrics.cpu_percent <= 85"
+              [class.danger]="metrics && metrics.cpu_percent > 85"
+            ></mat-progress-bar>
+          </div>
+        </td>
+      </ng-container>
+
+      <!-- Memory Live Column -->
+      <ng-container matColumnDef="memory">
+        <th mat-header-cell *matHeaderCellDef>Memory</th>
+        <td mat-cell *matCellDef="let c">
+          @let metrics = store.liveMetrics().get(c.id);
+          <div class="metric-cell">
+            <span class="metric-val">
+              {{ metrics ? formatBytes(metrics.memory_bytes) + ' (' + (metrics.memory_percent | number:'1.0-0') + '%)' : '-' }}
+            </span>
+            <mat-progress-bar
+              mode="determinate"
+              [value]="metrics ? metrics.memory_percent : 0"
+              class="metric-progress"
+              [class.warn]="metrics && metrics.memory_percent > 75 && metrics.memory_percent <= 90"
+              [class.danger]="metrics && metrics.memory_percent > 90"
+            ></mat-progress-bar>
+          </div>
+        </td>
+      </ng-container>
+
+      <!-- Status Column -->
+      <ng-container matColumnDef="status">
+        <th mat-header-cell *matHeaderCellDef>Status</th>
+        <td mat-cell *matCellDef="let c">
+          <span class="status-text">{{ c.status }}</span>
+        </td>
+      </ng-container>
+
+      <!-- Restarts Column -->
+      <ng-container matColumnDef="restarts">
+        <th mat-header-cell *matHeaderCellDef (click)="store.setSort('restart_count')" class="sortable-header">
+          Restarts
+        </th>
+        <td mat-cell *matCellDef="let c">
+          <span [class.text-danger]="c.restart_count > 0">{{ c.restart_count }}</span>
+        </td>
+      </ng-container>
+
+      <!-- Actions Column -->
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef>Actions</th>
+        <td mat-cell *matCellDef="let c">
+          @if (authService.hasRole('operator')) {
+            <button mat-icon-button [matMenuTriggerFor]="rowMenu" [attr.aria-label]="'Actions for ' + c.name">
+              <mat-icon>more_vert</mat-icon>
+            </button>
+            <mat-menu #rowMenu="matMenu">
+              @if (c.state !== 'running') {
+                <button mat-menu-item (click)="onActionClick(c, 'start')">
+                  <mat-icon>play_arrow</mat-icon>
+                  <span>Start</span>
+                </button>
+              }
+              @if (c.state === 'running') {
+                <button mat-menu-item (click)="onActionClick(c, 'stop')">
+                  <mat-icon>stop</mat-icon>
+                  <span>Stop</span>
+                </button>
+                <button mat-menu-item (click)="onActionClick(c, 'restart')">
+                  <mat-icon>replay</mat-icon>
+                  <span>Restart</span>
+                </button>
+                <button mat-menu-item (click)="onActionClick(c, 'pause')">
+                  <mat-icon>pause</mat-icon>
+                  <span>Pause</span>
+                </button>
+              }
+              @if (c.state === 'paused') {
+                <button mat-menu-item (click)="onActionClick(c, 'unpause')">
+                  <mat-icon>play_circle</mat-icon>
+                  <span>Unpause</span>
+                </button>
+              }
+              <button mat-menu-item (click)="onActionClick(c, 'kill')">
+                <mat-icon color="warn">flash_on</mat-icon>
+                <span>Kill</span>
+              </button>
+              @if (authService.hasRole('admin')) {
+                <mat-divider></mat-divider>
+                <button mat-menu-item (click)="onDeleteClick(c)">
+                  <mat-icon color="warn">delete_forever</mat-icon>
+                  <span class="text-danger">Delete Container</span>
+                </button>
+              }
+            </mat-menu>
+          } @else {
+            <span class="text-muted" title="Viewer mode - Read only">-</span>
+          }
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+    </table>
+
+    <!-- Empty State -->
+    @if (!store.loading() && store.containers().length === 0) {
+      <div class="empty-state">
+        <mat-icon class="empty-icon">inbox</mat-icon>
+        <h3>No containers found</h3>
+        <p>No workloads match the selected filter criteria.</p>
+        <button mat-stroked-button (click)="store.clearFilters()">Clear Filters</button>
+      </div>
+    }
+
+    <!-- Pagination Footer -->
+    <div class="pagination-footer">
+      <span class="pagination-info">
+        Showing {{ store.containers().length }} of {{ store.total() }} containers (Page {{ store.page() }} of {{ store.totalPages() }})
+      </span>
+      <div class="pagination-controls">
+        <button
+          mat-icon-button
+          [disabled]="store.page() <= 1"
+          (click)="store.setPage(store.page() - 1)"
+          aria-label="Previous page"
+        >
+          <mat-icon>chevron_left</mat-icon>
+        </button>
+        <button
+          mat-icon-button
+          [disabled]="store.page() >= store.totalPages()"
+          (click)="store.setPage(store.page() + 1)"
+          aria-label="Next page"
+        >
+          <mat-icon>chevron_right</mat-icon>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

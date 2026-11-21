@@ -166,3 +166,19 @@ cd frontend && npm run build
   - Live Docker events feed displaying recent container lifecycle events with relative timestamps.
   - Stale-data watchdog monitoring SSE heartbeat freshness and displaying a visual warning banner when connection drops or pauses.
   - Empty-server state and error recovery states with manual retry controls.
+
+### Prompt 03: Containers List
+- **Status:** Complete
+- **Backend Endpoints:**
+  - `GET /api/v1/containers`: Search (`q`), filter (`state`, `health`, `compose_project`, `label`), sort, and pagination.
+  - `GET /api/v1/containers/stream`: Multiplexed SSE stream delivering live CPU %, Memory bytes/%, state, and health.
+  - `POST /api/v1/containers/{id}/{action}`: Single container lifecycle execution (`start`, `stop`, `restart`, `pause`, `unpause`, `kill`) with pre- and post-audit tracking (requires `operator`+).
+  - `POST /api/v1/containers/bulk`: Multi-select bulk action endpoint with individual container success/failure reports and per-container audit trail.
+  - `POST /api/v1/containers/{id}/delete-token`: Generates signed temporary delete confirmation token (requires `admin`).
+  - `DELETE /api/v1/containers/{id}?token=...`: Two-phase permanent removal of container with token validation and audit logging (requires `admin`).
+- **Frontend UI & State:**
+  - Lazy-loaded `/containers` route with Angular Material sortable table, state/health chips, CPU/Memory visual mini-progress-bars, and ports mapping.
+  - Filter bar supporting text search, state select, health select, compose project, and localStorage preset saving/loading.
+  - Multi-select row selection with floating bulk action toolbar (`Start`, `Stop`, `Restart`, `Pause`, `Unpause`, `Kill`).
+  - Lifecycle action confirmation dialogs, plus a high-friction destructive deletion dialog requiring typing the exact container name.
+  - Reactive signal store (`ContainersStore`) with optimistic UI state transitions and automatic rollback on backend failure.

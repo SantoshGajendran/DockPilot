@@ -28,6 +28,10 @@ class Settings(BaseSettings):
     default_admin_user: str = "admin"
     default_admin_password: str = "dockpilot_admin_2026"
     auth_cookie_path: str = "/"
+    containers_page_size_default: int = 20
+    containers_page_size_max: int = 100
+    delete_token_expire_seconds: int = 60
+    containers_stream_interval_seconds: int = 3
 
 @lru_cache
 def get_settings() -> Settings:

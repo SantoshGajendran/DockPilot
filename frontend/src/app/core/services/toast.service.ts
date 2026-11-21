@@ -12,4 +12,12 @@ export class ToastService {
   error(message: string): void {
     this.show(`Error: ${message}`, 'Dismiss', 6000);
   }
+
+  success(message: string): void {
+    this.show(message, 'OK', 4000);
+  }
+
+  info(message: string): void {
+    this.show(message, 'OK', 4000);
+  }
 }

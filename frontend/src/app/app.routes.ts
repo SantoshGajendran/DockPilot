@@ -27,6 +27,14 @@ export const routes: Routes = [
           ),
         data: { title: 'Dashboard' },
       },
+      {
+        path: 'containers',
+        loadComponent: () =>
+          import('./features/containers/containers-list.component').then(
+            (m) => m.ContainersListComponent
+          ),
+        data: { title: 'Containers' },
+      },
     ],
   },
 ];

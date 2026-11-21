@@ -13,11 +13,65 @@ class FakeGateway(DockerGateway):
                     "image": "redis:7-alpine",
                     "state": "running",
                     "status": "Up 2 hours",
+                    "health": "healthy",
+                    "restart_count": 0,
                     "created": "2026-11-18T20:00:00Z",
                     "ports": {"6379/tcp": [{"HostIp": "0.0.0.0", "HostPort": "6379"}]},
-                    "labels": {"com.docker.compose.project": "dockpilot"},
+                    "labels": {"com.docker.compose.project": "dockpilot", "tier": "cache"},
                     "env": ["REDIS_PASSWORD=secret123", "PORT=6379"],
-                }
+                },
+                "c2": {
+                    "id": "c2",
+                    "name": "dockpilot-postgres",
+                    "image": "postgres:16-alpine",
+                    "state": "running",
+                    "status": "Up 5 hours",
+                    "health": "healthy",
+                    "restart_count": 1,
+                    "created": "2026-11-18T18:00:00Z",
+                    "ports": {"5432/tcp": [{"HostIp": "0.0.0.0", "HostPort": "5432"}]},
+                    "labels": {"com.docker.compose.project": "dockpilot", "tier": "db"},
+                    "env": ["POSTGRES_DB=dockpilot"],
+                },
+                "c3": {
+                    "id": "c3",
+                    "name": "web-nginx",
+                    "image": "nginx:alpine",
+                    "state": "exited",
+                    "status": "Exited (0) 10 minutes ago",
+                    "health": "none",
+                    "restart_count": 3,
+                    "created": "2026-11-18T15:00:00Z",
+                    "ports": {"80/tcp": [{"HostIp": "0.0.0.0", "HostPort": "8080"}]},
+                    "labels": {"com.docker.compose.project": "web", "tier": "frontend"},
+                    "env": [],
+                },
+                "c4": {
+                    "id": "c4",
+                    "name": "worker-task",
+                    "image": "python:3.12-slim",
+                    "state": "unhealthy",
+                    "status": "Up 1 hour (unhealthy)",
+                    "health": "unhealthy",
+                    "restart_count": 5,
+                    "created": "2026-11-18T19:00:00Z",
+                    "ports": {},
+                    "labels": {"com.docker.compose.project": "worker"},
+                    "env": [],
+                },
+                "c5": {
+                    "id": "c5",
+                    "name": "cache-memcached",
+                    "image": "memcached:alpine",
+                    "state": "paused",
+                    "status": "Paused",
+                    "health": "none",
+                    "restart_count": 0,
+                    "created": "2026-11-18T17:00:00Z",
+                    "ports": {"11211/tcp": [{"HostIp": "0.0.0.0", "HostPort": "11211"}]},
+                    "labels": {"com.docker.compose.project": "cache"},
+                    "env": [],
+                },
             }
         self.stats: Dict[str, Dict[str, Any]] = {}
         self.events: List[Dict[str, Any]] = [
@@ -49,6 +103,12 @@ class FakeGateway(DockerGateway):
                 self.containers[container_id]["state"] = "exited"
             elif action == "pause":
                 self.containers[container_id]["state"] = "paused"
+            return True
+        return False
+
+    async def remove_container(self, container_id: str, force: bool = False) -> bool:
+        if container_id in self.containers:
+            del self.containers[container_id]
             return True
         return False
 

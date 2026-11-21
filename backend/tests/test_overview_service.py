@@ -14,8 +14,8 @@ async def test_overview_collector_collect_metrics():
     assert snapshot is not None
     assert snapshot.host.cpu_percent >= 0.0
     assert snapshot.host.memory_total_bytes > 0
-    assert snapshot.containers.total == 1
-    assert snapshot.containers.running == 1
+    assert snapshot.containers.total == 5
+    assert snapshot.containers.running == 2
     assert snapshot.docker_connected is True
     assert len(snapshot.top_cpu) <= 5
     assert len(snapshot.recent_events) >= 1

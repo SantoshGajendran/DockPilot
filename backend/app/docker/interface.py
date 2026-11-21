@@ -23,6 +23,11 @@ class DockerGateway(ABC):
         pass
 
     @abstractmethod
+    async def remove_container(self, container_id: str, force: bool = False) -> bool:
+        """Remove a container."""
+        pass
+
+    @abstractmethod
     async def stream_events(self) -> AsyncGenerator[Dict[str, Any], None]:
         """Stream Docker events."""
         pass

@@ -39,3 +39,22 @@
   - Top resource consumers widget with dual tabs (CPU % and Memory) and quick-action navigation.
   - Recent Docker events feed with formatted badges and relative timestamps.
   - 51 unit tests passing across 11 suites; production build verified with zero errors.
+
+
+## Prompt 03: Containers List
+- **Status:** Complete
+- **Backend:**
+  - `GET /api/v1/containers`: Pagination, search (`q`), multi-criteria filtering (`state`, `health`, `compose_project`, `label`), and sorting across container properties.
+  - `GET /api/v1/containers/stream`: Multiplexed SSE stream delivering live CPU %, Memory bytes/%, state, and health.
+  - `POST /api/v1/containers/{id}/{action}`: Individual container lifecycle control (`start`, `stop`, `restart`, `pause`, `unpause`, `kill`) with pre- and post-action audit logging. Enforced at `operator` tier and above.
+  - `POST /api/v1/containers/bulk`: Bulk lifecycle operations with per-container execution, partial failure handling, and individual audit logs.
+  - `POST /api/v1/containers/{id}/delete-token` & `DELETE /api/v1/containers/{id}`: Two-phase administrative deletion safety workflow using signed, expiring confirmation tokens.
+  - 62 unit tests passing across backend suites (`pytest`).
+- **Frontend:**
+  - Standalone lazy-loaded `/containers` component with responsive Angular Material table.
+  - Real-time CPU and Memory mini-progress-bars dynamically updated via SSE stream.
+  - Filter bar supporting free-text search, state dropdown, health dropdown, project filter, and custom filter preset persistence in `localStorage`.
+  - Multi-select row selection with floating bulk action toolbar for batch operations.
+  - Action confirmation dialogs for destructive operations (`stop`, `kill`) and a typed-name confirmation dialog for container deletion.
+  - Reactive `ContainersStore` using Angular signals with optimistic state transitions and automatic rollback on failure.
+  - 68 unit tests passing across 14 suites (`npm test`); production build verified with 0 errors and 0 warnings.

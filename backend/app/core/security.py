@@ -1,6 +1,6 @@
 import uuid
 from datetime import datetime, timedelta, timezone
-from typing import Any, Dict
+from typing import Any, Dict, Tuple
 from argon2 import PasswordHasher
 from argon2.exceptions import VerifyMismatchError
 import jwt
@@ -48,6 +48,20 @@ def create_refresh_token(user_id: uuid.UUID) -> str:
         "exp": expire,
     }
     return jwt.encode(payload, settings.jwt_secret, algorithm="HS256")
+
+def create_delete_token(user_id: uuid.UUID, container_id: str, expire_seconds: int = 60) -> Tuple[str, datetime]:
+    settings = get_settings()
+    now = datetime.now(timezone.utc)
+    expire = now + timedelta(seconds=expire_seconds)
+    payload = {
+        "sub": str(user_id),
+        "container_id": container_id,
+        "type": "delete_container",
+        "iat": now,
+        "exp": expire,
+    }
+    token = jwt.encode(payload, settings.jwt_secret, algorithm="HS256")
+    return token, expire
 
 def decode_token(token: str) -> Dict[str, Any]:
     settings = get_settings()
