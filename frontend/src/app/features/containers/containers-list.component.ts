@@ -1,5 +1,6 @@
 import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { MatTableModule } from '@angular/material/table';
 import { MatCheckboxModule } from '@angular/material/checkbox';
@@ -30,6 +31,7 @@ import { ContainerSummary } from '../../core/models/container.model';
   standalone: true,
   imports: [
     CommonModule,
+    RouterModule,
     FormsModule,
     MatTableModule,
     MatCheckboxModule,
@@ -45,6 +47,7 @@ import { ContainerSummary } from '../../core/models/container.model';
     MatDialogModule,
     MatDividerModule,
   ],
+
   templateUrl: './containers-list.component.html',
   styleUrls: ['./containers-list.component.scss'],
 })

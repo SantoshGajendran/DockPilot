@@ -157,8 +157,14 @@
       flex-direction: column;
 
       .container-name {
-        color: #0f172a;
+        color: #0284c7;
         font-size: 0.875rem;
+        font-weight: 600;
+        text-decoration: none;
+        cursor: pointer;
+        &:hover {
+          text-decoration: underline;
+        }
       }
 
       .container-image {

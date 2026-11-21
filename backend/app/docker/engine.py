@@ -32,6 +32,13 @@ def _format_container(container: Any) -> Dict[str, Any]:
     if name and name.startswith("/"):
         name = name[1:]
 
+    host_config = attrs.get("HostConfig", {}) if isinstance(attrs, dict) else {}
+    mounts = attrs.get("Mounts", []) if isinstance(attrs, dict) else []
+    networks = network_settings.get("Networks", {}) if isinstance(network_settings, dict) else {}
+    cmd = config.get("Cmd", []) if isinstance(config, dict) else []
+    command_str = " ".join(cmd) if isinstance(cmd, list) else str(cmd or "")
+    restart_policy = host_config.get("RestartPolicy", {}) if isinstance(host_config, dict) else {}
+
     return {
         "id": getattr(container, "id", ""),
         "name": name,
@@ -44,6 +51,12 @@ def _format_container(container: Any) -> Dict[str, Any]:
         "ports": network_settings.get("Ports", {}) if isinstance(network_settings, dict) else {},
         "labels": config.get("Labels", {}) if isinstance(config, dict) else {},
         "env": config.get("Env", []) if isinstance(config, dict) else [],
+        "command": command_str,
+        "mounts": mounts,
+        "networks": networks,
+        "restart_policy": restart_policy,
+        "host_config": host_config,
+        "health_info": health_info,
     }
 
 class EngineGateway(DockerGateway):
@@ -155,12 +168,41 @@ class EngineGateway(DockerGateway):
                 used_memory = max(0, usage - cache)
                 limit = mem_stats.get("limit", 0) if isinstance(mem_stats, dict) else 0
                 mem_percent = round((used_memory / limit) * 100.0, 2) if limit > 0 else 0.0
-                
+
+                # Network I/O calculation
+                net_stats = raw_stats.get("networks", {}) if isinstance(raw_stats, dict) else {}
+                net_rx_bytes = 0
+                net_tx_bytes = 0
+                if isinstance(net_stats, dict):
+                    for net in net_stats.values():
+                        if isinstance(net, dict):
+                            net_rx_bytes += net.get("rx_bytes", 0)
+                            net_tx_bytes += net.get("tx_bytes", 0)
+
+                # Block I/O calculation
+                blkio_stats = raw_stats.get("blkio_stats", {}) if isinstance(raw_stats, dict) else {}
+                io_service_bytes = blkio_stats.get("io_service_bytes_recursive", []) if isinstance(blkio_stats, dict) else []
+                block_read_bytes = 0
+                block_write_bytes = 0
+                if isinstance(io_service_bytes, list):
+                    for entry in io_service_bytes:
+                        if isinstance(entry, dict):
+                            op = str(entry.get("op", "")).lower()
+                            val = entry.get("value", 0)
+                            if op == "read":
+                                block_read_bytes += val
+                            elif op == "write":
+                                block_write_bytes += val
+
                 return {
                     "cpu_percent": cpu_percent,
                     "memory_bytes": used_memory,
                     "memory_limit": limit,
                     "memory_percent": mem_percent,
+                    "net_rx_bytes": net_rx_bytes,
+                    "net_tx_bytes": net_tx_bytes,
+                    "block_read_bytes": block_read_bytes,
+                    "block_write_bytes": block_write_bytes,
                     "raw": raw_stats,
                 }
             except NotFound:

@@ -32,6 +32,17 @@ class Settings(BaseSettings):
     containers_page_size_max: int = 100
     delete_token_expire_seconds: int = 60
     containers_stream_interval_seconds: int = 3
+    secret_mask_patterns: List[str] = [
+        "*PASSWORD*",
+        "*SECRET*",
+        "*TOKEN*",
+        "*KEY*",
+        "*AUTH*",
+        "*CREDENTIAL*",
+        "*PRIVATE*",
+    ]
+    container_detail_stats_interval_seconds: int = 2
+
 
 @lru_cache
 def get_settings() -> Settings:

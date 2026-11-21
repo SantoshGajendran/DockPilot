@@ -18,7 +18,31 @@ class FakeGateway(DockerGateway):
                     "created": "2026-11-18T20:00:00Z",
                     "ports": {"6379/tcp": [{"HostIp": "0.0.0.0", "HostPort": "6379"}]},
                     "labels": {"com.docker.compose.project": "dockpilot", "tier": "cache"},
-                    "env": ["REDIS_PASSWORD=secret123", "PORT=6379"],
+                    "env": ["REDIS_PASSWORD=secret123", "PORT=6379", "API_KEY=key_abcdef123456"],
+                    "command": "redis-server --protected-mode no",
+                    "mounts": [
+                        {
+                            "Type": "volume",
+                            "Source": "dockpilot_redis_data",
+                            "Destination": "/data",
+                            "Mode": "rw",
+                            "RW": True,
+                        }
+                    ],
+                    "networks": {
+                        "dockpilot_default": {
+                            "IPAddress": "172.20.0.2",
+                            "Gateway": "172.20.0.1",
+                            "MacAddress": "02:42:ac:14:00:02",
+                        }
+                    },
+                    "restart_policy": {"Name": "unless-stopped", "MaximumRetryCount": 0},
+                    "host_config": {"Memory": 536870912, "NanoCpus": 1000000000},
+                    "health_info": {
+                        "Status": "healthy",
+                        "FailingStreak": 0,
+                        "Log": [{"Output": "PONG", "ExitCode": 0}],
+                    },
                 },
                 "c2": {
                     "id": "c2",
@@ -124,6 +148,10 @@ class FakeGateway(DockerGateway):
                 "memory_bytes": 67108864,
                 "memory_limit": 1073741824,
                 "memory_percent": 6.25,
+                "net_rx_bytes": 1048576,
+                "net_tx_bytes": 524288,
+                "block_read_bytes": 2097152,
+                "block_write_bytes": 4194304,
             }
         raise ValueError(f"Container {container_id} not found")
 

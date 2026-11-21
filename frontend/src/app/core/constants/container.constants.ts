@@ -5,7 +5,15 @@ export const CONTAINER_ENDPOINTS = {
   action: (id: string, action: string) => `api/v1/containers/${id}/${action}`,
   deleteToken: (id: string) => `api/v1/containers/${id}/delete-token`,
   delete: (id: string) => `api/v1/containers/${id}`,
+  detail: (id: string) => `api/v1/containers/${id}`,
+  detailStats: (id: string) => `api/v1/containers/${id}/stats`,
+  detailMetrics: (id: string, range: string) => `api/v1/containers/${id}/metrics?range=${range}`,
+  revealEnv: (id: string) => `api/v1/containers/${id}/env/reveal`,
 } as const;
+
+export const METRIC_RANGES = ['1h', '6h', '24h', '7d'] as const;
+export type MetricRange = (typeof METRIC_RANGES)[number];
+
 
 export const CONTAINER_STATE_COLORS: Record<string, string> = {
   running: '#22c55e',

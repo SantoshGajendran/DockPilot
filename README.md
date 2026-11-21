@@ -182,3 +182,23 @@ cd frontend && npm run build
   - Multi-select row selection with floating bulk action toolbar (`Start`, `Stop`, `Restart`, `Pause`, `Unpause`, `Kill`).
   - Lifecycle action confirmation dialogs, plus a high-friction destructive deletion dialog requiring typing the exact container name.
   - Reactive signal store (`ContainersStore`) with optimistic UI state transitions and automatic rollback on backend failure.
+
+### Prompt 04: Container Detail Page
+- **Status:** Complete
+- **Backend Endpoints & Service:**
+  - `GET /api/v1/containers/{id}`: Detailed container inspection returning image, command, created timestamp, restart policy, mounts, networks, ports, resource limits, healthcheck logs, and secret-masked environment variables.
+  - `POST /api/v1/containers/{id}/env/reveal`: Admin-only secret unmasking endpoint with mandatory pre- and post-action audit logging.
+  - `GET /api/v1/containers/{id}/stats`: Live Server-Sent Events (SSE) telemetry stream pushing live CPU utilization %, memory bytes/%, network Rx/Tx bytes, and disk block read/write rates.
+  - `GET /api/v1/containers/{id}/metrics?range=1h|6h|24h|7d`: Historical container telemetry query with automated downsampling to at most 100 points for smooth charting.
+  - Configurable `secret_mask_patterns` in `config/app.yaml` (`*PASSWORD*`, `*SECRET*`, `*TOKEN*`, `*KEY*`, etc.).
+  - Database table `container_metrics` with Alembic migration `0002_container_metrics.py`.
+- **Frontend UI & State:**
+  - Standalone lazy-loaded route `/containers/:id` (`ContainerDetailComponent`) with five deep-linkable tabs (`?tab=overview|metrics|logs|config|events`).
+  - **Overview Tab:** Header status badges, key facts card (image, command, restart policy, ports), and live telemetry gauges (CPU %, memory with limit, network I/O, block I/O).
+  - **Metrics Tab:** Range selector (`1h`, `6h`, `24h`, `7d`) with four responsive Chart.js line charts (CPU %, Memory with limit line, Network I/O, Block I/O).
+  - **Logs Tab:** Monospace terminal log container.
+  - **Config Tab:** Environment variables table with `********` secret masking, "Reveal Secrets" action for admins, Mounts table, Network settings table, and Labels key-value tags.
+  - **Events Tab:** Chronological lifecycle events timeline.
+  - Reactive `ContainerDetailStore` using Angular signals and clean lifecycle cleanup.
+  - All 75 backend tests (`pytest`) and 85 frontend tests across 17 suites (`npm test`) passing with 0 warnings in production `ng build`.
+

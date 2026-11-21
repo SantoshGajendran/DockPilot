@@ -58,3 +58,27 @@
   - Action confirmation dialogs for destructive operations (`stop`, `kill`) and a typed-name confirmation dialog for container deletion.
   - Reactive `ContainersStore` using Angular signals with optimistic state transitions and automatic rollback on failure.
   - 68 unit tests passing across 14 suites (`npm test`); production build verified with 0 errors and 0 warnings.
+
+## Prompt 04: Container Detail Page
+- **Status:** Complete
+- **Backend:**
+  - `ContainerMetricRecord` model and Alembic migration `0002_container_metrics.py`.
+  - Configurable `secret_mask_patterns` in `config/app.yaml` and `backend/app/core/config.py`.
+  - Schemas in `backend/app/schemas/container_detail.py`: `ContainerDetailResponse`, `EnvVarItem`, `MountItem`, `NetworkItem`, `HealthcheckInfo`, `ContainerLiveStats`, `ContainerMetricsHistoryResponse`, `EnvRevealResponse`.
+  - Detailed inspection in `backend/app/services/container_detail_service.py` with automatic secret masking.
+  - Admin-only `POST /api/v1/containers/{id}/env/reveal` with immutable audit logging.
+  - Real-time SSE stats stream in `GET /api/v1/containers/{id}/stats` pushing CPU %, Memory, Network Rx/Tx, and Block Read/Write.
+  - Historical telemetry endpoint `GET /api/v1/containers/{id}/metrics?range=1h|6h|24h|7d` with smart downsampling to max 100 points.
+  - 75 backend unit tests passing across all suites (`pytest`).
+- **Frontend:**
+  - Standalone lazy-loaded route `/containers/:id` (`ContainerDetailComponent`).
+  - Five deep-linkable tabs synchronized via `?tab=` query parameter (`overview`, `metrics`, `logs`, `config`, `events`).
+  - **Overview Tab:** Header status badges, lifecycle action buttons, Key Facts card, and live telemetry progress bars.
+  - **Metrics Tab:** Range selector (`1h`, `6h`, `24h`, `7d`) with Chart.js line charts for CPU, Memory (with limit threshold line), Network I/O, Block I/O.
+  - **Logs Tab:** Monospace terminal log container.
+  - **Config Tab:** Masked environment variables table with Admin "Reveal Secrets" button, Mounts table, Network settings table, Labels key-value tags.
+  - **Events Tab:** Chronological lifecycle events timeline.
+  - `ContainersDetailService` and signal-based `ContainerDetailStore`.
+  - Clickable link on container names in `ContainersListComponent` navigating to `/containers/:id`.
+  - 85 frontend unit tests passing across 17 suites (`npm test`); production `ng build` passing with 0 errors and 0 warnings.
+

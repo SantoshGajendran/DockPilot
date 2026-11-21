@@ -6,6 +6,16 @@ from app.schemas.overview import (
     DockerEventSummary,
     OverviewResponse,
 )
+from app.schemas.container_detail import (
+    EnvVarItem,
+    MountItem,
+    NetworkItem,
+    HealthcheckInfo,
+    ContainerDetailResponse,
+    ContainerLiveStats,
+    ContainerMetricsHistoryResponse,
+    EnvRevealResponse,
+)
 
 __all__ = [
     "LoginRequest",
@@ -16,4 +26,13 @@ __all__ = [
     "ContainerConsumerSummary",
     "DockerEventSummary",
     "OverviewResponse",
+    "EnvVarItem",
+    "MountItem",
+    "NetworkItem",
+    "HealthcheckInfo",
+    "ContainerDetailResponse",
+    "ContainerLiveStats",
+    "ContainerMetricsHistoryResponse",
+    "EnvRevealResponse",
 ]
+

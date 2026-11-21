@@ -35,6 +35,15 @@ export const routes: Routes = [
           ),
         data: { title: 'Containers' },
       },
+      {
+        path: 'containers/:id',
+        loadComponent: () =>
+          import('./features/containers/detail/container-detail.component').then(
+            (m) => m.ContainerDetailComponent
+          ),
+        data: { title: 'Container Details' },
+      },
+
     ],
   },
 ];

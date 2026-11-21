@@ -14,6 +14,17 @@ from app.schemas.container import (
     ContainersListResponse,
     DeleteTokenResponse,
 )
+from app.schemas.container_detail import (
+    ContainerDetailResponse,
+    ContainerMetricsHistoryResponse,
+    EnvRevealResponse,
+)
+from app.services.container_detail_service import (
+    get_container_details,
+    get_container_metrics_history,
+    reveal_container_env,
+    stream_container_stats,
+)
 from app.services.containers_service import (
     delete_container,
     execute_bulk_actions,
@@ -22,6 +33,7 @@ from app.services.containers_service import (
     list_containers,
     stream_container_metrics,
 )
+
 
 router = APIRouter()
 
@@ -97,6 +109,75 @@ async def bulk_action(
         ip=client_ip,
         db=db,
     )
+
+
+@router.get("/{container_id}", response_model=ContainerDetailResponse)
+async def get_container_detail(
+    container_id: str,
+    user: User = Depends(require_role(Role.VIEWER)),
+    gateway: DockerGateway = Depends(get_docker_gateway),
+) -> ContainerDetailResponse:
+    return await get_container_details(gateway=gateway, container_id=container_id)
+
+
+@router.get("/{container_id}/stats")
+async def get_container_stats_stream(
+    container_id: str,
+    request: Request,
+    once: bool = Query(False, include_in_schema=False),
+    user: User = Depends(require_role(Role.VIEWER)),
+    gateway: DockerGateway = Depends(get_docker_gateway),
+) -> StreamingResponse:
+    settings = get_settings()
+    generator = stream_container_stats(
+        gateway=gateway,
+        container_id=container_id,
+        interval_seconds=settings.container_detail_stats_interval_seconds,
+        once=once,
+    )
+    return StreamingResponse(
+        generator,
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no",
+        },
+    )
+
+
+@router.get("/{container_id}/metrics", response_model=ContainerMetricsHistoryResponse)
+async def get_container_metrics(
+    container_id: str,
+    range: str = Query("1h", description="Time range (1h, 6h, 24h, 7d)"),
+    user: User = Depends(require_role(Role.VIEWER)),
+    db: AsyncSession = Depends(get_db),
+) -> ContainerMetricsHistoryResponse:
+    return await get_container_metrics_history(
+        container_id=container_id,
+        range_str=range,
+        db=db,
+    )
+
+
+@router.post("/{container_id}/env/reveal", response_model=EnvRevealResponse)
+async def reveal_container_env_endpoint(
+    container_id: str,
+    request: Request,
+    user: User = Depends(require_role(Role.ADMIN)),
+    gateway: DockerGateway = Depends(get_docker_gateway),
+    db: AsyncSession = Depends(get_db),
+) -> EnvRevealResponse:
+    client_ip = request.client.host if request.client else None
+    return await reveal_container_env(
+        gateway=gateway,
+        container_id=container_id,
+        user_id=user.id,
+        username=user.username,
+        ip=client_ip,
+        db=db,
+    )
+
 
 
 @router.post("/{container_id}/delete-token", response_model=DeleteTokenResponse)

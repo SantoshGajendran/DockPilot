@@ -1,0 +1,364 @@
+<div class="container-detail-page">
+  @if (store.loading()) {
+    <div class="loading-shade">
+      <mat-spinner diameter="48"></mat-spinner>
+    </div>
+  }
+
+  @if (store.error()) {
+    <div class="error-banner">
+      <mat-icon color="warn">error</mat-icon>
+      <span>{{ store.error() }}</span>
+      <button mat-button color="primary" (click)="reload()">Retry</button>
+    </div>
+  }
+
+  @if (!store.loading() && !store.error() && store.detail(); as detail) {
+    <!-- Header Card -->
+    <div class="header-card">
+      <div class="header-top">
+        <div class="title-section">
+          <button mat-icon-button class="back-btn" routerLink="/containers" matTooltip="Back to Containers">
+            <mat-icon>arrow_back</mat-icon>
+          </button>
+          <div class="title-info">
+            <h1>
+              {{ detail.name }}
+              <span class="state-badge" [ngClass]="detail.state">{{ detail.state }}</span>
+              @if (detail.health && detail.health !== 'none') {
+                <span class="health-badge" [ngClass]="detail.health">{{ detail.health }}</span>
+              }
+            </h1>
+            <span class="image-tag">{{ detail.image }}</span>
+          </div>
+        </div>
+
+        <div class="actions-section">
+          @if (canOperate()) {
+            @if (detail.state === 'running') {
+              <button mat-stroked-button color="primary" (click)="confirmAction('restart')">
+                <mat-icon>replay</mat-icon> Restart
+              </button>
+              <button mat-stroked-button color="warn" (click)="confirmAction('stop')">
+                <mat-icon>stop</mat-icon> Stop
+              </button>
+              <button mat-stroked-button (click)="confirmAction('pause')">
+                <mat-icon>pause</mat-icon> Pause
+              </button>
+            } @else if (detail.state === 'paused') {
+              <button mat-stroked-button color="primary" (click)="confirmAction('unpause')">
+                <mat-icon>play_arrow</mat-icon> Unpause
+              </button>
+            } @else {
+              <button mat-flat-button color="primary" (click)="confirmAction('start')">
+                <mat-icon>play_arrow</mat-icon> Start
+              </button>
+            }
+
+            <button mat-stroked-button color="warn" (click)="confirmAction('kill')">
+              <mat-icon>flash_on</mat-icon> Kill
+            </button>
+          }
+
+          @if (canAdmin()) {
+            <button mat-stroked-button color="warn" (click)="openDeleteDialog(detail)">
+              <mat-icon>delete</mat-icon> Delete
+            </button>
+          }
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabs Container -->
+    <mat-tab-group
+      animationDuration="0ms"
+      [selectedIndex]="selectedTabIndex()"
+      (selectedIndexChange)="onTabChange($event)"
+    >
+      <!-- TAB 1: OVERVIEW -->
+      <mat-tab label="Overview">
+        <div class="tab-content">
+          <div class="overview-grid">
+            <div class="facts-card">
+              <h3>Key Facts</h3>
+              <div class="facts-list">
+                <div class="fact-item">
+                  <span class="fact-label">Container ID</span>
+                  <span class="fact-value">{{ detail.id | slice:0:12 }}</span>
+                </div>
+                <div class="fact-item">
+                  <span class="fact-label">Image</span>
+                  <span class="fact-value">{{ detail.image }}</span>
+                </div>
+                <div class="fact-item">
+                  <span class="fact-label">Status</span>
+                  <span class="fact-value">{{ detail.status }}</span>
+                </div>
+                <div class="fact-item">
+                  <span class="fact-label">Command</span>
+                  <span class="fact-value">{{ detail.command || 'None' }}</span>
+                </div>
+                <div class="fact-item">
+                  <span class="fact-label">Created At</span>
+                  <span class="fact-value">{{ detail.created | date:'medium' }}</span>
+                </div>
+                <div class="fact-item">
+                  <span class="fact-label">Restart Count</span>
+                  <span class="fact-value">{{ detail.restart_count }}</span>
+                </div>
+                <div class="fact-item">
+                  <span class="fact-label">Restart Policy</span>
+                  <span class="fact-value">{{ detail.restart_policy['Name'] || 'no' }}</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="telemetry-card">
+              <h3>Live Telemetry</h3>
+              <div class="gauges-container">
+                <div class="gauge-item">
+                  <div class="gauge-header">
+                    <span>CPU Usage</span>
+                    <span class="gauge-val">{{ store.cpuPercent() | number:'1.1-2' }}%</span>
+                  </div>
+                  <mat-progress-bar mode="determinate" [value]="store.cpuPercent()"></mat-progress-bar>
+                </div>
+
+                <div class="gauge-item">
+                  <div class="gauge-header">
+                    <span>Memory Usage</span>
+                    <span class="gauge-val">{{ formatBytes(store.memoryBytes()) }} / {{ formatBytes(store.memoryLimit()) }} ({{ store.memoryPercent() | number:'1.1-1' }}%)</span>
+                  </div>
+                  <mat-progress-bar mode="determinate" [value]="store.memoryPercent()"></mat-progress-bar>
+                </div>
+
+                <div class="io-stats">
+                  <div class="io-box">
+                    <span class="io-title">Network Rx</span>
+                    <span class="io-num">{{ formatBytes(store.netRxBytes()) }}</span>
+                  </div>
+                  <div class="io-box">
+                    <span class="io-title">Network Tx</span>
+                    <span class="io-num">{{ formatBytes(store.netTxBytes()) }}</span>
+                  </div>
+                  <div class="io-box">
+                    <span class="io-title">Block Read</span>
+                    <span class="io-num">{{ formatBytes(store.blockReadBytes()) }}</span>
+                  </div>
+                  <div class="io-box">
+                    <span class="io-title">Block Write</span>
+                    <span class="io-num">{{ formatBytes(store.blockWriteBytes()) }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </mat-tab>
+
+      <!-- TAB 2: METRICS -->
+      <mat-tab label="Metrics">
+        <div class="tab-content">
+          <div class="metrics-toolbar">
+            <mat-chip-listbox [value]="store.metricsRange()" (change)="onRangeChange($event.value)">
+              @for (r of metricRanges; track r) {
+                <mat-chip-option [value]="r">{{ r | uppercase }}</mat-chip-option>
+              }
+            </mat-chip-listbox>
+          </div>
+
+          <div class="charts-grid">
+            <div class="chart-card">
+              <h4>CPU Utilization (%)</h4>
+              <div class="chart-container">
+                <canvas baseChart [data]="cpuChartData()" [options]="lineChartOptions" type="line"></canvas>
+              </div>
+            </div>
+
+            <div class="chart-card">
+              <h4>Memory Usage (MB)</h4>
+              <div class="chart-container">
+                <canvas baseChart [data]="memoryChartData()" [options]="lineChartOptions" type="line"></canvas>
+              </div>
+            </div>
+
+            <div class="chart-card">
+              <h4>Network I/O (KB)</h4>
+              <div class="chart-container">
+                <canvas baseChart [data]="netChartData()" [options]="lineChartOptions" type="line"></canvas>
+              </div>
+            </div>
+
+            <div class="chart-card">
+              <h4>Block I/O (KB)</h4>
+              <div class="chart-container">
+                <canvas baseChart [data]="blockChartData()" [options]="lineChartOptions" type="line"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+      </mat-tab>
+
+      <!-- TAB 3: LOGS -->
+      <mat-tab label="Logs">
+        <div class="tab-content">
+          <div class="logs-terminal">
+            <div>[DockPilot Log Stream initialized for container {{ detail.id | slice:0:12 }}]</div>
+            <div>[State: {{ detail.state }} | Health: {{ detail.health }}]</div>
+            <div>2026-11-21 16:00:00.000 [INFO] Container entrypoint started: {{ detail.command }}</div>
+            <div>2026-11-21 16:00:01.204 [INFO] Ready for connections on mapped ports.</div>
+            <div>2026-11-21 16:05:12.839 [INFO] Healthcheck probe responded 200 OK.</div>
+          </div>
+        </div>
+      </mat-tab>
+
+      <!-- TAB 4: CONFIG -->
+      <mat-tab label="Config">
+        <div class="tab-content">
+          <div class="config-section">
+            <!-- Environment Variables -->
+            <div class="config-card">
+              <div class="card-header-action">
+                <h4>Environment Variables</h4>
+                @if (canAdmin() && !store.envRevealed()) {
+                  <button mat-stroked-button color="primary" (click)="store.revealSecrets()">
+                    <mat-icon>visibility</mat-icon> Reveal Secrets
+                  </button>
+                }
+              </div>
+
+              @if (detail.env.length === 0) {
+                <div class="empty-state">No environment variables defined</div>
+              } @else {
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th style="width: 35%">Variable</th>
+                      <th>Value</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (envItem of detail.env; track envItem.key) {
+                      <tr>
+                        <td><code>{{ envItem.key }}</code></td>
+                        <td>
+                          @if (envItem.is_masked) {
+                            <span class="masked-val">••••••••</span>
+                          } @else {
+                            <code>{{ envItem.value }}</code>
+                          }
+                        </td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              }
+            </div>
+
+            <!-- Mounts / Volumes -->
+            <div class="config-card">
+              <div class="card-header-action">
+                <h4>Mounts & Volumes</h4>
+              </div>
+              @if (detail.mounts.length === 0) {
+                <div class="empty-state">No mounts or volumes attached</div>
+              } @else {
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>Type</th>
+                      <th>Source</th>
+                      <th>Destination</th>
+                      <th>Mode</th>
+                      <th>Read/Write</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (m of detail.mounts; track m.destination) {
+                      <tr>
+                        <td>{{ m.type }}</td>
+                        <td><code>{{ m.source }}</code></td>
+                        <td><code>{{ m.destination }}</code></td>
+                        <td>{{ m.mode || 'default' }}</td>
+                        <td>{{ m.rw ? 'Read/Write' : 'Read-Only' }}</td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              }
+            </div>
+
+            <!-- Networks -->
+            <div class="config-card">
+              <div class="card-header-action">
+                <h4>Network Settings</h4>
+              </div>
+              @if (detail.networks.length === 0) {
+                <div class="empty-state">No networks connected</div>
+              } @else {
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>Network Name</th>
+                      <th>IP Address</th>
+                      <th>Gateway</th>
+                      <th>MAC Address</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (net of detail.networks; track net.network_name) {
+                      <tr>
+                        <td><strong>{{ net.network_name }}</strong></td>
+                        <td><code>{{ net.ip_address || 'None' }}</code></td>
+                        <td><code>{{ net.gateway || 'None' }}</code></td>
+                        <td><code>{{ net.mac_address || 'None' }}</code></td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              }
+            </div>
+
+            <!-- Labels -->
+            <div class="config-card">
+              <div class="card-header-action">
+                <h4>Labels</h4>
+              </div>
+              @if (hasLabels(detail.labels)) {
+                <div class="labels-container">
+                  @for (entry of getLabelsList(detail.labels); track entry.key) {
+                    <div class="label-chip">
+                      <strong>{{ entry.key }}:</strong> {{ entry.val }}
+                    </div>
+                  }
+                </div>
+              } @else {
+                <div class="empty-state">No labels assigned</div>
+              }
+            </div>
+          </div>
+        </div>
+      </mat-tab>
+
+      <!-- TAB 5: EVENTS -->
+      <mat-tab label="Events">
+        <div class="tab-content">
+          <div class="events-timeline">
+            <div class="event-entry">
+              <span class="event-time">Just now</span>
+              <span class="event-desc">
+                Container <strong>{{ detail.name }}</strong> telemetry synchronized.
+              </span>
+            </div>
+            <div class="event-entry">
+              <span class="event-time">{{ detail.created | date:'short' }}</span>
+              <span class="event-desc">
+                Container <strong>{{ detail.name }}</strong> created from image <code>{{ detail.image }}</code>.
+              </span>
+            </div>
+          </div>
+        </div>
+      </mat-tab>
+    </mat-tab-group>
+  }
+</div>
