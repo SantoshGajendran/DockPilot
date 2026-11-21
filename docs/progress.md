@@ -109,3 +109,31 @@
     - Signal-based `LogsStore` managing query state, scan limit warning banners, and logs collection.
   - 100 frontend unit tests passing across 22 suites (`npm test`); production `ng build` passing with 0 errors and 0 warnings.
 
+## Prompt 06: Host / Server Page
+- **Status:** Complete
+- **Backend:**
+  - `HostMetricRecord` model and Alembic migration `0003_host_metrics.py`.
+  - Configurable host settings in `config/app.yaml` & `backend/app/core/config.py`: `host_metrics_interval_seconds: 3`, `host_top_processes_count: 10`, warning (80%) and critical (90%) thresholds for CPU, memory, and disk.
+  - Docker gateway methods `get_docker_info` and `get_docker_disk_usage` implemented in `DockerGateway`, `EngineGateway`, and `FakeGateway`.
+  - `HostService` in `backend/app/services/host_service.py`:
+    - `get_host_info`: Host OS, kernel, CPU model, physical and logical core counts, total RAM, Docker daemon version and storage driver.
+    - `collect_live_metrics`: Real-time system telemetry via `psutil` (per-core CPU %, RAM/swap, storage mounts + inodes via `os.statvfs`, disk I/O rates, network rates per interface, load averages, sensors, top processes).
+    - `get_metrics_history`: Time-series downsampling to max 100 points for `1h`, `6h`, `24h`, and `7d`.
+    - `get_docker_disk_usage`: Space breakdown for images, containers, volumes, and build cache.
+  - Endpoints: `GET /api/v1/host/info`, `GET /api/v1/host/metrics`, `GET /api/v1/host/metrics/history`, and `GET /api/v1/host/docker-usage`.
+  - 96 backend tests passing across all suites (`pytest -q`).
+- **Frontend:**
+  - TypeScript models in `frontend/src/app/core/models/host.model.ts` and constants in `frontend/src/app/core/constants/host.constants.ts`.
+  - `HostService` (`frontend/src/app/core/services/host.service.ts`) with unit tests in `host.service.spec.ts`.
+  - Signal-based `HostStore` (`frontend/src/app/features/host/host.store.ts`) with live polling and unit tests in `host.store.spec.ts`.
+  - Standalone lazy-loaded route `/host` (`HostComponent`):
+    - System info header card with vCPU and RAM chips.
+    - Per-core CPU visual heatmap grid with color-coded warning/critical load levels.
+    - RAM & Swap utilization progress bars with threshold styling.
+    - Storage Mounts table displaying disk space utilization alongside inode usage counts and percentage alerts.
+    - Docker Disk Footprint cards displaying total and reclaimable sizes for images, containers, volumes, and build cache.
+    - 4-quadrant interactive Chart.js telemetry history charts with range picker (`1h`, `6h`, `24h`, `7d`).
+    - Top Consuming Processes table with sorting by CPU % or Memory %.
+    - Unit tests in `host.component.spec.ts`.
+  - 113 frontend unit tests passing across 25 suites (`npm test`); production `ng build` passing with 0 errors and 0 warnings.
+

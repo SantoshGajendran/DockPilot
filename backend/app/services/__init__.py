@@ -18,6 +18,7 @@ from app.services.logs_service import (
     stream_container_logs_sse,
     search_logs,
 )
+from app.services.host_service import HostService
 
 __all__ = [
     "authenticate_user",
@@ -36,6 +37,7 @@ __all__ = [
     "record_container_metric",
     "stream_container_logs_sse",
     "search_logs",
+    "HostService",
 ]
 
 

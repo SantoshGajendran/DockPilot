@@ -45,6 +45,14 @@ class Settings(BaseSettings):
         "*PRIVATE*",
     ]
     container_detail_stats_interval_seconds: int = 2
+    host_metrics_interval_seconds: int = 3
+    host_top_processes_count: int = 10
+    host_cpu_warning_threshold: float = 80.0
+    host_cpu_critical_threshold: float = 90.0
+    host_memory_warning_threshold: float = 80.0
+    host_memory_critical_threshold: float = 90.0
+    host_disk_warning_threshold: float = 80.0
+    host_disk_critical_threshold: float = 90.0
 
 
 @lru_cache

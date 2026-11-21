@@ -15,6 +15,7 @@ from app.docker.engine import EngineGateway
 from app.docker.fake import FakeGateway
 from app.models.user import User
 from app.services.overview_service import OverviewCollectorService
+from app.services.host_service import HostService
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login", auto_error=False)
 
@@ -31,6 +32,12 @@ ROLE_HIERARCHY: dict[Role | str, int] = {
 @lru_cache
 def get_docker_gateway() -> DockerGateway:
     return EngineGateway()
+
+
+def get_host_service(
+    docker_gateway: DockerGateway = Depends(get_docker_gateway),
+) -> HostService:
+    return HostService(docker_gateway=docker_gateway)
 
 
 def get_overview_collector(

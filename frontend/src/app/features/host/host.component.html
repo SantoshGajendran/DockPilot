@@ -1,0 +1,324 @@
+<div class="host-page">
+  <!-- Loading State -->
+  <div *ngIf="store.isLoading()" class="loading-state">
+    <mat-spinner diameter="48"></mat-spinner>
+    <p>Inspecting host system...</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="store.error()" class="error-banner">
+    <mat-icon>error_outline</mat-icon>
+    <span>{{ store.error() }}</span>
+    <button mat-button color="warn" (click)="store.loadAll()">Retry</button>
+  </div>
+
+  <ng-container *ngIf="!store.isLoading() && store.hostInfo() as info">
+    <!-- Host Information Header Card -->
+    <div class="dp-card info-card">
+      <div class="info-header">
+        <div class="title-group">
+          <div class="icon-bubble">
+            <mat-icon>dns</mat-icon>
+          </div>
+          <div>
+            <h2>{{ info.hostname }}</h2>
+            <p class="subtitle">{{ info.os_name }} {{ info.os_version }} (Kernel: {{ info.kernel_version }})</p>
+          </div>
+        </div>
+        <div class="badge-group">
+          <mat-chip-set>
+            <mat-chip class="system-chip">
+              <mat-icon matChipAvatar>memory</mat-icon>
+              {{ info.cpu_cores_logical }} vCPUs ({{ info.cpu_cores_physical }} Cores)
+            </mat-chip>
+            <mat-chip class="system-chip">
+              <mat-icon matChipAvatar>pie_chart</mat-icon>
+              {{ formatBytes(info.total_memory_bytes) }} RAM
+            </mat-chip>
+            <mat-chip class="docker-chip">
+              <mat-icon matChipAvatar>developer_board</mat-icon>
+              Docker {{ info.docker_version }} ({{ info.docker_storage_driver }})
+            </mat-chip>
+          </mat-chip-set>
+        </div>
+      </div>
+      <div class="cpu-model-row">
+        <mat-icon class="sub-icon">speed</mat-icon>
+        <span><strong>Processor:</strong> {{ info.cpu_model }}</span>
+      </div>
+    </div>
+
+    <!-- Realtime Core Metrics Grid -->
+    <div class="metrics-grid" *ngIf="store.liveMetrics() as live">
+      <!-- Per-Core CPU Heatmap Card -->
+      <div class="dp-card">
+        <div class="card-header-row">
+          <h3>
+            <mat-icon>memory</mat-icon>
+            CPU Cores ({{ live.cpu.overall_percent }}% Total)
+          </h3>
+          <div class="text-secondary">
+            <span>Load: {{ live.load_1m }}, {{ live.load_5m }}, {{ live.load_15m }}</span>
+          </div>
+        </div>
+        <div class="cores-grid">
+          <div
+            *ngFor="let corePct of store.cpuCores(); let i = index"
+            class="core-cell"
+            [ngClass]="getCoreColorClass(corePct)"
+            [matTooltip]="'Core ' + i + ': ' + corePct + '%'"
+          >
+            <span class="core-num">C{{ i }}</span>
+            <div class="core-bar-track">
+              <div class="core-bar-fill" [style.height.%]="corePct"></div>
+            </div>
+            <span class="core-pct">{{ corePct | number: '1.0-0' }}%</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Memory & Swap Card -->
+      <div class="dp-card">
+        <div class="card-header-row">
+          <h3>
+            <mat-icon>storage</mat-icon>
+            RAM & Swap
+          </h3>
+        </div>
+        <div class="memory-section">
+          <div class="mem-label-row">
+            <span>RAM Used</span>
+            <span><strong>{{ formatBytes(live.memory.used_bytes) }}</strong> / {{ formatBytes(live.memory.total_bytes) }} ({{ live.memory.percent }}%)</span>
+          </div>
+          <mat-progress-bar
+            mode="determinate"
+            [value]="live.memory.percent"
+            [ngClass]="live.memory.percent >= thresholds.memoryCritical ? 'critical' : live.memory.percent >= thresholds.memoryWarning ? 'warning' : 'normal'"
+          ></mat-progress-bar>
+
+          <div class="mem-label-row swap-row">
+            <span>Swap Used</span>
+            <span><strong>{{ formatBytes(live.memory.swap_used_bytes) }}</strong> / {{ formatBytes(live.memory.swap_total_bytes) }} ({{ live.memory.swap_percent }}%)</span>
+          </div>
+          <mat-progress-bar
+            mode="determinate"
+            [value]="live.memory.swap_percent"
+          ></mat-progress-bar>
+        </div>
+
+        <!-- Temperatures if present -->
+        <div *ngIf="live.temperatures && live.temperatures.length > 0" class="temps-container">
+          <span class="text-secondary"><mat-icon>thermostat</mat-icon> Sensors:</span>
+          <span *ngFor="let t of live.temperatures" class="temp-pill">
+            {{ t.label }}: {{ t.current_celsius }}°C
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mounts & Inodes Table Card -->
+    <div class="dp-card">
+      <div class="card-header-row">
+        <h3>
+          <mat-icon>folder_special</mat-icon>
+          Storage Mounts & Inode Utilization
+        </h3>
+      </div>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Mountpoint</th>
+              <th>Device</th>
+              <th>FS Type</th>
+              <th>Disk Space</th>
+              <th>Inode Usage</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let m of store.mounts()">
+              <td><span class="mount-badge">{{ m.mountpoint }}</span></td>
+              <td class="text-secondary">{{ m.device }}</td>
+              <td><code>{{ m.fstype }}</code></td>
+              <td>
+                <div class="progress-cell">
+                  <div class="cell-label">{{ formatBytes(m.used_bytes) }} / {{ formatBytes(m.total_bytes) }} ({{ m.percent }}%)</div>
+                  <mat-progress-bar
+                    mode="determinate"
+                    [value]="m.percent"
+                    [ngClass]="m.isDiskCritical ? 'critical' : m.isDiskWarning ? 'warning' : 'normal'"
+                  ></mat-progress-bar>
+                </div>
+              </td>
+              <td>
+                <div class="progress-cell" *ngIf="m.inodes_total > 0; else noInodes">
+                  <div class="cell-label">
+                    {{ m.inodes_used | number }} / {{ m.inodes_total | number }} ({{ m.inodes_percent }}%)
+                    <span *ngIf="m.isInodeCritical" class="inode-alert-chip critical">CRITICAL</span>
+                    <span *ngIf="m.isInodeWarning" class="inode-alert-chip warning">WARNING</span>
+                  </div>
+                  <mat-progress-bar
+                    mode="determinate"
+                    [value]="m.inodes_percent"
+                    [ngClass]="m.isInodeCritical ? 'critical' : m.isInodeWarning ? 'warning' : 'normal'"
+                  ></mat-progress-bar>
+                </div>
+                <ng-template #noInodes>
+                  <span class="text-secondary">N/A</span>
+                </ng-template>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Docker Disk Usage Breakdown -->
+    <div class="dp-card" *ngIf="store.dockerUsage() as docker">
+      <div class="card-header-row">
+        <h3>
+          <mat-icon>inventory_2</mat-icon>
+          Docker Disk Footprint
+        </h3>
+        <button mat-icon-button (click)="store.refreshDockerUsage()" matTooltip="Refresh Docker usage">
+          <mat-icon>refresh</mat-icon>
+        </button>
+      </div>
+      <div class="docker-categories-grid">
+        <div class="category-box">
+          <div class="cat-header">
+            <mat-icon>photo_library</mat-icon>
+            <span>Images ({{ docker.images.count }})</span>
+          </div>
+          <div class="cat-size">{{ formatBytes(docker.images.total_bytes) }}</div>
+          <div class="cat-reclaimable">
+            Reclaimable: <strong>{{ formatBytes(docker.images.reclaimable_bytes) }}</strong> ({{ docker.images.reclaimable_percent }}%)
+          </div>
+        </div>
+
+        <div class="category-box">
+          <div class="cat-header">
+            <mat-icon>view_in_ar</mat-icon>
+            <span>Containers ({{ docker.containers.count }})</span>
+          </div>
+          <div class="cat-size">{{ formatBytes(docker.containers.total_bytes) }}</div>
+          <div class="cat-reclaimable">
+            Reclaimable: <strong>{{ formatBytes(docker.containers.reclaimable_bytes) }}</strong> ({{ docker.containers.reclaimable_percent }}%)
+          </div>
+        </div>
+
+        <div class="category-box">
+          <div class="cat-header">
+            <mat-icon>dns</mat-icon>
+            <span>Volumes ({{ docker.volumes.count }})</span>
+          </div>
+          <div class="cat-size">{{ formatBytes(docker.volumes.total_bytes) }}</div>
+          <div class="cat-reclaimable">
+            Reclaimable: <strong>{{ formatBytes(docker.volumes.reclaimable_bytes) }}</strong> ({{ docker.volumes.reclaimable_percent }}%)
+          </div>
+        </div>
+
+        <div class="category-box">
+          <div class="cat-header">
+            <mat-icon>build</mat-icon>
+            <span>Build Cache ({{ docker.build_cache.count }})</span>
+          </div>
+          <div class="cat-size">{{ formatBytes(docker.build_cache.total_bytes) }}</div>
+          <div class="cat-reclaimable">
+            Reclaimable: <strong>{{ formatBytes(docker.build_cache.reclaimable_bytes) }}</strong> ({{ docker.build_cache.reclaimable_percent }}%)
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Telemetry History Charts -->
+    <div class="dp-card">
+      <div class="card-header-row">
+        <h3>
+          <mat-icon>timeline</mat-icon>
+          Host Resource History
+        </h3>
+        <mat-button-toggle-group
+          [value]="store.selectedRange()"
+          (change)="onRangeChange($event.value)"
+        >
+          <mat-button-toggle *ngFor="let r of ranges" [value]="r.value">
+            {{ r.label }}
+          </mat-button-toggle>
+        </mat-button-toggle-group>
+      </div>
+      <div class="charts-2x2">
+        <div class="chart-box">
+          <h4>CPU Utilization (%)</h4>
+          <div class="canvas-wrapper">
+            <canvas baseChart [data]="cpuChartData()" [options]="chartOptions" type="line"></canvas>
+          </div>
+        </div>
+        <div class="chart-box">
+          <h4>Memory & Swap (MB)</h4>
+          <div class="canvas-wrapper">
+            <canvas baseChart [data]="memoryChartData()" [options]="chartOptions" type="line"></canvas>
+          </div>
+        </div>
+        <div class="chart-box">
+          <h4>Network Throughput (KB/s)</h4>
+          <div class="canvas-wrapper">
+            <canvas baseChart [data]="networkChartData()" [options]="chartOptions" type="line"></canvas>
+          </div>
+        </div>
+        <div class="chart-box">
+          <h4>Disk I/O Rate (KB/s)</h4>
+          <div class="canvas-wrapper">
+            <canvas baseChart [data]="diskIoChartData()" [options]="chartOptions" type="line"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Top Processes Table -->
+    <div class="dp-card">
+      <div class="card-header-row">
+        <h3>
+          <mat-icon>format_list_numbered</mat-icon>
+          Top Consuming Processes
+        </h3>
+        <div class="text-secondary" style="display: flex; align-items: center; gap: 8px;">
+          <span>Sort by:</span>
+          <mat-button-toggle-group
+            [value]="store.processSortField()"
+            (change)="onSortChange($event.value)"
+          >
+            <mat-button-toggle value="cpu">CPU %</mat-button-toggle>
+            <mat-button-toggle value="memory">Memory %</mat-button-toggle>
+          </mat-button-toggle-group>
+        </div>
+      </div>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>PID</th>
+              <th>Process Name</th>
+              <th>User</th>
+              <th>CPU %</th>
+              <th>Memory %</th>
+              <th>Resident Set (RSS)</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let p of store.sortedProcesses()">
+              <td><code>{{ p.pid }}</code></td>
+              <td><strong>{{ p.name }}</strong></td>
+              <td>{{ p.username }}</td>
+              <td><span class="pct-badge" [ngClass]="getCoreColorClass(p.cpu_percent)">{{ p.cpu_percent }}%</span></td>
+              <td>{{ p.memory_percent }}%</td>
+              <td>{{ formatBytes(p.memory_rss_bytes) }}</td>
+              <td><span class="status-chip">{{ p.status }}</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </ng-container>
+</div>

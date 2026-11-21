@@ -51,6 +51,14 @@ export const routes: Routes = [
           ),
         data: { title: 'Logs Explorer' },
       },
+      {
+        path: 'host',
+        loadComponent: () =>
+          import('./features/host/host.component').then(
+            (m) => m.HostComponent
+          ),
+        data: { title: 'Host Server' },
+      },
 
 
     ],

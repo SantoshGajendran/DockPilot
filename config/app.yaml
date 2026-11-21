@@ -38,4 +38,12 @@ secret_mask_patterns:
   - "*CREDENTIAL*"
   - "*PRIVATE*"
 container_detail_stats_interval_seconds: 2
+host_metrics_interval_seconds: 3
+host_top_processes_count: 10
+host_cpu_warning_threshold: 80.0
+host_cpu_critical_threshold: 90.0
+host_memory_warning_threshold: 80.0
+host_memory_critical_threshold: 90.0
+host_disk_warning_threshold: 80.0
+host_disk_critical_threshold: 90.0
 

@@ -66,3 +66,13 @@ class DockerGateway(ABC):
         """Stream real-time log lines for a container."""
         pass
 
+    @abstractmethod
+    async def get_docker_info(self) -> Dict[str, Any]:
+        """Return Docker daemon version, storage driver, and root dir."""
+        pass
+
+    @abstractmethod
+    async def get_docker_disk_usage(self) -> Dict[str, Any]:
+        """Return disk space usage breakdown (images, containers, volumes, build cache)."""
+        pass
+

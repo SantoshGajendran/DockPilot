@@ -211,3 +211,44 @@ class FakeGateway(DockerGateway):
         for log in logs:
             yield log
 
+    async def get_docker_info(self) -> Dict[str, Any]:
+        return {
+            "version": "27.3.1",
+            "api_version": "1.47",
+            "storage_driver": "overlay2",
+            "docker_root_dir": "/var/lib/docker",
+            "operating_system": "Ubuntu 24.04.1 LTS",
+            "architecture": "x86_64",
+            "cpus": 8,
+            "total_memory": 16 * 1024 * 1024 * 1024,
+        }
+
+    async def get_docker_disk_usage(self) -> Dict[str, Any]:
+        return {
+            "images": {
+                "count": 14,
+                "total_bytes": 4823449600,
+                "reclaimable_bytes": 1205862400,
+                "reclaimable_percent": 25.0,
+            },
+            "containers": {
+                "count": 6,
+                "total_bytes": 157286400,
+                "reclaimable_bytes": 31457280,
+                "reclaimable_percent": 20.0,
+            },
+            "volumes": {
+                "count": 8,
+                "total_bytes": 2147483648,
+                "reclaimable_bytes": 536870912,
+                "reclaimable_percent": 25.0,
+            },
+            "build_cache": {
+                "count": 22,
+                "total_bytes": 3221225472,
+                "reclaimable_bytes": 2147483648,
+                "reclaimable_percent": 66.6,
+            },
+        }
+
+

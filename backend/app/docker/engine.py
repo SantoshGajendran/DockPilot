@@ -317,3 +317,97 @@ class EngineGateway(DockerGateway):
             except (StopIteration, Exception):
                 break
 
+    async def get_docker_info(self) -> Dict[str, Any]:
+        try:
+            info = await asyncio.to_thread(self._client.info)
+            ver = await asyncio.to_thread(self._client.version)
+            return {
+                "version": ver.get("Version", "") if isinstance(ver, dict) else "",
+                "api_version": ver.get("ApiVersion", "") if isinstance(ver, dict) else "",
+                "storage_driver": info.get("Driver", "") if isinstance(info, dict) else "",
+                "docker_root_dir": info.get("DockerRootDir", "/var/lib/docker") if isinstance(info, dict) else "/var/lib/docker",
+                "operating_system": info.get("OperatingSystem", "") if isinstance(info, dict) else "",
+                "architecture": info.get("Architecture", "") if isinstance(info, dict) else "",
+                "cpus": info.get("NCPU", 0) if isinstance(info, dict) else 0,
+                "total_memory": info.get("MemTotal", 0) if isinstance(info, dict) else 0,
+            }
+        except Exception:
+            return {
+                "version": "unknown",
+                "api_version": "unknown",
+                "storage_driver": "unknown",
+                "docker_root_dir": "/var/lib/docker",
+                "operating_system": "unknown",
+                "architecture": "unknown",
+                "cpus": 0,
+                "total_memory": 0,
+            }
+
+    async def get_docker_disk_usage(self) -> Dict[str, Any]:
+        try:
+            df = await asyncio.to_thread(self._client.df)
+            if not isinstance(df, dict):
+                df = {}
+
+            images = df.get("Images") or []
+            img_total = sum(i.get("Size", 0) for i in images if isinstance(i, dict))
+            img_reclaimable = sum(i.get("Size", 0) for i in images if isinstance(i, dict) and i.get("Containers", 0) == 0)
+            img_pct = round((img_reclaimable / img_total * 100), 1) if img_total > 0 else 0.0
+
+            containers = df.get("Containers") or []
+            cnt_total = sum(c.get("SizeRw", 0) for c in containers if isinstance(c, dict))
+            cnt_reclaimable = sum(c.get("SizeRw", 0) for c in containers if isinstance(c, dict) and c.get("State", "") != "running")
+            cnt_pct = round((cnt_reclaimable / cnt_total * 100), 1) if cnt_total > 0 else 0.0
+
+            volumes = df.get("Volumes") or []
+            vol_total = 0
+            vol_reclaimable = 0
+            for v in volumes:
+                if isinstance(v, dict):
+                    usage = v.get("UsageData") or {}
+                    size = usage.get("Size", 0)
+                    vol_total += size
+                    if usage.get("RefCount", 0) == 0:
+                        vol_reclaimable += size
+            vol_pct = round((vol_reclaimable / vol_total * 100), 1) if vol_total > 0 else 0.0
+
+            build_cache = df.get("BuildCache") or []
+            bc_total = sum(b.get("Size", 0) for b in build_cache if isinstance(b, dict))
+            bc_reclaimable = sum(b.get("Size", 0) for b in build_cache if isinstance(b, dict) and not b.get("Shared", False))
+            bc_pct = round((bc_reclaimable / bc_total * 100), 1) if bc_total > 0 else 0.0
+
+            return {
+                "images": {
+                    "count": len(images),
+                    "total_bytes": img_total,
+                    "reclaimable_bytes": img_reclaimable,
+                    "reclaimable_percent": img_pct,
+                },
+                "containers": {
+                    "count": len(containers),
+                    "total_bytes": cnt_total,
+                    "reclaimable_bytes": cnt_reclaimable,
+                    "reclaimable_percent": cnt_pct,
+                },
+                "volumes": {
+                    "count": len(volumes),
+                    "total_bytes": vol_total,
+                    "reclaimable_bytes": vol_reclaimable,
+                    "reclaimable_percent": vol_pct,
+                },
+                "build_cache": {
+                    "count": len(build_cache),
+                    "total_bytes": bc_total,
+                    "reclaimable_bytes": bc_reclaimable,
+                    "reclaimable_percent": bc_pct,
+                },
+            }
+        except Exception:
+            return {
+                "images": {"count": 0, "total_bytes": 0, "reclaimable_bytes": 0, "reclaimable_percent": 0.0},
+                "containers": {"count": 0, "total_bytes": 0, "reclaimable_bytes": 0, "reclaimable_percent": 0.0},
+                "volumes": {"count": 0, "total_bytes": 0, "reclaimable_bytes": 0, "reclaimable_percent": 0.0},
+                "build_cache": {"count": 0, "total_bytes": 0, "reclaimable_bytes": 0, "reclaimable_percent": 0.0},
+            }
+
+

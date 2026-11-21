@@ -17,6 +17,12 @@ from app.schemas.container_detail import (
     EnvRevealResponse,
 )
 from app.schemas.logs import LogEntry, LogSearchResponse
+from app.schemas.host import (
+    HostInfoResponse,
+    HostLiveMetricsResponse,
+    HostHistoryResponse,
+    DockerDiskUsageResponse,
+)
 
 __all__ = [
     "LoginRequest",

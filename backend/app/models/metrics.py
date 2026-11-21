@@ -31,3 +31,28 @@ class ContainerMetricRecord(Base):
     __table_args__ = (
         Index("ix_container_metrics_cid_time", "container_id", "timestamp"),
     )
+
+
+class HostMetricRecord(Base):
+    __tablename__ = "host_metrics"
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    timestamp: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        nullable=False,
+        index=True,
+    )
+    cpu_percent: Mapped[float] = mapped_column(Float, default=0.0, nullable=False)
+    memory_bytes: Mapped[int] = mapped_column(BigInteger, default=0, nullable=False)
+    memory_total: Mapped[int] = mapped_column(BigInteger, default=0, nullable=False)
+    swap_bytes: Mapped[int] = mapped_column(BigInteger, default=0, nullable=False)
+    swap_total: Mapped[int] = mapped_column(BigInteger, default=0, nullable=False)
+    disk_read_bytes: Mapped[int] = mapped_column(BigInteger, default=0, nullable=False)
+    disk_write_bytes: Mapped[int] = mapped_column(BigInteger, default=0, nullable=False)
+    network_rx_bytes: Mapped[int] = mapped_column(BigInteger, default=0, nullable=False)
+    network_tx_bytes: Mapped[int] = mapped_column(BigInteger, default=0, nullable=False)
+    load_1m: Mapped[float] = mapped_column(Float, default=0.0, nullable=False)
+

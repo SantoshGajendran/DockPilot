@@ -97,7 +97,7 @@ npm start
 ## Running Tests
 
 ### Backend Unit Tests
-Execute the pytest suite (86 unit tests):
+Execute the pytest suite (96 unit tests):
 ```bash
 cd backend && pytest -v
 ```
@@ -107,7 +107,7 @@ python -m pytest backend/tests -v
 ```
 
 ### Frontend Unit Tests & Build
-Execute the Jest unit test suite (100 unit tests across 22 suites):
+Execute the Jest unit test suite (113 unit tests across 25 suites):
 ```bash
 cd frontend && npm test
 ```
@@ -215,4 +215,23 @@ cd frontend && npm run build
   - Container detail **Logs** tab integrated with `LogViewerComponent` for real-time live streaming.
   - Standalone `/logs` explorer page (`LogsExplorerComponent`) with multi-container picker, time-range presets (`Last 15m`, `Last 1h`, `Last 6h`, `Last 24h`, `Custom`), level filtering, and scan budget warnings.
   - All 86 backend tests (`pytest`) and 100 frontend tests across 22 suites (`npm test`) passing with 0 warnings in production `ng build`.
+
+### Prompt 06: Host / Server Page
+- **Status:** Complete
+- **Backend Endpoints & Service:**
+  - `GET /api/v1/host/info`: Host machine specs, OS release, kernel, CPU model, physical & logical core count, total memory, Docker version, and storage driver.
+  - `GET /api/v1/host/metrics`: Real-time system telemetry via `psutil` covering per-core CPU %, RAM and Swap utilization, storage mounts with inode exhaustion tracking (`os.statvfs`), disk I/O rates (read/write bytes & operations/sec), network throughput per interface (Rx/Tx bytes & packets/sec), system load averages (1m, 5m, 15m), thermal sensors (when available), and top consuming host processes.
+  - `GET /api/v1/host/metrics/history?range=1h|6h|24h|7d`: Historical time-series telemetry downsampled to at most 100 points.
+  - `GET /api/v1/host/docker-usage`: Docker disk usage footprint (`docker system df`) breaking down images, containers, volumes, and build cache with reclaimable space estimates.
+  - Database table `host_metrics` with Alembic migration `0003_host_metrics.py`.
+- **Frontend UI & State:**
+  - Standalone lazy-loaded route `/host` (`HostComponent`).
+  - Host info header card with system badges and processor specifications.
+  - Per-core CPU visual heatmap grid with color-coded warning/critical load levels.
+  - Memory and Swap utilization progress bars with threshold styling.
+  - Storage Mounts table displaying disk space utilization alongside inode usage counts and percentage alerts.
+  - Docker Disk Footprint cards displaying total and reclaimable sizes for images, containers, volumes, and build cache.
+  - 4-quadrant interactive Chart.js telemetry history charts with range picker (`1h`, `6h`, `24h`, `7d`).
+  - Top Consuming Processes table with sorting by CPU % or Memory %.
+  - All 96 backend tests (`pytest`) and 113 frontend tests across 25 suites (`npm test`) passing with 0 warnings in production `ng build`.
 
