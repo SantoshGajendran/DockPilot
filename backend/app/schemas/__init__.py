@@ -23,6 +23,14 @@ from app.schemas.host import (
     HostHistoryResponse,
     DockerDiskUsageResponse,
 )
+from app.schemas.jobs import JobResponse, JobStatus, JobStreamEvent
+from app.schemas.compose import (
+    ComposeServiceItem,
+    ComposeAuditSummary,
+    ComposeProjectResponse,
+    ComposeProjectsListResponse,
+    ComposeActionResponse,
+)
 
 __all__ = [
     "LoginRequest",

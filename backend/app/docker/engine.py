@@ -410,4 +410,54 @@ class EngineGateway(DockerGateway):
                 "build_cache": {"count": 0, "total_bytes": 0, "reclaimable_bytes": 0, "reclaimable_percent": 0.0},
             }
 
+    async def execute_compose_action(
+        self,
+        project_name: str,
+        action: str,
+        working_dir: Optional[str] = None,
+        config_files: Optional[List[str]] = None,
+    ) -> AsyncGenerator[str, None]:
+        allowed_actions = {"up", "down", "restart", "pull", "stop", "start"}
+        if action not in allowed_actions:
+            raise ValueError(f"Action '{action}' is not allowed for docker compose")
+
+        cmd = ["docker", "compose"]
+        if config_files:
+            for cfg in config_files:
+                cmd.extend(["-f", cfg])
+        elif working_dir:
+            cmd.extend(["--project-directory", working_dir])
+        else:
+            cmd.extend(["-p", project_name])
+
+        if action == "up":
+            cmd.extend(["up", "-d"])
+        else:
+            cmd.append(action)
+
+        yield f"Executing: {' '.join(cmd)}"
+
+        try:
+            process = await asyncio.create_subprocess_exec(
+                *cmd,
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.STDOUT,
+                cwd=working_dir if working_dir and os.path.isdir(working_dir) else None,
+            )
+
+            assert process.stdout is not None
+            while True:
+                line = await process.stdout.readline()
+                if not line:
+                    break
+                yield line.decode("utf-8", errors="replace").rstrip()
+
+            exit_code = await process.wait()
+            if exit_code != 0:
+                raise RuntimeError(f"docker compose {action} exited with code {exit_code}")
+        except Exception as e:
+            yield f"Error executing compose {action}: {e}"
+            raise
+
+
 

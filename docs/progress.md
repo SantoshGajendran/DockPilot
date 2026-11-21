@@ -137,3 +137,33 @@
     - Unit tests in `host.component.spec.ts`.
   - 113 frontend unit tests passing across 25 suites (`npm test`); production `ng build` passing with 0 errors and 0 warnings.
 
+
+## Prompt 07: Compose Projects
+- **Status:** Complete
+- **Backend:**
+  - Configurable Compose parameters in `config/app.yaml` and `backend/app/core/config.py`: `compose_project_allow_paths`, `compose_project_paths`, `compose_job_timeout_seconds`.
+  - Docker Gateway extension: `execute_compose_action` added to `DockerGateway`, implemented in `FakeGateway` with mock output generator and in `EngineGateway` using safe `asyncio.create_subprocess_exec` (explicit arguments, no `shell=True`).
+  - Schemas in `backend/app/schemas/jobs.py` (`JobResponse`, `JobStatus`, `JobStreamEvent`) and `backend/app/schemas/compose.py` (`ComposeServiceItem`, `ComposeProjectResponse`, `ComposeProjectsListResponse`, `ComposeActionResponse`).
+  - `JobManager` in `backend/app/services/job_service.py` managing async job lifecycles, subscriber event queues, and real-time SSE stream generators.
+  - `ComposeService` in `backend/app/services/compose_service.py`:
+    - `list_projects`: groups containers by `com.docker.compose.project`, aggregates status (`running`, `partially_running`, `stopped`, `unhealthy`, `empty`), running container counts, config file path resolution, and last audit action.
+    - `execute_project_action`: allow-list directory verification, action whitelist validation (`up`, `down`, `restart`, `pull`, `stop`, `start`), immutable pre- and post-action audit records, and background execution via `JobManager`.
+  - Endpoints:
+    - `GET /api/v1/compose/projects`: List all compose stacks.
+    - `POST /api/v1/compose/projects/{name}/{action}`: Trigger stack action (operator/admin only).
+    - `GET /api/v1/jobs/{job_id}`: Query job status.
+    - `GET /api/v1/jobs/{job_id}/stream`: Stream live terminal output over SSE.
+  - 107 backend tests passing across all suites (`pytest -q`).
+- **Frontend:**
+  - TypeScript models in `frontend/src/app/core/models/compose.model.ts` and constants in `frontend/src/app/core/constants/compose.constants.ts`.
+  - `ComposeService` (`frontend/src/app/core/services/compose.service.ts`) with unit tests in `compose.service.spec.ts`.
+  - Signal-based `ComposeStore` (`frontend/src/app/features/compose/compose.store.ts`) with unit tests in `compose.store.spec.ts`.
+  - Modal `JobOutputDialogComponent` (`frontend/src/app/features/compose/dialogs/job-output-dialog.component.ts`) streaming live ANSI logs via SSE, with auto-scroll and status indicators.
+  - Standalone lazy-loaded route `/projects` (`ComposeProjectsComponent`):
+    - Stack cards with aggregate status badge and running count chips.
+    - Compose file path / working directory with one-click clipboard copy.
+    - Last audit action summary.
+    - Action buttons (`Up`, `Down`, `Restart`, `Pull`, `Stop`, `Start`) with RBAC disable for viewers.
+    - Expandable nested table detailing service name, container name, image, state, and health.
+    - Unit tests in `compose-projects.component.spec.ts`.
+  - 130 frontend unit tests passing across 29 suites (`npm test`); production `ng build` passing with 0 errors and 0 warnings.

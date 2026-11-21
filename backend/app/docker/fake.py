@@ -17,7 +17,13 @@ class FakeGateway(DockerGateway):
                     "restart_count": 0,
                     "created": "2026-11-18T20:00:00Z",
                     "ports": {"6379/tcp": [{"HostIp": "0.0.0.0", "HostPort": "6379"}]},
-                    "labels": {"com.docker.compose.project": "dockpilot", "tier": "cache"},
+                    "labels": {
+                        "com.docker.compose.project": "dockpilot",
+                        "com.docker.compose.service": "redis",
+                        "com.docker.compose.project.working_dir": ".",
+                        "com.docker.compose.project.config_files": "docker-compose.yml",
+                        "tier": "cache",
+                    },
                     "env": ["REDIS_PASSWORD=secret123", "PORT=6379", "API_KEY=key_abcdef123456"],
                     "command": "redis-server --protected-mode no",
                     "mounts": [
@@ -54,7 +60,13 @@ class FakeGateway(DockerGateway):
                     "restart_count": 1,
                     "created": "2026-11-18T18:00:00Z",
                     "ports": {"5432/tcp": [{"HostIp": "0.0.0.0", "HostPort": "5432"}]},
-                    "labels": {"com.docker.compose.project": "dockpilot", "tier": "db"},
+                    "labels": {
+                        "com.docker.compose.project": "dockpilot",
+                        "com.docker.compose.service": "postgres",
+                        "com.docker.compose.project.working_dir": ".",
+                        "com.docker.compose.project.config_files": "docker-compose.yml",
+                        "tier": "db",
+                    },
                     "env": ["POSTGRES_DB=dockpilot"],
                 },
                 "c3": {
@@ -67,7 +79,13 @@ class FakeGateway(DockerGateway):
                     "restart_count": 3,
                     "created": "2026-11-18T15:00:00Z",
                     "ports": {"80/tcp": [{"HostIp": "0.0.0.0", "HostPort": "8080"}]},
-                    "labels": {"com.docker.compose.project": "web", "tier": "frontend"},
+                    "labels": {
+                        "com.docker.compose.project": "web",
+                        "com.docker.compose.service": "nginx",
+                        "com.docker.compose.project.working_dir": "/opt/stacks/web",
+                        "com.docker.compose.project.config_files": "/opt/stacks/web/docker-compose.yml",
+                        "tier": "frontend",
+                    },
                     "env": [],
                 },
                 "c4": {
@@ -80,7 +98,12 @@ class FakeGateway(DockerGateway):
                     "restart_count": 5,
                     "created": "2026-11-18T19:00:00Z",
                     "ports": {},
-                    "labels": {"com.docker.compose.project": "worker"},
+                    "labels": {
+                        "com.docker.compose.project": "worker",
+                        "com.docker.compose.service": "task",
+                        "com.docker.compose.project.working_dir": "/opt/stacks/worker",
+                        "com.docker.compose.project.config_files": "/opt/stacks/worker/docker-compose.yml",
+                    },
                     "env": [],
                 },
                 "c5": {
@@ -93,7 +116,12 @@ class FakeGateway(DockerGateway):
                     "restart_count": 0,
                     "created": "2026-11-18T17:00:00Z",
                     "ports": {"11211/tcp": [{"HostIp": "0.0.0.0", "HostPort": "11211"}]},
-                    "labels": {"com.docker.compose.project": "cache"},
+                    "labels": {
+                        "com.docker.compose.project": "cache",
+                        "com.docker.compose.service": "memcached",
+                        "com.docker.compose.project.working_dir": "/opt/stacks/cache",
+                        "com.docker.compose.project.config_files": "/opt/stacks/cache/docker-compose.yml",
+                    },
                     "env": [],
                 },
             }
@@ -250,5 +278,33 @@ class FakeGateway(DockerGateway):
                 "reclaimable_percent": 66.6,
             },
         }
+
+    async def execute_compose_action(
+        self,
+        project_name: str,
+        action: str,
+        working_dir: Optional[str] = None,
+        config_files: Optional[List[str]] = None,
+    ) -> AsyncGenerator[str, None]:
+        yield f"[{project_name}] Running docker compose {action}..."
+        await asyncio.sleep(0.01)
+        if action == "up":
+            yield f"[{project_name}]  ✔ Network {project_name}_default Created"
+            yield f"[{project_name}]  ✔ Container {project_name}-service-1 Created"
+            yield f"[{project_name}]  ✔ Container {project_name}-service-1 Started"
+        elif action == "down":
+            yield f"[{project_name}]  ✔ Container {project_name}-service-1 Stopped"
+            yield f"[{project_name}]  ✔ Container {project_name}-service-1 Removed"
+            yield f"[{project_name}]  ✔ Network {project_name}_default Removed"
+        elif action == "restart":
+            yield f"[{project_name}]  ✔ Container {project_name}-service-1 Restarted"
+        elif action == "pull":
+            yield f"[{project_name}]  ✔ Image pulled successfully"
+        elif action == "stop":
+            yield f"[{project_name}]  ✔ Container {project_name}-service-1 Stopped"
+        elif action == "start":
+            yield f"[{project_name}]  ✔ Container {project_name}-service-1 Started"
+        yield f"[{project_name}] docker compose {action} completed successfully."
+
 
 

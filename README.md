@@ -97,7 +97,7 @@ npm start
 ## Running Tests
 
 ### Backend Unit Tests
-Execute the pytest suite (96 unit tests):
+Execute the pytest suite (107 unit tests):
 ```bash
 cd backend && pytest -v
 ```
@@ -107,7 +107,7 @@ python -m pytest backend/tests -v
 ```
 
 ### Frontend Unit Tests & Build
-Execute the Jest unit test suite (113 unit tests across 25 suites):
+Execute the Jest unit test suite (130 unit tests across 29 suites):
 ```bash
 cd frontend && npm test
 ```
@@ -234,4 +234,21 @@ cd frontend && npm run build
   - 4-quadrant interactive Chart.js telemetry history charts with range picker (`1h`, `6h`, `24h`, `7d`).
   - Top Consuming Processes table with sorting by CPU % or Memory %.
   - All 96 backend tests (`pytest`) and 113 frontend tests across 25 suites (`npm test`) passing with 0 warnings in production `ng build`.
+
+### Prompt 07: Compose Projects
+- **Status:** Complete
+- **Backend Endpoints & Safe Subprocess Execution:**
+  - `GET /api/v1/compose/projects`: Aggregates active and stopped containers by `com.docker.compose.project` label, deriving composite project state (`running`, `partially_running`, `stopped`, `unhealthy`, `empty`), running container counts, config file paths, and last audit record.
+  - `POST /api/v1/compose/projects/{name}/{action}`: Triggers controlled Compose stack actions (`up`, `down`, `restart`, `pull`, `stop`, `start`) restricted to `operator` and `admin` roles.
+  - Directory Allow-list Security: Subprocess execution is strictly gated against configured allow-lists (`compose_project_allow_paths` and `compose_project_paths` in `config/app.yaml`). Unlisted directories return a 403 Forbidden with audit logging.
+  - Async Job Subsystem: Subprocess jobs run asynchronously under `JobManager`, tracking execution status (`running`, `completed`, `failed`) and streaming line-by-line stdout/stderr logs via Server-Sent Events (`GET /api/v1/jobs/{id}/stream`).
+  - Controlled Execution: Subprocess args are passed explicitly (`["docker", "compose", "-f", ...]` without `shell=True`) to prevent shell injection. Pre- and post-action audit logs record operator identity, target action, and execution outcome.
+- **Frontend UI & State:**
+  - Standalone lazy-loaded route `/projects` (`ComposeProjectsComponent`).
+  - Responsive project cards displaying aggregate status badges, running service count chips, config file path with clipboard copy button, and last audit action record.
+  - Action buttons (`Up`, `Down`, `Restart`, `Pull`, `Stop`, `Start`) with RBAC enforcement disabling actions for `viewer` accounts.
+  - Expandable nested table detailing service names, container names, images, container runtime states, and health statuses.
+  - Real-time `JobOutputDialogComponent` modal launched upon triggering an action, streaming live ANSI-formatted terminal output via SSE with autoscroll and status badges.
+  - All 107 backend tests (`pytest`) and 130 frontend tests across 29 suites (`npm test`) passing with 0 warnings in production `ng build`.
+
 

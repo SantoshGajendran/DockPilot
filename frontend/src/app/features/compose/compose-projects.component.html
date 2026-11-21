@@ -1,0 +1,137 @@
+<div class="compose-page">
+  <div class="page-header">
+    <div class="title-section">
+      <div class="icon-bubble">
+        <mat-icon>layers</mat-icon>
+      </div>
+      <div>
+        <h2>Compose Projects</h2>
+        <p class="subtitle">Multi-container stack orchestration and lifecycle control</p>
+      </div>
+    </div>
+    <button mat-stroked-button (click)="store.loadProjects()" [disabled]="store.isLoading()">
+      <mat-icon>refresh</mat-icon>
+      Refresh
+    </button>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="store.isLoading()" class="loading-state">
+    <mat-spinner diameter="40"></mat-spinner>
+    <p>Loading compose stacks...</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="store.error()" class="error-banner">
+    <mat-icon>error_outline</mat-icon>
+    <span>{{ store.error() }}</span>
+    <button mat-button color="warn" (click)="store.loadProjects()">Retry</button>
+  </div>
+
+  <!-- Empty State -->
+  <div *ngIf="!store.isLoading() && store.projects().length === 0 && !store.error()" class="empty-state">
+    <mat-icon class="empty-icon">layers_clear</mat-icon>
+    <h3>No Compose Projects Found</h3>
+    <p>No active containers were found with the <code>com.docker.compose.project</code> label.</p>
+  </div>
+
+  <!-- Projects List -->
+  <div class="projects-list" *ngIf="!store.isLoading() && store.projects().length > 0">
+    <div class="project-card" *ngFor="let p of store.projects()">
+      <div class="card-top-row">
+        <div class="project-title-area">
+          <h3>{{ p.name }}</h3>
+          <span class="status-badge" [ngClass]="p.status">
+            {{ p.status | uppercase }}
+          </span>
+          <span class="service-count-chip">
+            {{ p.running_count }}/{{ p.containers_count }} Running
+          </span>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="actions-area">
+          <button
+            *ngFor="let act of actions"
+            mat-button
+            [color]="act.color"
+            class="action-btn"
+            [disabled]="!isOperatorOrAdmin()"
+            [matTooltip]="!isOperatorOrAdmin() ? 'Requires operator role' : (act.label + ' stack')"
+            (click)="triggerAction(p, act.action)"
+          >
+            <mat-icon>{{ act.icon }}</mat-icon>
+            {{ act.label }}
+          </button>
+        </div>
+      </div>
+
+      <!-- Config Path & Audit Row -->
+      <div class="meta-row">
+        <div class="path-section" *ngIf="p.config_files && p.config_files.length > 0; else workingDirBlock">
+          <mat-icon class="meta-icon">description</mat-icon>
+          <span class="path-text">{{ p.config_files.join(', ') }}</span>
+          <button mat-icon-button class="copy-btn" (click)="copyPath(p.config_files.join(', '))" matTooltip="Copy path">
+            <mat-icon>content_copy</mat-icon>
+          </button>
+        </div>
+        <ng-template #workingDirBlock>
+          <div class="path-section" *ngIf="p.working_dir">
+            <mat-icon class="meta-icon">folder</mat-icon>
+            <span class="path-text">{{ p.working_dir }}</span>
+            <button mat-icon-button class="copy-btn" (click)="copyPath(p.working_dir!)" matTooltip="Copy path">
+              <mat-icon>content_copy</mat-icon>
+            </button>
+          </div>
+        </ng-template>
+
+        <div class="audit-section" *ngIf="p.last_action as lastAct; else noAudit">
+          <mat-icon class="meta-icon">history</mat-icon>
+          <span>Last action: <strong>{{ lastAct.action }}</strong> ({{ lastAct.status }}) by {{ lastAct.username || 'system' }}</span>
+        </div>
+        <ng-template #noAudit>
+          <div class="audit-section text-secondary">
+            <mat-icon class="meta-icon">history</mat-icon>
+            <span>No previous actions recorded</span>
+          </div>
+        </ng-template>
+      </div>
+
+      <!-- Expand Services Toggle -->
+      <div class="expand-row">
+        <button mat-button class="expand-btn" (click)="store.toggleExpand(p.name)">
+          <mat-icon>{{ store.isExpanded(p.name) ? 'expand_less' : 'expand_more' }}</mat-icon>
+          <span>{{ store.isExpanded(p.name) ? 'Hide Services' : 'Show Services (' + p.services.length + ')' }}</span>
+        </button>
+      </div>
+
+      <!-- Services Table (when expanded) -->
+      <div class="services-container" *ngIf="store.isExpanded(p.name)">
+        <table class="services-table">
+          <thead>
+            <tr>
+              <th>Service</th>
+              <th>Container Name</th>
+              <th>Image</th>
+              <th>State</th>
+              <th>Health</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let s of p.services">
+              <td><strong>{{ s.service_name }}</strong></td>
+              <td><code>{{ s.container_name }}</code></td>
+              <td class="text-secondary">{{ s.image }}</td>
+              <td>
+                <span class="state-chip" [ngClass]="s.state">{{ s.state }}</span>
+              </td>
+              <td>
+                <span class="health-chip" [ngClass]="s.health">{{ s.health }}</span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>

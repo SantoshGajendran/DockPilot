@@ -53,6 +53,20 @@ class Settings(BaseSettings):
     host_memory_critical_threshold: float = 90.0
     host_disk_warning_threshold: float = 80.0
     host_disk_critical_threshold: float = 90.0
+    compose_project_allow_paths: List[str] = [
+        "/opt/stacks",
+        "/home/ubuntu/dockpilot",
+        "/var/dockpilot/compose",
+        "c:/Santosh/Development/dockpilot",
+        ".",
+    ]
+    compose_project_paths: dict = {
+        "dockpilot": ".",
+        "web": "/opt/stacks/web",
+        "worker": "/opt/stacks/worker",
+        "cache": "/opt/stacks/cache",
+    }
+    compose_job_timeout_seconds: int = 300
 
 
 @lru_cache

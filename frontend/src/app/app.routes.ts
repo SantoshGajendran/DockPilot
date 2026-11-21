@@ -59,6 +59,14 @@ export const routes: Routes = [
           ),
         data: { title: 'Host Server' },
       },
+      {
+        path: 'projects',
+        loadComponent: () =>
+          import('./features/compose/compose-projects.component').then(
+            (m) => m.ComposeProjectsComponent
+          ),
+        data: { title: 'Compose Projects' },
+      },
 
 
     ],

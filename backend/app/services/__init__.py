@@ -19,6 +19,8 @@ from app.services.logs_service import (
     search_logs,
 )
 from app.services.host_service import HostService
+from app.services.job_service import JobManager, get_job_manager
+from app.services.compose_service import ComposeService
 
 __all__ = [
     "authenticate_user",
@@ -38,6 +40,9 @@ __all__ = [
     "stream_container_logs_sse",
     "search_logs",
     "HostService",
+    "JobManager",
+    "get_job_manager",
+    "ComposeService",
 ]
 
 

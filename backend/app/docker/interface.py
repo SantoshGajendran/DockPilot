@@ -76,3 +76,14 @@ class DockerGateway(ABC):
         """Return disk space usage breakdown (images, containers, volumes, build cache)."""
         pass
 
+    @abstractmethod
+    async def execute_compose_action(
+        self,
+        project_name: str,
+        action: str,
+        working_dir: Optional[str] = None,
+        config_files: Optional[List[str]] = None,
+    ) -> AsyncGenerator[str, None]:
+        """Execute a compose lifecycle action and stream output lines."""
+        pass
+

@@ -46,4 +46,16 @@ host_memory_warning_threshold: 80.0
 host_memory_critical_threshold: 90.0
 host_disk_warning_threshold: 80.0
 host_disk_critical_threshold: 90.0
+compose_project_allow_paths:
+  - "/opt/stacks"
+  - "/home/ubuntu/dockpilot"
+  - "/var/dockpilot/compose"
+  - "c:/Santosh/Development/dockpilot"
+  - "."
+compose_project_paths:
+  dockpilot: "."
+  web: "/opt/stacks/web"
+  worker: "/opt/stacks/worker"
+  cache: "/opt/stacks/cache"
+compose_job_timeout_seconds: 300
 
