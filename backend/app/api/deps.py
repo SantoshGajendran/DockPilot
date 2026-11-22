@@ -105,6 +105,13 @@ def get_alert_service(
     return AlertService(db=db, docker_gateway=docker_gateway)
 
 
+def get_notification_service(
+    db: AsyncSession = Depends(get_db_session),
+) -> "NotificationService":
+    from app.services.notification_service import NotificationService
+    return NotificationService(db=db)
+
+
 async def get_db() -> AsyncGenerator[AsyncSession, None]:
     async for session in get_db_session():
         yield session

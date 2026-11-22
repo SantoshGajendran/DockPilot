@@ -46,6 +46,19 @@ from app.schemas.alert import (
     AlertDryRunResponse,
     ActiveAlertsCountResponse,
 )
+from app.schemas.notification import (
+    NotificationChannelCreate,
+    NotificationChannelUpdate,
+    NotificationChannelResponse,
+    NotificationChannelsListResponse,
+    NotificationRouteCreate,
+    NotificationRouteUpdate,
+    NotificationRouteResponse,
+    NotificationRoutesListResponse,
+    NotificationDeliveryLogResponse,
+    DeliveryLogListResponse,
+    NotificationTestResult,
+)
 
 __all__ = [
     "LoginRequest",

@@ -83,6 +83,14 @@ export const routes: Routes = [
           ),
         data: { title: 'Alerts & Rules' },
       },
+      {
+        path: 'alerts/channels',
+        loadComponent: () =>
+          import('./features/alerts/channels/notification-channels.component').then(
+            (m) => m.NotificationChannelsComponent
+          ),
+        data: { title: 'Notification Channels' },
+      },
 
 
     ],

@@ -231,3 +231,41 @@
   - Header notification bell in `ShellComponent` toolbar with reactive badge displaying active firing alerts count.
   - 169 frontend unit tests passing across 38 suites (`npm test`); production `ng build` passing with 0 errors and 0 warnings.
 
+## Prompt 10: Notification Channels
+- **Status:** Complete
+- **Backend:**
+  - Multi-channel notification engine with transports for:
+    - **Email:** SMTP with STARTTLS/SSL, authenticated credentials, formatted HTML body and plain-text fallback.
+    - **Telegram:** Bot API message dispatch via `httpx.AsyncClient` with HTML formatting.
+    - **Generic Webhook:** Configurable JSON HTTP POST payload with optional custom headers.
+    - **Slack:** Incoming Webhook dispatch with Block Kit / attachment styling.
+  - Symmetric AES-Fernet encryption at rest for sensitive secrets (passwords, bot tokens, webhook URLs) derived from application configuration.
+  - Write-only secrets guarantee: `encrypted_secret` is never serialized or exposed over API responses (`has_secret: bool` only).
+  - Exponential backoff retry loop (up to 3 attempts with 2s, 4s, 8s backoff) isolating transport failures.
+  - Routing matrix linking alert severity (`info`, `warning`, `critical`), rule types, and container/label scopes to target channels.
+  - Delivery audit log tracking every dispatch attempt, attempt counts, status (`delivered`, `failed`, `testing`), and error diagnostic traces.
+  - Tables `notification_channels`, `notification_routes`, `notification_delivery_logs` managed via Alembic migration `0006_notifications.py`.
+  - Integration into `AlertEvaluatorService` to automatically dispatch notifications on alert firing and resolution.
+  - Endpoints in `backend/app/api/v1/alerts.py`:
+    - `GET /api/v1/alerts/channels`, `POST /api/v1/alerts/channels` (operator/admin)
+    - `GET /api/v1/alerts/channels/{id}`, `PUT /api/v1/alerts/channels/{id}` (operator/admin), `DELETE /api/v1/alerts/channels/{id}` (admin)
+    - `POST /api/v1/alerts/channels/{id}/test` (operator/admin)
+    - `GET /api/v1/alerts/routes`, `POST /api/v1/alerts/routes` (operator/admin)
+    - `PUT /api/v1/alerts/routes/{id}` (operator/admin), `DELETE /api/v1/alerts/routes/{id}` (admin)
+    - `GET /api/v1/alerts/delivery-log`
+  - 138 backend tests passing across all suites (`pytest -q`).
+- **Frontend:**
+  - TypeScript models in `frontend/src/app/core/models/notifications.model.ts` and constants in `frontend/src/app/core/constants/notifications.constants.ts`.
+  - Service in `frontend/src/app/core/services/notifications.service.ts` with unit tests in `notifications.service.spec.ts`.
+  - Signal-based `NotificationsStore` in `frontend/src/app/features/alerts/notifications.store.ts` with unit tests in `notifications.store.spec.ts`.
+  - Standalone lazy-loaded route `/alerts/channels` (`NotificationChannelsComponent`):
+    - **Channels Cards:** Grid display showing channel type icon, status chips, configuration summaries, inline "Send Test" action with result status pill, and edit/delete actions.
+    - **Routing Matrix:** Responsive table listing rule type, minimum severity, scope conditions, destination channel badges, and enable/disable toggle switches.
+    - **Delivery Log:** Paginated history table displaying event timestamp, target channel, event type, attempt counters, status pills, and expandable error message traces.
+  - Modal dialogs:
+    - `ChannelDialogComponent`: Per-channel dynamic configuration fields (SMTP host/port/TLS, bot tokens, chat IDs, webhook URLs, headers) with write-only secret indicators.
+    - `RouteDialogComponent`: Channel selection, severity dropdown, rule type selector, and optional container/label scope filters.
+  - Navigation button on `/alerts` header navigating to `/alerts/channels`.
+  - 187 frontend unit tests passing across 43 suites (`npm test`); production `ng build` passing with 0 errors and 0 warnings.
+
+

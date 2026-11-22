@@ -1,5 +1,6 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
+import { RouterLink } from '@angular/router';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
@@ -25,6 +26,7 @@ import { AlertsService } from '../../core/services/alerts.service';
   imports: [
     CommonModule,
     DatePipe,
+    RouterLink,
     MatTabsModule,
     MatTableModule,
     MatButtonModule,

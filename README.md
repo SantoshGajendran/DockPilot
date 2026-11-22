@@ -97,7 +97,7 @@ npm start
 ## Running Tests
 
 ### Backend Unit Tests
-Execute the pytest suite (128 unit tests):
+Execute the pytest suite (138 unit tests):
 ```bash
 cd backend && pytest -v
 ```
@@ -107,7 +107,7 @@ python -m pytest backend/tests -v
 ```
 
 ### Frontend Unit Tests & Build
-Execute the Jest unit test suite (147 unit tests across 33 suites):
+Execute the Jest unit test suite (187 unit tests across 43 suites):
 ```bash
 cd frontend && npm test
 ```
@@ -302,6 +302,36 @@ cd frontend && npm run build
   - Header Alert Bell:
     - Notification icon in `ShellComponent` toolbar with reactive badge displaying firing alert count, linking directly to `/alerts`.
   - All 128 backend tests (`pytest`) and 169 frontend tests across 38 suites (`npm test`) passing with 0 warnings in production `ng build`.
+
+### Prompt 10: Notification Channels
+- **Status:** Complete
+- **Backend Transports, Encryption & Dispatch Engine:**
+  - Multi-channel notification subsystem supporting:
+    - **Email:** SMTP with STARTTLS/SSL, authenticated credentials, formatted HTML body and plain-text fallback.
+    - **Telegram:** Bot API message dispatch via `httpx.AsyncClient` with HTML formatting.
+    - **Generic Webhook:** Configurable JSON HTTP POST payload with optional custom headers.
+    - **Slack:** Incoming Webhook dispatch with Block Kit / attachment styling.
+  - Symmetric encryption at rest for secrets (passwords, bot tokens, webhook URLs) using AES-Fernet with key derived from environment or settings.
+  - Secrets write-only guarantee: `encrypted_secret` is never exposed; API responses only return `has_secret: bool`.
+  - Exponential backoff retry loop (up to 3 attempts with 2s, 4s, 8s backoff) isolating transport failures.
+  - Notification routing matrix linking alert severity (`info`, `warning`, `critical`), rule types, and container/label scopes to target channels.
+  - Delivery audit log tracking every dispatch attempt, attempt counts, status (`delivered`, `failed`, `testing`), and error diagnostic traces.
+  - Direct integration into `AlertEvaluatorService`: alert firing and resolution automatically match active routes and queue notifications.
+  - Endpoints (`/api/v1/alerts`):
+    - Channels: `GET/POST /channels`, `GET/PUT/DELETE /channels/{id}`, `POST /channels/{id}/test`.
+    - Routes: `GET/POST /routes`, `PUT/DELETE /routes/{id}`.
+    - Delivery Log: `GET /delivery-log` with channel/status filtering and limit controls.
+- **Frontend Management UI:**
+  - Standalone lazy-loaded route `/alerts/channels` (`NotificationChannelsComponent`):
+    - **Channel Cards:** Grid display showing channel type icon, status chips, configuration summaries, inline "Send Test" action with result status pill, and edit/delete actions.
+    - **Routing Matrix:** Responsive table listing rule type, minimum severity, scope conditions, destination channel badges, and enable/disable toggle switches.
+    - **Delivery Log:** Paginated history table displaying event timestamp, target channel, event type, attempt counters, status pills, and expandable error message traces.
+  - Dialogs:
+    - `ChannelDialogComponent`: Per-channel dynamic configuration fields (SMTP host/port/TLS, bot tokens, chat IDs, webhook URLs, headers) with write-only secret indicators.
+    - `RouteDialogComponent`: Channel selection, severity dropdown, rule type selector, and optional container/label scope filters.
+  - Direct navigation button linking `/alerts` to `/alerts/channels`.
+  - All 138 backend tests (`pytest`) and 187 frontend tests across 43 suites (`npm test`) passing with 0 warnings in production `ng build`.
+
 
 
 

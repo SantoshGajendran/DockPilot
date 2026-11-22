@@ -4,6 +4,11 @@ from app.models.audit import AuditLog
 from app.models.metrics import ContainerMetricRecord, HostMetricRecord
 from app.models.event import ContainerEventRecord
 from app.models.alert import AlertRule, AlertEvent, AlertSilence
+from app.models.notification import (
+    NotificationChannel,
+    NotificationRoute,
+    NotificationDeliveryLog,
+)
 
 __all__ = [
     "Base",
@@ -16,4 +21,7 @@ __all__ = [
     "AlertRule",
     "AlertEvent",
     "AlertSilence",
+    "NotificationChannel",
+    "NotificationRoute",
+    "NotificationDeliveryLog",
 ]

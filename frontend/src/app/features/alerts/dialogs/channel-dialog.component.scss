@@ -1,0 +1,46 @@
+.dialog-content {
+  min-width: 500px;
+  max-width: 620px;
+  padding-top: 8px;
+}
+
+.channel-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.row {
+  display: flex;
+  gap: 12px;
+}
+
+.col-8 {
+  flex: 8;
+}
+
+.col-6 {
+  flex: 6;
+}
+
+.col-4 {
+  flex: 4;
+}
+
+.w-100 {
+  width: 100%;
+}
+
+.type-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: rgba(255, 255, 255, 0.03);
+  padding: 12px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.toggle-row {
+  margin: 4px 0 8px;
+}

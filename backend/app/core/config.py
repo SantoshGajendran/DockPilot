@@ -75,6 +75,8 @@ class Settings(BaseSettings):
     events_page_size_max: int = 200
     alert_eval_interval_seconds: int = 15
     alert_default_cooldown_minutes: int = 15
+    notification_encryption_key: str = ""
+    notification_max_retries: int = 3
 
 
 @lru_cache

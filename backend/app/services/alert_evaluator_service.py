@@ -190,11 +190,23 @@ class AlertEvaluatorService:
                         created_at=now,
                     )
                     session.add(event)
+                    await session.flush()
+                    try:
+                        from app.services.notification_service import NotificationService
+                        await NotificationService(session).notify_alert_event(event)
+                    except Exception as e:
+                        logger.error("Failed to dispatch alert notifications: %s", e)
             else:
                 # Condition no longer holds: resolve existing firing event
                 if existing_firing is not None:
                     existing_firing.status = "resolved"
                     existing_firing.resolved_at = now
+                    await session.flush()
+                    try:
+                        from app.services.notification_service import NotificationService
+                        await NotificationService(session).notify_alert_event(existing_firing)
+                    except Exception as e:
+                        logger.error("Failed to dispatch alert resolution notifications: %s", e)
 
     async def evaluate_matches_for_rule(
         self,

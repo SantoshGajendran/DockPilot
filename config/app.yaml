@@ -66,4 +66,6 @@ events_page_size_default: 50
 events_page_size_max: 200
 alert_eval_interval_seconds: 15
 alert_default_cooldown_minutes: 15
+notification_encryption_key: ""
+notification_max_retries: 3
 

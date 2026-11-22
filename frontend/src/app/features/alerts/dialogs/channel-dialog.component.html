@@ -1,0 +1,120 @@
+<h2 mat-dialog-title>{{ isEdit ? 'Edit Notification Channel' : 'Add Notification Channel' }}</h2>
+
+<mat-dialog-content class="dialog-content">
+  <form [formGroup]="form" class="channel-form">
+    <div class="row">
+      <mat-form-field appearance="outline" class="col-8">
+        <mat-label>Channel Name</mat-label>
+        <input matInput formControlName="name" placeholder="e.g. SRE Slack Alerts" />
+        <mat-error *ngIf="form.get('name')?.hasError('required')">Name is required</mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="col-4">
+        <mat-label>Channel Type</mat-label>
+        <mat-select formControlName="channel_type">
+          <mat-option *ngFor="let t of channelTypes" [value]="t.type">
+            <mat-icon>{{ t.icon }}</mat-icon>
+            {{ t.label }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    <!-- Slack Fields -->
+    <div *ngIf="form.get('channel_type')?.value === 'slack'" class="type-section">
+      <mat-form-field appearance="outline" class="w-100">
+        <mat-label>Slack Webhook URL</mat-label>
+        <input matInput type="password" formControlName="slack_url" placeholder="https://hooks.slack.com/services/..." />
+        <mat-hint *ngIf="isEdit && data.channel?.has_secret">
+          Webhook URL is configured. Leave empty to keep existing.
+        </mat-hint>
+      </mat-form-field>
+    </div>
+
+    <!-- Telegram Fields -->
+    <div *ngIf="form.get('channel_type')?.value === 'telegram'" class="type-section">
+      <mat-form-field appearance="outline" class="w-100">
+        <mat-label>Telegram Chat ID</mat-label>
+        <input matInput formControlName="chat_id" placeholder="e.g. -100123456789 or @channelname" />
+        <mat-error *ngIf="form.get('chat_id')?.hasError('required')">Chat ID is required</mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="w-100">
+        <mat-label>Bot Token</mat-label>
+        <input matInput type="password" formControlName="secret" placeholder="123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11" />
+        <mat-hint *ngIf="isEdit && data.channel?.has_secret">
+          Bot token configured. Leave empty to keep existing.
+        </mat-hint>
+      </mat-form-field>
+    </div>
+
+    <!-- Email Fields -->
+    <div *ngIf="form.get('channel_type')?.value === 'email'" class="type-section">
+      <div class="row">
+        <mat-form-field appearance="outline" class="col-8">
+          <mat-label>SMTP Host</mat-label>
+          <input matInput formControlName="smtp_host" placeholder="smtp.mailgun.org" />
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="col-4">
+          <mat-label>SMTP Port</mat-label>
+          <input matInput type="number" formControlName="smtp_port" placeholder="587" />
+        </mat-form-field>
+      </div>
+
+      <div class="row">
+        <mat-form-field appearance="outline" class="col-6">
+          <mat-label>From Address</mat-label>
+          <input matInput formControlName="from_address" placeholder="alerts@dockpilot.io" />
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="col-6">
+          <mat-label>Recipient Email(s)</mat-label>
+          <input matInput formControlName="to_addresses" placeholder="devops@domain.com, oncall@domain.com" />
+        </mat-form-field>
+      </div>
+
+      <div class="row">
+        <mat-form-field appearance="outline" class="col-6">
+          <mat-label>SMTP Username (Optional)</mat-label>
+          <input matInput formControlName="username" />
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="col-6">
+          <mat-label>SMTP Password (Optional)</mat-label>
+          <input matInput type="password" formControlName="secret" />
+          <mat-hint *ngIf="isEdit && data.channel?.has_secret">Password configured.</mat-hint>
+        </mat-form-field>
+      </div>
+
+      <div class="toggle-row">
+        <mat-slide-toggle formControlName="use_tls" color="primary">Use TLS / STARTTLS</mat-slide-toggle>
+      </div>
+    </div>
+
+    <!-- Generic Webhook Fields -->
+    <div *ngIf="form.get('channel_type')?.value === 'webhook'" class="type-section">
+      <mat-form-field appearance="outline" class="w-100">
+        <mat-label>Webhook Endpoint URL</mat-label>
+        <input matInput formControlName="webhook_url" placeholder="https://api.incident.io/dockpilot" />
+        <mat-error *ngIf="form.get('webhook_url')?.hasError('required')">URL is required</mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="w-100">
+        <mat-label>HMAC Secret Token (Optional)</mat-label>
+        <input matInput type="password" formControlName="secret" placeholder="Secret key for X-DockPilot-Signature" />
+        <mat-hint *ngIf="isEdit && data.channel?.has_secret">HMAC secret configured.</mat-hint>
+      </mat-form-field>
+    </div>
+
+    <div class="toggle-row">
+      <mat-slide-toggle formControlName="enabled" color="primary">
+        Channel Active
+      </mat-slide-toggle>
+    </div>
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="onCancel()">Cancel</button>
+  <button mat-flat-button color="primary" (click)="onSave()" [disabled]="form.invalid">
+    {{ isEdit ? 'Save Changes' : 'Create Channel' }}
+  </button>
+</mat-dialog-actions>
