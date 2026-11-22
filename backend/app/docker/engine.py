@@ -464,5 +464,181 @@ class EngineGateway(DockerGateway):
             yield f"Error executing compose {action}: {e}"
             raise
 
+    async def list_images(self) -> List[Dict[str, Any]]:
+        def _list() -> List[Dict[str, Any]]:
+            imgs = self._client.images.list(all=True)
+            results = []
+            for img in imgs:
+                attrs = getattr(img, "attrs", {}) or {}
+                tags = getattr(img, "tags", []) or []
+                img_id = getattr(img, "id", "")
+                short_id = getattr(img, "short_id", "")
+                size = attrs.get("Size", 0)
+                created = attrs.get("Created", "")
+                labels = attrs.get("Config", {}).get("Labels", {}) or {}
+                is_dangling = len(tags) == 0 or tags == ["<none>:<none>"]
+                results.append({
+                    "id": img_id,
+                    "short_id": short_id,
+                    "tags": tags,
+                    "size": size,
+                    "created": created,
+                    "labels": labels,
+                    "is_dangling": is_dangling,
+                })
+            return results
+        return await asyncio.to_thread(_list)
+
+    async def list_volumes(self) -> List[Dict[str, Any]]:
+        def _list() -> List[Dict[str, Any]]:
+            vols = self._client.volumes.list()
+            results = []
+            for v in vols:
+                attrs = getattr(v, "attrs", {}) or {}
+                name = getattr(v, "name", "")
+                driver = attrs.get("Driver", getattr(v, "driver", "local"))
+                mountpoint = attrs.get("Mountpoint", "")
+                created = attrs.get("CreatedAt", "")
+                labels = attrs.get("Labels", {}) or {}
+                usage = attrs.get("UsageData", {}) or {}
+                size = usage.get("Size", None)
+                results.append({
+                    "name": name,
+                    "driver": driver,
+                    "mountpoint": mountpoint,
+                    "created": created,
+                    "labels": labels,
+                    "size": size,
+                })
+            return results
+        return await asyncio.to_thread(_list)
+
+    async def list_networks(self) -> List[Dict[str, Any]]:
+        def _list() -> List[Dict[str, Any]]:
+            nets = self._client.networks.list()
+            results = []
+            for net in nets:
+                attrs = getattr(net, "attrs", {}) or {}
+                net_id = getattr(net, "id", "")
+                short_id = getattr(net, "short_id", "")
+                name = getattr(net, "name", "")
+                driver = attrs.get("Driver", "")
+                scope = attrs.get("Scope", "local")
+                internal = attrs.get("Internal", False)
+                created = attrs.get("Created", "")
+                labels = attrs.get("Labels", {}) or {}
+                containers_dict = attrs.get("Containers", {}) or {}
+                connected_container_ids = list(containers_dict.keys())
+                results.append({
+                    "id": net_id,
+                    "short_id": short_id,
+                    "name": name,
+                    "driver": driver,
+                    "scope": scope,
+                    "internal": internal,
+                    "created": created,
+                    "labels": labels,
+                    "connected_container_ids": connected_container_ids,
+                })
+            return results
+        return await asyncio.to_thread(_list)
+
+    async def pull_image(self, image_name: str) -> AsyncGenerator[str, None]:
+        tag = image_name.split(":", 1)[1] if ":" in image_name else "latest"
+        repository = image_name.split(":", 1)[0]
+
+        loop = asyncio.get_running_loop()
+        queue: asyncio.Queue[Union[str, Exception, None]] = asyncio.Queue()
+
+        def _pull_worker():
+            try:
+                for line in self._client.api.pull(repository, tag=tag, stream=True, decode=True):
+                    status = line.get("status", "")
+                    progress = line.get("progress", "")
+                    layer_id = line.get("id", "")
+                    msg = f"{layer_id}: {status} {progress}".strip() if layer_id else f"{status} {progress}".strip()
+                    if msg:
+                        loop.call_soon_threadsafe(queue.put_nowait, msg)
+                loop.call_soon_threadsafe(queue.put_nowait, None)
+            except Exception as e:
+                loop.call_soon_threadsafe(queue.put_nowait, e)
+
+        asyncio.create_task(asyncio.to_thread(_pull_worker))
+
+        while True:
+            item = await queue.get()
+            if item is None:
+                break
+            if isinstance(item, Exception):
+                raise item
+            yield item
+
+    async def remove_image(self, image_id: str, force: bool = False) -> bool:
+        def _remove():
+            try:
+                self._client.images.remove(image_id, force=force)
+                return True
+            except NotFound:
+                raise ValueError(f"Image {image_id} not found")
+            except Exception as e:
+                raise ValueError(f"Error removing image {image_id}: {e}")
+        return await asyncio.to_thread(_remove)
+
+    async def remove_volume(self, volume_name: str, force: bool = False) -> bool:
+        def _remove():
+            try:
+                vol = self._client.volumes.get(volume_name)
+                vol.remove(force=force)
+                return True
+            except NotFound:
+                raise ValueError(f"Volume {volume_name} not found")
+            except Exception as e:
+                raise ValueError(f"Error removing volume {volume_name}: {e}")
+        return await asyncio.to_thread(_remove)
+
+    async def remove_network(self, network_id: str) -> bool:
+        def _remove():
+            try:
+                net = self._client.networks.get(network_id)
+                net.remove()
+                return True
+            except NotFound:
+                raise ValueError(f"Network {network_id} not found")
+            except Exception as e:
+                raise ValueError(f"Error removing network {network_id}: {e}")
+        return await asyncio.to_thread(_remove)
+
+    async def prune_images(self, dangling_only: bool = True) -> Dict[str, Any]:
+        def _prune():
+            filters = {"dangling": True} if dangling_only else {}
+            res = self._client.images.prune(filters=filters) or {}
+            raw_deleted = res.get("ImagesDeleted", []) or []
+            deleted = []
+            for d in raw_deleted:
+                if isinstance(d, dict):
+                    deleted.append(d.get("Deleted") or d.get("Untagged") or "")
+                else:
+                    deleted.append(str(d))
+            deleted = [x for x in deleted if x]
+            space = res.get("SpaceReclaimed", 0) or 0
+            return {"items_deleted": deleted, "space_reclaimed": space}
+        return await asyncio.to_thread(_prune)
+
+    async def prune_volumes(self) -> Dict[str, Any]:
+        def _prune():
+            res = self._client.volumes.prune() or {}
+            deleted = res.get("VolumesDeleted", []) or []
+            space = res.get("SpaceReclaimed", 0) or 0
+            return {"items_deleted": deleted, "space_reclaimed": space}
+        return await asyncio.to_thread(_prune)
+
+    async def prune_networks(self) -> Dict[str, Any]:
+        def _prune():
+            res = self._client.networks.prune() or {}
+            deleted = res.get("NetworksDeleted", []) or []
+            return {"items_deleted": deleted, "space_reclaimed": 0}
+        return await asyncio.to_thread(_prune)
+
+
 
 

@@ -1,0 +1,489 @@
+<div class="resources-page-container">
+  <!-- Top Bar / Header -->
+  <header class="page-header">
+    <div class="header-titles">
+      <div class="title-with-icon">
+        <mat-icon color="primary" class="main-icon">inventory_2</mat-icon>
+        <h1>Docker Resources</h1>
+      </div>
+      <p class="subtitle">
+        Inspect and clean up Docker images, persistent volumes, and networks.
+      </p>
+    </div>
+
+    <div class="header-actions">
+      <button
+        mat-flat-button
+        color="primary"
+        *ngIf="isOperator && store.activeTab() === 'images'"
+        (click)="openPullDialog()"
+      >
+        <mat-icon>cloud_download</mat-icon>
+        Pull Image
+      </button>
+
+      <button
+        mat-flat-button
+        color="warn"
+        *ngIf="isOperator"
+        (click)="openPruneWizard()"
+      >
+        <mat-icon>cleaning_services</mat-icon>
+        Prune {{ store.activeTab() === 'images' ? 'Dangling' : 'Unused' }}
+      </button>
+
+      <button mat-icon-button (click)="store.loadAll()" matTooltip="Refresh resources" [disabled]="store.isLoading()">
+        <mat-icon>refresh</mat-icon>
+      </button>
+    </div>
+  </header>
+
+  <!-- Filter & Search Toolbar -->
+  <div class="toolbar-card">
+    <mat-form-field appearance="outline" class="search-input">
+      <mat-icon matPrefix>search</mat-icon>
+      <mat-label>Filter resources by name, tag, driver, or container...</mat-label>
+      <input
+        matInput
+        [ngModel]="store.searchQuery()"
+        (ngModelChange)="store.setSearchQuery($event)"
+        placeholder="Search..."
+      />
+      <button
+        mat-icon-button
+        matSuffix
+        *ngIf="store.searchQuery()"
+        (click)="store.setSearchQuery('')"
+        aria-label="Clear search"
+      >
+        <mat-icon>clear</mat-icon>
+      </button>
+    </mat-form-field>
+
+    <div class="stats-pills">
+      <span class="stat-pill" *ngIf="store.activeTab() === 'images'">
+        Total Space: <strong>{{ formatBytes(store.totalImageSize()) }}</strong>
+      </span>
+      <span class="stat-pill warn-pill" *ngIf="store.activeTab() === 'images' && store.unusedImagesCount() > 0">
+        Unused Images: <strong>{{ store.unusedImagesCount() }}</strong>
+      </span>
+      <span class="stat-pill warn-pill" *ngIf="store.activeTab() === 'volumes' && store.unusedVolumesCount() > 0">
+        Unused Volumes: <strong>{{ store.unusedVolumesCount() }}</strong>
+      </span>
+      <span class="stat-pill warn-pill" *ngIf="store.activeTab() === 'networks' && store.unusedNetworksCount() > 0">
+        Unused Networks: <strong>{{ store.unusedNetworksCount() }}</strong>
+      </span>
+    </div>
+  </div>
+
+  <!-- Action Error Banner -->
+  <div *ngIf="store.actionError()" class="action-error-banner">
+    <mat-icon>error_outline</mat-icon>
+    <span>{{ store.actionError() }}</span>
+  </div>
+
+  <!-- Resource Tabs -->
+  <mat-tab-group
+    class="resource-tabs"
+    animationDuration="200ms"
+    (selectedIndexChange)="onTabChange($event)"
+  >
+    <!-- TAB 1: IMAGES -->
+    <mat-tab>
+      <ng-template mat-tab-label>
+        <mat-icon class="tab-icon">layers</mat-icon>
+        <span>Images ({{ store.filteredImages().length }})</span>
+      </ng-template>
+
+      <div class="tab-content">
+        <!-- Loading State -->
+        <div *ngIf="store.imagesLoading()" class="loading-state">
+          <mat-spinner diameter="36"></mat-spinner>
+          <span>Loading images...</span>
+        </div>
+
+        <!-- Error State -->
+        <div *ngIf="store.imagesError()" class="error-state">
+          <mat-icon color="warn">error</mat-icon>
+          <span>{{ store.imagesError() }}</span>
+          <button mat-button color="primary" (click)="store.loadImages()">Retry</button>
+        </div>
+
+        <!-- Empty State -->
+        <div *ngIf="!store.imagesLoading() && !store.imagesError() && store.filteredImages().length === 0" class="empty-state">
+          <mat-icon>layers_clear</mat-icon>
+          <h3>No Images Found</h3>
+          <p *ngIf="store.searchQuery()">No Docker images match your filter criteria.</p>
+          <p *ngIf="!store.searchQuery()">No Docker images are currently present on this host.</p>
+        </div>
+
+        <!-- Images Table -->
+        <div *ngIf="!store.imagesLoading() && !store.imagesError() && store.filteredImages().length > 0" class="table-container">
+          <table mat-table [dataSource]="store.filteredImages()" class="resource-table">
+            <!-- Tags Column -->
+            <ng-container matColumnDef="tags">
+              <th mat-header-cell *matHeaderCellDef>Repository / Tags</th>
+              <td mat-cell *matCellDef="let img">
+                <div class="tags-cell">
+                  <div *ngIf="img.tags && img.tags.length > 0" class="tag-badges">
+                    <span *ngFor="let t of img.tags" class="tag-badge">{{ t }}</span>
+                  </div>
+                  <span *ngIf="!img.tags || img.tags.length === 0" class="dangling-tag">&lt;none&gt;:&lt;none&gt;</span>
+                </div>
+              </td>
+            </ng-container>
+
+            <!-- Short ID Column -->
+            <ng-container matColumnDef="shortId">
+              <th mat-header-cell *matHeaderCellDef>Image ID</th>
+              <td mat-cell *matCellDef="let img">
+                <span class="mono-id" [matTooltip]="img.id">{{ img.short_id || (img.id | slice:7:19) }}</span>
+              </td>
+            </ng-container>
+
+            <!-- Size Column -->
+            <ng-container matColumnDef="size">
+              <th mat-header-cell *matHeaderCellDef>Size</th>
+              <td mat-cell *matCellDef="let img">
+                <span class="size-val">{{ formatBytes(img.size) }}</span>
+              </td>
+            </ng-container>
+
+            <!-- Created Column -->
+            <ng-container matColumnDef="created">
+              <th mat-header-cell *matHeaderCellDef>Created</th>
+              <td mat-cell *matCellDef="let img">
+                <span class="date-val">{{ img.created | date:'mediumDate' }}</span>
+              </td>
+            </ng-container>
+
+            <!-- Status & Usage Column -->
+            <ng-container matColumnDef="status">
+              <th mat-header-cell *matHeaderCellDef>Usage & Status</th>
+              <td mat-cell *matCellDef="let img">
+                <div class="status-cell">
+                  <!-- In-Use Badge & Chips -->
+                  <div *ngIf="img.is_in_use" class="in-use-wrapper">
+                    <span class="status-chip chip-in-use">
+                      <mat-icon>check_circle</mat-icon> In Use
+                    </span>
+                    <div class="containers-chip-list">
+                      <span *ngFor="let c of img.in_use_by" class="container-ref-chip">
+                        {{ c.name }}
+                      </span>
+                    </div>
+                  </div>
+
+                  <!-- Unused Pill (Highlighted) -->
+                  <span *ngIf="!img.is_in_use" class="status-chip chip-unused">
+                    <mat-icon>warning</mat-icon> Unused
+                  </span>
+
+                  <!-- Protected Chip -->
+                  <span *ngIf="img.is_protected" class="status-chip chip-protected" matTooltip="Protected by configuration">
+                    <mat-icon>shield</mat-icon> Protected
+                  </span>
+
+                  <!-- Dangling Chip -->
+                  <span *ngIf="img.is_dangling" class="status-chip chip-dangling">
+                    <mat-icon>link_off</mat-icon> Dangling
+                  </span>
+                </div>
+              </td>
+            </ng-container>
+
+            <!-- Actions Column -->
+            <ng-container matColumnDef="actions">
+              <th mat-header-cell *matHeaderCellDef class="actions-header">Actions</th>
+              <td mat-cell *matCellDef="let img" class="actions-cell">
+                <button
+                  mat-icon-button
+                  color="warn"
+                  *ngIf="isOperator"
+                  [disabled]="img.is_protected || img.is_in_use"
+                  [matTooltip]="
+                    img.is_protected
+                      ? 'Image is protected by configuration'
+                      : img.is_in_use
+                      ? 'Cannot remove image in use by containers'
+                      : 'Remove image'
+                  "
+                  (click)="deleteImage(img.id, img.tags[0] || img.short_id)"
+                >
+                  <mat-icon>delete_outline</mat-icon>
+                </button>
+              </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="imageColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: imageColumns;"></tr>
+          </table>
+        </div>
+      </div>
+    </mat-tab>
+
+    <!-- TAB 2: VOLUMES -->
+    <mat-tab>
+      <ng-template mat-tab-label>
+        <mat-icon class="tab-icon">storage</mat-icon>
+        <span>Volumes ({{ store.filteredVolumes().length }})</span>
+      </ng-template>
+
+      <div class="tab-content">
+        <!-- Loading State -->
+        <div *ngIf="store.volumesLoading()" class="loading-state">
+          <mat-spinner diameter="36"></mat-spinner>
+          <span>Loading volumes...</span>
+        </div>
+
+        <!-- Error State -->
+        <div *ngIf="store.volumesError()" class="error-state">
+          <mat-icon color="warn">error</mat-icon>
+          <span>{{ store.volumesError() }}</span>
+          <button mat-button color="primary" (click)="store.loadVolumes()">Retry</button>
+        </div>
+
+        <!-- Empty State -->
+        <div *ngIf="!store.volumesLoading() && !store.volumesError() && store.filteredVolumes().length === 0" class="empty-state">
+          <mat-icon>storage</mat-icon>
+          <h3>No Volumes Found</h3>
+          <p *ngIf="store.searchQuery()">No volumes match your filter criteria.</p>
+          <p *ngIf="!store.searchQuery()">No persistent volumes are currently created.</p>
+        </div>
+
+        <!-- Volumes Table -->
+        <div *ngIf="!store.volumesLoading() && !store.volumesError() && store.filteredVolumes().length > 0" class="table-container">
+          <table mat-table [dataSource]="store.filteredVolumes()" class="resource-table">
+            <!-- Name Column -->
+            <ng-container matColumnDef="name">
+              <th mat-header-cell *matHeaderCellDef>Volume Name</th>
+              <td mat-cell *matCellDef="let vol">
+                <span class="mono-name">{{ vol.name }}</span>
+              </td>
+            </ng-container>
+
+            <!-- Driver Column -->
+            <ng-container matColumnDef="driver">
+              <th mat-header-cell *matHeaderCellDef>Driver</th>
+              <td mat-cell *matCellDef="let vol">
+                <span class="driver-badge">{{ vol.driver }}</span>
+              </td>
+            </ng-container>
+
+            <!-- Mountpoint Column -->
+            <ng-container matColumnDef="mountpoint">
+              <th mat-header-cell *matHeaderCellDef>Mountpoint</th>
+              <td mat-cell *matCellDef="let vol">
+                <span class="mount-path" [matTooltip]="vol.mountpoint">{{ vol.mountpoint || '-' }}</span>
+              </td>
+            </ng-container>
+
+            <!-- Created Column -->
+            <ng-container matColumnDef="created">
+              <th mat-header-cell *matHeaderCellDef>Created</th>
+              <td mat-cell *matCellDef="let vol">
+                <span class="date-val">{{ vol.created | date:'mediumDate' }}</span>
+              </td>
+            </ng-container>
+
+            <!-- Size Column -->
+            <ng-container matColumnDef="size">
+              <th mat-header-cell *matHeaderCellDef>Size</th>
+              <td mat-cell *matCellDef="let vol">
+                <span class="size-val">{{ formatBytes(vol.size) }}</span>
+              </td>
+            </ng-container>
+
+            <!-- Status & Usage Column -->
+            <ng-container matColumnDef="status">
+              <th mat-header-cell *matHeaderCellDef>Usage & Status</th>
+              <td mat-cell *matCellDef="let vol">
+                <div class="status-cell">
+                  <div *ngIf="vol.is_in_use" class="in-use-wrapper">
+                    <span class="status-chip chip-in-use">
+                      <mat-icon>check_circle</mat-icon> In Use
+                    </span>
+                    <div class="containers-chip-list">
+                      <span *ngFor="let c of vol.in_use_by" class="container-ref-chip">
+                        {{ c.name }}
+                      </span>
+                    </div>
+                  </div>
+
+                  <span *ngIf="!vol.is_in_use" class="status-chip chip-unused">
+                    <mat-icon>warning</mat-icon> Unused
+                  </span>
+
+                  <span *ngIf="vol.is_protected" class="status-chip chip-protected" matTooltip="Protected by configuration">
+                    <mat-icon>shield</mat-icon> Protected
+                  </span>
+                </div>
+              </td>
+            </ng-container>
+
+            <!-- Actions Column -->
+            <ng-container matColumnDef="actions">
+              <th mat-header-cell *matHeaderCellDef class="actions-header">Actions</th>
+              <td mat-cell *matCellDef="let vol" class="actions-cell">
+                <button
+                  mat-icon-button
+                  color="warn"
+                  *ngIf="isOperator"
+                  [disabled]="vol.is_protected || vol.is_in_use"
+                  [matTooltip]="
+                    vol.is_protected
+                      ? 'Volume is protected by configuration'
+                      : vol.is_in_use
+                      ? 'Cannot remove volume in use by containers'
+                      : 'Remove volume'
+                  "
+                  (click)="deleteVolume(vol.name)"
+                >
+                  <mat-icon>delete_outline</mat-icon>
+                </button>
+              </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="volumeColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: volumeColumns;"></tr>
+          </table>
+        </div>
+      </div>
+    </mat-tab>
+
+    <!-- TAB 3: NETWORKS -->
+    <mat-tab>
+      <ng-template mat-tab-label>
+        <mat-icon class="tab-icon">hub</mat-icon>
+        <span>Networks ({{ store.filteredNetworks().length }})</span>
+      </ng-template>
+
+      <div class="tab-content">
+        <!-- Loading State -->
+        <div *ngIf="store.networksLoading()" class="loading-state">
+          <mat-spinner diameter="36"></mat-spinner>
+          <span>Loading networks...</span>
+        </div>
+
+        <!-- Error State -->
+        <div *ngIf="store.networksError()" class="error-state">
+          <mat-icon color="warn">error</mat-icon>
+          <span>{{ store.networksError() }}</span>
+          <button mat-button color="primary" (click)="store.loadNetworks()">Retry</button>
+        </div>
+
+        <!-- Empty State -->
+        <div *ngIf="!store.networksLoading() && !store.networksError() && store.filteredNetworks().length === 0" class="empty-state">
+          <mat-icon>hub</mat-icon>
+          <h3>No Networks Found</h3>
+          <p *ngIf="store.searchQuery()">No networks match your filter criteria.</p>
+          <p *ngIf="!store.searchQuery()">No networks found on Docker daemon.</p>
+        </div>
+
+        <!-- Networks Table -->
+        <div *ngIf="!store.networksLoading() && !store.networksError() && store.filteredNetworks().length > 0" class="table-container">
+          <table mat-table [dataSource]="store.filteredNetworks()" class="resource-table">
+            <!-- Name Column -->
+            <ng-container matColumnDef="name">
+              <th mat-header-cell *matHeaderCellDef>Network Name</th>
+              <td mat-cell *matCellDef="let net">
+                <span class="mono-name">{{ net.name }}</span>
+              </td>
+            </ng-container>
+
+            <!-- Driver Column -->
+            <ng-container matColumnDef="driver">
+              <th mat-header-cell *matHeaderCellDef>Driver</th>
+              <td mat-cell *matCellDef="let net">
+                <span class="driver-badge">{{ net.driver }}</span>
+              </td>
+            </ng-container>
+
+            <!-- Scope Column -->
+            <ng-container matColumnDef="scope">
+              <th mat-header-cell *matHeaderCellDef>Scope</th>
+              <td mat-cell *matCellDef="let net">
+                <span>{{ net.scope }}</span>
+              </td>
+            </ng-container>
+
+            <!-- Internal Column -->
+            <ng-container matColumnDef="internal">
+              <th mat-header-cell *matHeaderCellDef>Internal</th>
+              <td mat-cell *matCellDef="let net">
+                <span class="boolean-badge" [ngClass]="{ 'internal-yes': net.internal }">
+                  {{ net.internal ? 'Yes' : 'No' }}
+                </span>
+              </td>
+            </ng-container>
+
+            <!-- Connected Containers Column -->
+            <ng-container matColumnDef="connected">
+              <th mat-header-cell *matHeaderCellDef>Connected Containers</th>
+              <td mat-cell *matCellDef="let net">
+                <div class="containers-chip-list" *ngIf="net.in_use_by && net.in_use_by.length > 0">
+                  <span *ngFor="let c of net.in_use_by" class="container-ref-chip">
+                    {{ c.name }}
+                  </span>
+                </div>
+                <span *ngIf="!net.in_use_by || net.in_use_by.length === 0" class="none-label">None</span>
+              </td>
+            </ng-container>
+
+            <!-- Status Column -->
+            <ng-container matColumnDef="status">
+              <th mat-header-cell *matHeaderCellDef>Status</th>
+              <td mat-cell *matCellDef="let net">
+                <div class="status-cell">
+                  <span *ngIf="net.is_in_use" class="status-chip chip-in-use">
+                    <mat-icon>check_circle</mat-icon> In Use
+                  </span>
+
+                  <span *ngIf="!net.is_in_use && !net.is_built_in" class="status-chip chip-unused">
+                    <mat-icon>warning</mat-icon> Unused
+                  </span>
+
+                  <span *ngIf="net.is_built_in" class="status-chip chip-builtin" matTooltip="Docker system built-in network">
+                    <mat-icon>lock</mat-icon> Built-in
+                  </span>
+
+                  <span *ngIf="net.is_protected && !net.is_built_in" class="status-chip chip-protected" matTooltip="Protected by configuration">
+                    <mat-icon>shield</mat-icon> Protected
+                  </span>
+                </div>
+              </td>
+            </ng-container>
+
+            <!-- Actions Column -->
+            <ng-container matColumnDef="actions">
+              <th mat-header-cell *matHeaderCellDef class="actions-header">Actions</th>
+              <td mat-cell *matCellDef="let net" class="actions-cell">
+                <button
+                  mat-icon-button
+                  color="warn"
+                  *ngIf="isOperator"
+                  [disabled]="net.is_built_in || net.is_protected || net.is_in_use"
+                  [matTooltip]="
+                    net.is_built_in
+                      ? 'Built-in Docker networks cannot be removed'
+                      : net.is_protected
+                      ? 'Network is protected by configuration'
+                      : net.is_in_use
+                      ? 'Cannot remove network with connected containers'
+                      : 'Remove network'
+                  "
+                  (click)="deleteNetwork(net.id, net.name)"
+                >
+                  <mat-icon>delete_outline</mat-icon>
+                </button>
+              </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="networkColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: networkColumns;"></tr>
+          </table>
+        </div>
+      </div>
+    </mat-tab>
+  </mat-tab-group>
+</div>

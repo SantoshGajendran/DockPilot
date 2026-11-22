@@ -1,0 +1,67 @@
+<div class="pull-dialog-container">
+  <div class="dialog-header">
+    <div class="header-title">
+      <mat-icon color="primary">cloud_download</mat-icon>
+      <h2 mat-dialog-title>Pull Docker Image</h2>
+    </div>
+    <button mat-icon-button (click)="close()" [disabled]="pulling()">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <mat-dialog-content class="dialog-content">
+    <div class="input-row">
+      <mat-form-field appearance="outline" class="image-input-field">
+        <mat-label>Image Repository & Tag</mat-label>
+        <input
+          matInput
+          [(ngModel)]="imageName"
+          placeholder="e.g. redis:7-alpine or nginx:latest"
+          [disabled]="pulling() || finished()"
+          (keyup.enter)="!pulling() && !finished() && startPull()"
+        />
+        <mat-hint>Specify tag or defaults to :latest</mat-hint>
+      </mat-form-field>
+
+      <button
+        mat-flat-button
+        color="primary"
+        class="pull-btn"
+        [disabled]="!imageName.trim() || pulling() || finished()"
+        (click)="startPull()"
+      >
+        <mat-spinner *ngIf="pulling()" diameter="18"></mat-spinner>
+        <mat-icon *ngIf="!pulling()">download</mat-icon>
+        <span>Pull</span>
+      </button>
+    </div>
+
+    <!-- Error Banner -->
+    <div *ngIf="errorMessage()" class="error-banner">
+      <mat-icon>error_outline</mat-icon>
+      <span>{{ errorMessage() }}</span>
+    </div>
+
+    <!-- Live Terminal Stream Output -->
+    <div *ngIf="logLines().length > 0" class="terminal-wrapper">
+      <div class="terminal-header">
+        <span class="terminal-title">Pull Output</span>
+        <div class="status-indicator" [ngClass]="status()">
+          <span class="status-dot"></span>
+          <span class="status-text">{{ status() | uppercase }}</span>
+        </div>
+      </div>
+      <div class="terminal-box" #terminalContainer>
+        <div *ngFor="let line of logLines()" class="log-line">
+          {{ line }}
+        </div>
+      </div>
+    </div>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end" class="dialog-actions">
+    <button mat-button (click)="close()" [disabled]="pulling()">
+      {{ finished() ? 'Done' : 'Cancel' }}
+    </button>
+  </mat-dialog-actions>
+</div>

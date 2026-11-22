@@ -3,7 +3,13 @@ from typing import Any, AsyncGenerator, Dict, List, Optional, Union
 from app.docker.interface import DockerGateway
 
 class FakeGateway(DockerGateway):
-    def __init__(self, containers: Dict[str, Dict[str, Any]] | None = None):
+    def __init__(
+        self,
+        containers: Dict[str, Dict[str, Any]] | None = None,
+        images: Dict[str, Dict[str, Any]] | None = None,
+        volumes: Dict[str, Dict[str, Any]] | None = None,
+        networks: Dict[str, Dict[str, Any]] | None = None,
+    ):
         if containers is not None:
             self.containers = containers
         else:
@@ -69,6 +75,22 @@ class FakeGateway(DockerGateway):
                         "tier": "db",
                     },
                     "env": ["POSTGRES_DB=dockpilot"],
+                    "mounts": [
+                        {
+                            "Type": "volume",
+                            "Source": "dockpilot_postgres_data",
+                            "Destination": "/var/lib/postgresql/data",
+                            "Mode": "rw",
+                            "RW": True,
+                        }
+                    ],
+                    "networks": {
+                        "dockpilot_default": {
+                            "IPAddress": "172.20.0.3",
+                            "Gateway": "172.20.0.1",
+                            "MacAddress": "02:42:ac:14:00:03",
+                        }
+                    },
                 },
                 "c3": {
                     "id": "c3",
@@ -137,6 +159,165 @@ class FakeGateway(DockerGateway):
             }
         ]
         self.mock_stream_events: List[Dict[str, Any]] = []
+
+        if images is not None:
+            self.images = images
+        else:
+            self.images = {
+                "img-1": {
+                    "id": "sha256:redis1234567890abcdef",
+                    "short_id": "sha256:redis123",
+                    "tags": ["redis:7-alpine"],
+                    "size": 38400000,
+                    "created": "2026-11-10T10:00:00Z",
+                    "labels": {"maintainer": "DockPilot Team"},
+                    "is_dangling": False,
+                },
+                "img-2": {
+                    "id": "sha256:postgres1234567890abcdef",
+                    "short_id": "sha256:postgres123",
+                    "tags": ["postgres:16-alpine"],
+                    "size": 412000000,
+                    "created": "2026-11-05T08:00:00Z",
+                    "labels": {"maintainer": "DockPilot Team"},
+                    "is_dangling": False,
+                },
+                "img-3": {
+                    "id": "sha256:nginx1234567890abcdef",
+                    "short_id": "sha256:nginx123",
+                    "tags": ["nginx:alpine"],
+                    "size": 45100000,
+                    "created": "2026-11-12T12:00:00Z",
+                    "labels": {},
+                    "is_dangling": False,
+                },
+                "img-4": {
+                    "id": "sha256:python1234567890abcdef",
+                    "short_id": "sha256:python123",
+                    "tags": ["python:3.12-slim"],
+                    "size": 154000000,
+                    "created": "2026-11-01T15:00:00Z",
+                    "labels": {},
+                    "is_dangling": False,
+                },
+                "img-5": {
+                    "id": "sha256:node1234567890abcdef",
+                    "short_id": "sha256:node123",
+                    "tags": ["node:20-alpine"],
+                    "size": 182000000,
+                    "created": "2026-10-15T09:00:00Z",
+                    "labels": {},
+                    "is_dangling": False,
+                },
+                "img-6": {
+                    "id": "sha256:dangle1234567890abcdef",
+                    "short_id": "sha256:dangle123",
+                    "tags": [],
+                    "size": 95000000,
+                    "created": "2026-10-10T09:00:00Z",
+                    "labels": {},
+                    "is_dangling": True,
+                },
+            }
+
+        if volumes is not None:
+            self.volumes = volumes
+        else:
+            self.volumes = {
+                "dockpilot_redis_data": {
+                    "name": "dockpilot_redis_data",
+                    "driver": "local",
+                    "mountpoint": "/var/lib/docker/volumes/dockpilot_redis_data/_data",
+                    "created": "2026-11-18T20:00:00Z",
+                    "size": 12400000,
+                    "labels": {"com.docker.compose.project": "dockpilot"},
+                },
+                "dockpilot_postgres_data": {
+                    "name": "dockpilot_postgres_data",
+                    "driver": "local",
+                    "mountpoint": "/var/lib/docker/volumes/dockpilot_postgres_data/_data",
+                    "created": "2026-11-18T18:00:00Z",
+                    "size": 156000000,
+                    "labels": {"com.docker.compose.project": "dockpilot"},
+                },
+                "nginx_cache": {
+                    "name": "nginx_cache",
+                    "driver": "local",
+                    "mountpoint": "/var/lib/docker/volumes/nginx_cache/_data",
+                    "created": "2026-11-10T12:00:00Z",
+                    "size": 5400000,
+                    "labels": {},
+                },
+                "legacy_backup": {
+                    "name": "legacy_backup",
+                    "driver": "local",
+                    "mountpoint": "/var/lib/docker/volumes/legacy_backup/_data",
+                    "created": "2026-09-01T00:00:00Z",
+                    "size": 48000000,
+                    "labels": {},
+                },
+            }
+
+        if networks is not None:
+            self.networks = networks
+        else:
+            self.networks = {
+                "bridge": {
+                    "id": "net_bridge_id_123456",
+                    "short_id": "net_bridge_123",
+                    "name": "bridge",
+                    "driver": "bridge",
+                    "scope": "local",
+                    "internal": False,
+                    "created": "2026-11-01T00:00:00Z",
+                    "labels": {},
+                    "connected_container_ids": [],
+                },
+                "host": {
+                    "id": "net_host_id_123456",
+                    "short_id": "net_host_123",
+                    "name": "host",
+                    "driver": "host",
+                    "scope": "local",
+                    "internal": False,
+                    "created": "2026-11-01T00:00:00Z",
+                    "labels": {},
+                    "connected_container_ids": [],
+                },
+                "none": {
+                    "id": "net_none_id_123456",
+                    "short_id": "net_none_123",
+                    "name": "none",
+                    "driver": "null",
+                    "scope": "local",
+                    "internal": False,
+                    "created": "2026-11-01T00:00:00Z",
+                    "labels": {},
+                    "connected_container_ids": [],
+                },
+                "dockpilot_default": {
+                    "id": "net_dockpilot_id_123456",
+                    "short_id": "net_dockpilot_123",
+                    "name": "dockpilot_default",
+                    "driver": "bridge",
+                    "scope": "local",
+                    "internal": False,
+                    "created": "2026-11-18T18:00:00Z",
+                    "labels": {"com.docker.compose.project": "dockpilot"},
+                    "connected_container_ids": ["c1", "c2"],
+                },
+                "unused_test_net": {
+                    "id": "net_unused_id_123456",
+                    "short_id": "net_unused_123",
+                    "name": "unused_test_net",
+                    "driver": "bridge",
+                    "scope": "local",
+                    "internal": False,
+                    "created": "2026-11-15T10:00:00Z",
+                    "labels": {},
+                    "connected_container_ids": [],
+                },
+            }
 
     async def ping(self) -> bool:
         return True
@@ -325,6 +506,154 @@ class FakeGateway(DockerGateway):
         elif action == "start":
             yield f"[{project_name}]  ✔ Container {project_name}-service-1 Started"
         yield f"[{project_name}] docker compose {action} completed successfully."
+
+    async def list_images(self) -> List[Dict[str, Any]]:
+        return list(self.images.values())
+
+    async def list_volumes(self) -> List[Dict[str, Any]]:
+        return list(self.volumes.values())
+
+    async def list_networks(self) -> List[Dict[str, Any]]:
+        return list(self.networks.values())
+
+    async def pull_image(self, image_name: str) -> AsyncGenerator[str, None]:
+        tag = image_name if ":" in image_name else f"{image_name}:latest"
+        yield f"Pulling from {image_name.split(':')[0]}..."
+        await asyncio.sleep(0.01)
+        yield "0123456789ab: Already exists"
+        await asyncio.sleep(0.01)
+        yield "cdef01234567: Pulling fs layer"
+        yield "cdef01234567: Download complete"
+        yield "cdef01234567: Extracting"
+        yield "cdef01234567: Pull complete"
+        yield f"Digest: sha256:{hash(tag) & 0xffffffffffff:012x}abcdef123456"
+        yield f"Status: Downloaded newer image for {tag}"
+
+        # Add image to state
+        img_id = f"sha256:{hash(tag) & 0xffffffffffff:012x}"
+        self.images[tag] = {
+            "id": img_id,
+            "short_id": img_id[:19],
+            "tags": [tag],
+            "size": 52428800,
+            "created": datetime.now(timezone.utc).isoformat(),
+            "labels": {},
+            "is_dangling": False,
+        }
+
+    async def remove_image(self, image_id: str, force: bool = False) -> bool:
+        target_key = None
+        for k, img in self.images.items():
+            if (
+                img.get("id") == image_id
+                or img.get("short_id") == image_id
+                or image_id in img.get("tags", [])
+                or k == image_id
+            ):
+                target_key = k
+                break
+        if not target_key:
+            raise ValueError(f"Image {image_id} not found")
+        del self.images[target_key]
+        return True
+
+    async def remove_volume(self, volume_name: str, force: bool = False) -> bool:
+        target_key = None
+        for k, vol in self.volumes.items():
+            if vol.get("name") == volume_name or k == volume_name:
+                target_key = k
+                break
+        if not target_key:
+            raise ValueError(f"Volume {volume_name} not found")
+        del self.volumes[target_key]
+        return True
+
+    async def remove_network(self, network_id: str) -> bool:
+        target_key = None
+        for k, net in self.networks.items():
+            if (
+                net.get("id") == network_id
+                or net.get("short_id") == network_id
+                or net.get("name") == network_id
+                or k == network_id
+            ):
+                target_key = k
+                break
+        if not target_key:
+            raise ValueError(f"Network {network_id} not found")
+        del self.networks[target_key]
+        return True
+
+    async def prune_images(self, dangling_only: bool = True) -> Dict[str, Any]:
+        deleted: List[str] = []
+        space_reclaimed = 0
+        to_delete = []
+
+        used_images = {c.get("image") for c in self.containers.values() if c.get("image")}
+
+        for k, img in list(self.images.items()):
+            should_prune = False
+            if dangling_only:
+                should_prune = img.get("is_dangling", False)
+            else:
+                is_used = any(t in used_images for t in img.get("tags", [])) or img.get("id") in used_images
+                should_prune = not is_used
+
+            if should_prune:
+                to_delete.append((k, img))
+
+        for k, img in to_delete:
+            deleted.append(img.get("id") or k)
+            space_reclaimed += img.get("size", 0)
+            del self.images[k]
+
+        return {"items_deleted": deleted, "space_reclaimed": space_reclaimed}
+
+    async def prune_volumes(self) -> Dict[str, Any]:
+        used_volumes = set()
+        for c in self.containers.values():
+            for m in c.get("mounts", []):
+                if m.get("Type") == "volume":
+                    used_volumes.add(m.get("Source"))
+                    used_volumes.add(m.get("Name"))
+
+        deleted: List[str] = []
+        space_reclaimed = 0
+        to_delete = []
+
+        for k, vol in list(self.volumes.items()):
+            vname = vol.get("name") or k
+            if vname not in used_volumes:
+                to_delete.append((k, vol))
+
+        for k, vol in to_delete:
+            deleted.append(vol.get("name") or k)
+            space_reclaimed += vol.get("size", 0)
+            del self.volumes[k]
+
+        return {"items_deleted": deleted, "space_reclaimed": space_reclaimed}
+
+    async def prune_networks(self) -> Dict[str, Any]:
+        built_in = {"bridge", "host", "none"}
+        used_networks = set()
+        for c in self.containers.values():
+            for nname in c.get("networks", {}).keys():
+                used_networks.add(nname)
+
+        deleted: List[str] = []
+        to_delete = []
+
+        for k, net in list(self.networks.items()):
+            nname = net.get("name") or k
+            if nname not in built_in and nname not in used_networks and not net.get("connected_container_ids"):
+                to_delete.append((k, net))
+
+        for k, net in to_delete:
+            deleted.append(net.get("name") or k)
+            del self.networks[k]
+
+        return {"items_deleted": deleted, "space_reclaimed": 0}
+
 
 
 

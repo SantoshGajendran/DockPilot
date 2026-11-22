@@ -77,6 +77,10 @@ class Settings(BaseSettings):
     alert_default_cooldown_minutes: int = 15
     notification_encryption_key: str = ""
     notification_max_retries: int = 3
+    protected_images: List[str] = ["dockpilot*", "postgres*", "redis*"]
+    protected_volumes: List[str] = ["*dockpilot*", "*postgres*"]
+    protected_networks: List[str] = ["bridge", "host", "none", "dockpilot*"]
+    prune_token_expire_seconds: int = 300
 
 
 @lru_cache
@@ -84,8 +88,19 @@ def get_settings() -> Settings:
     config_path = Path(__file__).resolve().parents[3] / "config" / "app.yaml"
     if not config_path.exists():
         config_path = Path("config/app.yaml")
+    data = {}
     if config_path.exists():
         with open(config_path, "r", encoding="utf-8") as f:
             data = yaml.safe_load(f) or {}
-            return Settings(**data)
+    
+    resources_path = config_path.parent / "resources.yaml"
+    if not resources_path.exists():
+        resources_path = Path("config/resources.yaml")
+    if resources_path.exists():
+        with open(resources_path, "r", encoding="utf-8") as f:
+            res_data = yaml.safe_load(f) or {}
+            data.update(res_data)
+
+    if data:
+        return Settings(**data)
     return Settings()

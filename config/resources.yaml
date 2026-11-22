@@ -1,0 +1,16 @@
+protected_images:
+  - "dockpilot*"
+  - "postgres*"
+  - "redis*"
+
+protected_volumes:
+  - "*dockpilot*"
+  - "*postgres*"
+
+protected_networks:
+  - "bridge"
+  - "host"
+  - "none"
+  - "dockpilot*"
+
+prune_token_expire_seconds: 300

@@ -1,0 +1,128 @@
+<div class="prune-dialog-container">
+  <div class="dialog-header">
+    <div class="header-title">
+      <mat-icon color="warn">cleaning_services</mat-icon>
+      <h2 mat-dialog-title>{{ title }}</h2>
+    </div>
+    <button mat-icon-button (click)="close()" [disabled]="confirming()">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <mat-dialog-content class="dialog-content">
+    <!-- Loading State -->
+    <div *ngIf="loading()" class="loading-state">
+      <mat-spinner diameter="40"></mat-spinner>
+      <p>Analyzing {{ targetNoun }} and estimating reclaimable space...</p>
+    </div>
+
+    <!-- Error State -->
+    <div *ngIf="error()" class="error-banner">
+      <mat-icon>error_outline</mat-icon>
+      <span>{{ error() }}</span>
+    </div>
+
+    <!-- Step 1: Preview -->
+    <div *ngIf="!loading() && step() === 'preview'" class="step-preview">
+      <div *ngIf="previewData() as preview" class="preview-content">
+        <div class="summary-cards">
+          <div class="summary-card">
+            <span class="card-label">Prunable Items</span>
+            <span class="card-value">{{ preview.items_count }}</span>
+          </div>
+          <div class="summary-card highlight" *ngIf="data.resourceType !== 'networks'">
+            <span class="card-label">Reclaimable Space</span>
+            <span class="card-value">{{ formatBytes(preview.space_reclaimed_bytes) }}</span>
+          </div>
+        </div>
+
+        <div *ngIf="preview.items_count === 0" class="empty-prune-state">
+          <mat-icon>check_circle_outline</mat-icon>
+          <h3>Clean System</h3>
+          <p>No {{ targetNoun }} found. Your Docker environment is clean!</p>
+        </div>
+
+        <div *ngIf="preview.items_count > 0" class="items-list-section">
+          <h4>Items to be removed ({{ preview.items_count }}):</h4>
+          <div class="items-scroll-box">
+            <div *ngFor="let item of preview.items" class="prune-item-row">
+              <div class="item-info">
+                <span class="item-name">{{ item.name }}</span>
+                <span class="item-details" *ngIf="item.details">{{ item.details }}</span>
+              </div>
+              <span class="item-size" *ngIf="item.size">{{ formatBytes(item.size) }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 2: Confirm -->
+    <div *ngIf="step() === 'confirm'" class="step-confirm">
+      <div class="warning-callout">
+        <mat-icon color="warn">warning</mat-icon>
+        <div class="warning-text">
+          <h3>Permanent Deletion Warning</h3>
+          <p>
+            You are about to prune <strong>{{ previewData()?.items_count }}</strong> {{ targetNoun }}.
+            <span *ngIf="previewData()?.space_reclaimed_bytes">
+              This will immediately reclaim approximately <strong>{{ formatBytes(previewData()?.space_reclaimed_bytes) }}</strong> of disk space.
+            </span>
+          </p>
+          <p class="sub-warning">
+            Protected resources specified in configuration will not be touched.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 3: Result -->
+    <div *ngIf="step() === 'result'" class="step-result">
+      <div *ngIf="resultData() as res" class="result-success-box">
+        <mat-icon color="primary" class="success-icon">task_alt</mat-icon>
+        <h3>Prune Complete</h3>
+        <p>
+          Successfully removed <strong>{{ res.items_deleted.length }}</strong> {{ targetNoun }}.
+        </p>
+        <div class="reclaimed-pill" *ngIf="res.space_reclaimed_bytes > 0">
+          <span>Reclaimed Space:</span>
+          <strong>{{ formatBytes(res.space_reclaimed_bytes) }}</strong>
+        </div>
+      </div>
+    </div>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end" class="dialog-actions">
+    <!-- Preview Actions -->
+    <ng-container *ngIf="step() === 'preview'">
+      <button mat-button (click)="close()">Cancel</button>
+      <button
+        mat-flat-button
+        color="warn"
+        [disabled]="loading() || !previewData() || previewData()?.items_count === 0"
+        (click)="proceedToConfirm()"
+      >
+        Proceed to Confirm
+      </button>
+    </ng-container>
+
+    <!-- Confirm Actions -->
+    <ng-container *ngIf="step() === 'confirm'">
+      <button mat-button (click)="backToPreview()" [disabled]="confirming()">Back</button>
+      <button
+        mat-flat-button
+        color="warn"
+        [disabled]="confirming()"
+        (click)="executePrune()"
+      >
+        <mat-spinner *ngIf="confirming()" diameter="18"></mat-spinner>
+        <span *ngIf="!confirming()">Confirm & Prune</span>
+      </button>
+    </ng-container>
+
+    <!-- Result Actions -->
+    <ng-container *ngIf="step() === 'result'">
+      <button mat-flat-button color="primary" (click)="close(true)">Done</button>
+    </ng-container>
+  </mat-dialog-actions>
+</div>

@@ -90,3 +90,54 @@ class DockerGateway(ABC):
         """Execute a compose lifecycle action and stream output lines."""
         pass
 
+    @abstractmethod
+    async def list_images(self) -> List[Dict[str, Any]]:
+        """List Docker images with metadata and usage information."""
+        pass
+
+    @abstractmethod
+    async def list_volumes(self) -> List[Dict[str, Any]]:
+        """List Docker volumes with metadata and driver info."""
+        pass
+
+    @abstractmethod
+    async def list_networks(self) -> List[Dict[str, Any]]:
+        """List Docker networks with scope, driver, and connected containers."""
+        pass
+
+    @abstractmethod
+    async def pull_image(self, image_name: str) -> AsyncGenerator[str, None]:
+        """Pull an image from registry, streaming progress status lines."""
+        pass
+
+    @abstractmethod
+    async def remove_image(self, image_id: str, force: bool = False) -> bool:
+        """Remove a Docker image by ID or tag."""
+        pass
+
+    @abstractmethod
+    async def remove_volume(self, volume_name: str, force: bool = False) -> bool:
+        """Remove a Docker volume by name."""
+        pass
+
+    @abstractmethod
+    async def remove_network(self, network_id: str) -> bool:
+        """Remove a Docker network by ID or name."""
+        pass
+
+    @abstractmethod
+    async def prune_images(self, dangling_only: bool = True) -> Dict[str, Any]:
+        """Prune dangling or unused Docker images."""
+        pass
+
+    @abstractmethod
+    async def prune_volumes(self) -> Dict[str, Any]:
+        """Prune unused Docker volumes."""
+        pass
+
+    @abstractmethod
+    async def prune_networks(self) -> Dict[str, Any]:
+        """Prune unused Docker networks."""
+        pass
+
+

@@ -97,7 +97,7 @@ npm start
 ## Running Tests
 
 ### Backend Unit Tests
-Execute the pytest suite (138 unit tests):
+Execute the pytest suite (151 unit tests):
 ```bash
 cd backend && pytest -v
 ```
@@ -107,7 +107,7 @@ python -m pytest backend/tests -v
 ```
 
 ### Frontend Unit Tests & Build
-Execute the Jest unit test suite (187 unit tests across 43 suites):
+Execute the Jest unit test suite (216 unit tests across 48 suites):
 ```bash
 cd frontend && npm test
 ```
@@ -331,6 +331,41 @@ cd frontend && npm run build
     - `RouteDialogComponent`: Channel selection, severity dropdown, rule type selector, and optional container/label scope filters.
   - Direct navigation button linking `/alerts` to `/alerts/channels`.
   - All 138 backend tests (`pytest`) and 187 frontend tests across 43 suites (`npm test`) passing with 0 warnings in production `ng build`.
+
+### Prompt 11: Images, Volumes, and Networks
+- **Status:** Complete
+- **Backend Docker Housekeeping Subsystem:**
+  - Resource inspection endpoints:
+    - `GET /api/v1/resources/images`: Lists Docker images with size, age, tags, dangling status, and container in-use references.
+    - `GET /api/v1/resources/volumes`: Lists Docker volumes with driver, mountpoint, size, and container in-use references.
+    - `GET /api/v1/resources/networks`: Lists Docker networks with driver, scope, internal flag, built-in flag, and container in-use references.
+  - Protected resources policy from `config/resources.yaml`:
+    - Wildcard pattern matching (`dockpilot*`, `postgres*`, `redis*`, `bridge`, `host`, `none`).
+    - Protected resources cannot be deleted or pruned (rejection with `400 Bad Request`).
+  - Safe resource deletion:
+    - `DELETE /api/v1/resources/images/{id}`: Blocks deletion if image is protected (400) or in use by running/stopped containers (409).
+    - `DELETE /api/v1/resources/volumes/{name}`: Blocks deletion if volume is protected (400) or mounted in containers (409).
+    - `DELETE /api/v1/resources/networks/{id}`: Blocks deletion if network is built-in (400), protected (400), or attached to containers (409).
+  - Two-step prune workflow with dry-run preview and confirmation token:
+    - `POST /api/v1/resources/{images|volumes|networks}/prune/preview`: Computes prunable candidates, estimates reclaimable bytes, and returns a time-limited confirmation token.
+    - `POST /api/v1/resources/{images|volumes|networks}/prune`: Executes prune with valid token, reclaiming space and updating audit logs. Tokens cannot be reused.
+  - Image pull background job:
+    - `POST /api/v1/resources/images/pull`: Starts async pull job managed by `JobManager`.
+    - `GET /api/v1/jobs/{id}/stream`: Real-time SSE streaming of download/extract progress layers and terminal status.
+  - Pre- and post-action audit logging for all resource deletions, prunes, and pull jobs.
+  - Extended `DockerGateway` interface with complete implementations in `EngineGateway` (Docker SDK) and `FakeGateway`.
+- **Frontend Management UI:**
+  - Standalone lazy-loaded route `/resources` (`ResourcesComponent`):
+    - **Images Tab:** Image tags/repository, short ID, disk size, creation date, container in-use chips or prominent amber `Unused` warning chip, protected chip, and delete action.
+    - **Volumes Tab:** Volume name, driver, mountpoint, creation date, size, container in-use chips or `Unused` warning chip, protected chip, and delete action.
+    - **Networks Tab:** Network name, driver, scope, internal badge, connected containers chips, built-in chip, protected chip, and delete action.
+    - Search filter toolbar filtering across names, tags, drivers, and connected containers.
+    - Header stats pill showing total space and unused item counts.
+  - Dialogs:
+    - `PruneWizardDialogComponent`: Three-step modal (Preview candidates & reclaimable space -> Confirm warning -> Success summary).
+    - `PullImageDialogComponent`: Image repository/tag input with live monospace terminal displaying streaming progress lines and layer status.
+  - All 151 backend tests (`pytest`) and 216 frontend tests across 48 suites (`npm test`) passing with 0 warnings in production `ng build`.
+
 
 
 

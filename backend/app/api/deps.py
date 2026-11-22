@@ -51,6 +51,14 @@ def get_compose_service(
     return ComposeService(docker_gateway=docker_gateway)
 
 
+def get_resource_service(
+    docker_gateway: DockerGateway = Depends(get_docker_gateway),
+) -> "ResourceService":
+    from app.services.resource_service import ResourceService
+    return ResourceService(docker_gateway=docker_gateway)
+
+
+
 def get_overview_collector(
     request: Request,
     docker_gateway: DockerGateway = Depends(get_docker_gateway),

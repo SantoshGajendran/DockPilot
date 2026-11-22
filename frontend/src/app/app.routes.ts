@@ -91,6 +91,15 @@ export const routes: Routes = [
           ),
         data: { title: 'Notification Channels' },
       },
+      {
+        path: 'resources',
+        loadComponent: () =>
+          import('./features/resources/resources.component').then(
+            (m) => m.ResourcesComponent
+          ),
+        data: { title: 'Docker Resources' },
+      },
+
 
 
     ],
