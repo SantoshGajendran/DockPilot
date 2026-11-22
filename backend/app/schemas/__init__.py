@@ -32,6 +32,20 @@ from app.schemas.compose import (
     ComposeActionResponse,
 )
 from app.schemas.events import EventItem, EventsListResponse, EventsFilterParams
+from app.schemas.alert import (
+    AlertRuleBase,
+    AlertRuleCreate,
+    AlertRuleUpdate,
+    AlertRuleResponse,
+    AlertRulesListResponse,
+    AlertEventResponse,
+    AlertEventsListResponse,
+    AlertSilenceCreate,
+    AlertSilenceResponse,
+    AlertDryRunRequest,
+    AlertDryRunResponse,
+    ActiveAlertsCountResponse,
+)
 
 __all__ = [
     "LoginRequest",

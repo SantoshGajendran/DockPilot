@@ -18,6 +18,22 @@
     <mat-toolbar class="shell-toolbar">
       <span class="toolbar-title">DockPilot</span>
       <span class="spacer"></span>
+      <button
+        mat-icon-button
+        routerLink="/alerts"
+        matTooltip="Alerts"
+        class="alerts-bell-btn"
+        aria-label="View alerts"
+      >
+        <mat-icon
+          [matBadge]="activeAlertsCount()"
+          [matBadgeHidden]="activeAlertsCount() === 0"
+          matBadgeColor="warn"
+          matBadgeSize="small"
+        >
+          notifications
+        </mat-icon>
+      </button>
       <mat-chip-set>
         <mat-chip [ngClass]="'status-' + sseService.connectionState()">
           {{ sseService.connectionState() }}

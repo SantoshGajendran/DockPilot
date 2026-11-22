@@ -19,6 +19,8 @@ from app.services.host_service import HostService
 from app.services.compose_service import ComposeService
 from app.services.event_listener_service import EventListenerService
 from app.services.events_service import EventsService
+from app.services.alert_evaluator_service import AlertEvaluatorService
+from app.services.alert_service import AlertService
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login", auto_error=False)
 
@@ -81,6 +83,26 @@ def get_events_service(
     event_listener: EventListenerService = Depends(get_event_listener),
 ) -> EventsService:
     return EventsService(db=db, event_listener=event_listener)
+
+
+def get_alert_evaluator(
+    request: Request,
+    docker_gateway: DockerGateway = Depends(get_docker_gateway),
+) -> AlertEvaluatorService:
+    evaluator = getattr(request.app.state, "alert_evaluator", None)
+    if evaluator is None:
+        evaluator = AlertEvaluatorService(docker_gateway=docker_gateway)
+        request.app.state.alert_evaluator = evaluator
+    elif evaluator._docker_gateway is None and docker_gateway is not None:
+        evaluator._docker_gateway = docker_gateway
+    return evaluator
+
+
+def get_alert_service(
+    db: AsyncSession = Depends(get_db_session),
+    docker_gateway: DockerGateway = Depends(get_docker_gateway),
+) -> AlertService:
+    return AlertService(db=db, docker_gateway=docker_gateway)
 
 
 async def get_db() -> AsyncGenerator[AsyncSession, None]:

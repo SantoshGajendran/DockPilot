@@ -14,6 +14,8 @@ from app.models.audit import AuditLog
 from app.models.user import User
 from app.services.overview_service import OverviewCollectorService
 from app.services.event_listener_service import EventListenerService
+from app.services.alert_evaluator_service import AlertEvaluatorService
+from app.services.alert_service import seed_alert_rules
 
 
 async def bootstrap_default_admin() -> None:
@@ -49,6 +51,12 @@ async def bootstrap_default_admin() -> None:
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await bootstrap_default_admin()
+    try:
+        async with async_session() as session:
+            await seed_alert_rules(session)
+    except Exception:
+        pass
+
     gw_override = app.dependency_overrides.get(get_docker_gateway)
     if gw_override:
         docker_gw = gw_override()
@@ -64,9 +72,14 @@ async def lifespan(app: FastAPI):
     event_listener = EventListenerService(docker_gateway=docker_gw)
     app.state.event_listener = event_listener
     await event_listener.start()
+
+    alert_evaluator = AlertEvaluatorService(docker_gateway=docker_gw)
+    app.state.alert_evaluator = alert_evaluator
+    await alert_evaluator.start()
     try:
         yield
     finally:
+        await alert_evaluator.stop()
         await event_listener.stop()
         await collector.stop()
 

@@ -75,6 +75,14 @@ export const routes: Routes = [
           ),
         data: { title: 'Events Timeline' },
       },
+      {
+        path: 'alerts',
+        loadComponent: () =>
+          import('./features/alerts/alerts.component').then(
+            (m) => m.AlertsComponent
+          ),
+        data: { title: 'Alerts & Rules' },
+      },
 
 
     ],

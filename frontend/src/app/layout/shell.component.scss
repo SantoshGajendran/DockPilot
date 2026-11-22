@@ -107,6 +107,15 @@ mat-nav-list {
       font-size: 0.75rem;
     }
   }
+
+  .alerts-bell-btn {
+    margin-right: 8px;
+    color: var(--text-secondary);
+
+    &:hover {
+      color: var(--text-primary);
+    }
+  }
 }
 
 .main-body {

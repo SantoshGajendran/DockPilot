@@ -3,6 +3,7 @@ from app.models.user import User
 from app.models.audit import AuditLog
 from app.models.metrics import ContainerMetricRecord, HostMetricRecord
 from app.models.event import ContainerEventRecord
+from app.models.alert import AlertRule, AlertEvent, AlertSilence
 
 __all__ = [
     "Base",
@@ -12,4 +13,7 @@ __all__ = [
     "ContainerMetricRecord",
     "HostMetricRecord",
     "ContainerEventRecord",
+    "AlertRule",
+    "AlertEvent",
+    "AlertSilence",
 ]

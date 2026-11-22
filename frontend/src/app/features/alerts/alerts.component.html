@@ -1,0 +1,330 @@
+<div class="alerts-container">
+  <div class="page-header">
+    <div class="header-left">
+      <h1 class="page-title">Alerts & Rules</h1>
+      <p class="page-subtitle">Configure data-driven alert rules and review firing alerts</p>
+    </div>
+    <div class="header-actions">
+      <button
+        mat-flat-button
+        color="primary"
+        (click)="openCreateRuleDialog()"
+        [disabled]="!isAdmin"
+        matTooltip="Requires Admin role"
+        [matTooltipDisabled]="isAdmin"
+      >
+        <mat-icon>add_alert</mat-icon>
+        Create Rule
+      </button>
+    </div>
+  </div>
+
+  <mat-tab-group animationDuration="150ms">
+    <!-- Tab 1: Active & History -->
+    <mat-tab>
+      <ng-template mat-tab-label>
+        <mat-icon class="tab-icon">notifications_active</mat-icon>
+        Active & History
+        <span *ngIf="store.activeCount() > 0" class="active-badge">
+          {{ store.activeCount() }}
+        </span>
+      </ng-template>
+
+      <div class="tab-content">
+        <div class="filters-bar">
+          <div class="filter-group">
+            <span class="filter-label">Status:</span>
+            <mat-chip-listbox
+              [value]="store.eventsStatusFilter()"
+              (change)="store.setStatusFilter($event.value)"
+            >
+              <mat-chip-option [value]="null">All</mat-chip-option>
+              <mat-chip-option value="firing" class="chip-firing">Firing</mat-chip-option>
+              <mat-chip-option value="resolved" class="chip-resolved">Resolved</mat-chip-option>
+            </mat-chip-listbox>
+          </div>
+
+          <div class="filter-group">
+            <span class="filter-label">Severity:</span>
+            <mat-chip-listbox
+              [value]="store.eventsSeverityFilter()"
+              (change)="store.setSeverityFilter($event.value)"
+            >
+              <mat-chip-option [value]="null">All</mat-chip-option>
+              <mat-chip-option value="critical">Critical</mat-chip-option>
+              <mat-chip-option value="warning">Warning</mat-chip-option>
+              <mat-chip-option value="info">Info</mat-chip-option>
+            </mat-chip-listbox>
+          </div>
+
+          <button mat-icon-button (click)="store.loadEvents()" matTooltip="Refresh events">
+            <mat-icon>refresh</mat-icon>
+          </button>
+        </div>
+
+        <div *ngIf="store.eventsLoading()" class="loading-state">
+          <mat-spinner diameter="36"></mat-spinner>
+          <span>Loading alerts history...</span>
+        </div>
+
+        <div *ngIf="!store.eventsLoading() && store.eventsError() as err" class="error-state">
+          <mat-icon color="warn">error</mat-icon>
+          <span>{{ err }}</span>
+          <button mat-button color="primary" (click)="store.loadEvents()">Retry</button>
+        </div>
+
+        <div *ngIf="!store.eventsLoading() && !store.eventsError() && store.events().length === 0" class="empty-state">
+          <mat-icon>check_circle_outline</mat-icon>
+          <h3>All Clear</h3>
+          <p>No alert events matching the selected criteria.</p>
+        </div>
+
+        <table
+          mat-table
+          [dataSource]="store.events()"
+          *ngIf="!store.eventsLoading() && !store.eventsError() && store.events().length > 0"
+          class="events-table mat-elevation-z1"
+        >
+          <!-- Status -->
+          <ng-container matColumnDef="status">
+            <th mat-header-cell *matHeaderCellDef>Status</th>
+            <td mat-cell *matCellDef="let e">
+              <span class="status-pill" [class.firing]="e.status === 'firing'" [class.resolved]="e.status === 'resolved'">
+                {{ e.status | uppercase }}
+              </span>
+            </td>
+          </ng-container>
+
+          <!-- Severity -->
+          <ng-container matColumnDef="severity">
+            <th mat-header-cell *matHeaderCellDef>Severity</th>
+            <td mat-cell *matCellDef="let e">
+              <span class="severity-tag" [class]="'sev-' + e.severity">
+                <mat-icon class="sev-icon">{{ e.severity === 'critical' ? 'error' : (e.severity === 'warning' ? 'warning' : 'info') }}</mat-icon>
+                {{ e.severity | titlecase }}
+              </span>
+            </td>
+          </ng-container>
+
+          <!-- Rule Name -->
+          <ng-container matColumnDef="rule">
+            <th mat-header-cell *matHeaderCellDef>Rule</th>
+            <td mat-cell *matCellDef="let e">
+              <strong>{{ e.rule_name }}</strong>
+            </td>
+          </ng-container>
+
+          <!-- Target -->
+          <ng-container matColumnDef="target">
+            <th mat-header-cell *matHeaderCellDef>Target</th>
+            <td mat-cell *matCellDef="let e">
+              <code>{{ e.target_name || e.target_id || '-' }}</code>
+            </td>
+          </ng-container>
+
+          <!-- Message -->
+          <ng-container matColumnDef="message">
+            <th mat-header-cell *matHeaderCellDef>Condition / Message</th>
+            <td mat-cell *matCellDef="let e" class="msg-col">
+              {{ e.message }}
+            </td>
+          </ng-container>
+
+          <!-- Started At -->
+          <ng-container matColumnDef="started_at">
+            <th mat-header-cell *matHeaderCellDef>Started</th>
+            <td mat-cell *matCellDef="let e">
+              {{ e.started_at | date:'short' }}
+            </td>
+          </ng-container>
+
+          <!-- Actions -->
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef>Actions</th>
+            <td mat-cell *matCellDef="let e">
+              <div class="row-actions">
+                <button
+                  mat-button
+                  color="primary"
+                  *ngIf="e.status === 'firing' && !e.acknowledged_at"
+                  (click)="acknowledgeEvent(e)"
+                  [disabled]="!isOperator"
+                  matTooltip="Acknowledge alert"
+                >
+                  <mat-icon>done</mat-icon>
+                  Ack
+                </button>
+                <span *ngIf="e.acknowledged_at" class="acked-label" matTooltip="Acknowledged by {{ e.acknowledged_by }}">
+                  <mat-icon class="acked-icon">check</mat-icon>
+                  Acked
+                </span>
+                <button
+                  mat-icon-button
+                  color="accent"
+                  (click)="openSilenceDialog(e)"
+                  [disabled]="!isOperator"
+                  matTooltip="Silence alert target"
+                >
+                  <mat-icon>volume_off</mat-icon>
+                </button>
+              </div>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="eventColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: eventColumns;"></tr>
+        </table>
+      </div>
+    </mat-tab>
+
+    <!-- Tab 2: Rules -->
+    <mat-tab>
+      <ng-template mat-tab-label>
+        <mat-icon class="tab-icon">tune</mat-icon>
+        Rules ({{ store.rulesTotal() }})
+      </ng-template>
+
+      <div class="tab-content">
+        <div *ngIf="store.rulesLoading()" class="loading-state">
+          <mat-spinner diameter="36"></mat-spinner>
+          <span>Loading rules...</span>
+        </div>
+
+        <div *ngIf="!store.rulesLoading() && store.rulesError() as err" class="error-state">
+          <mat-icon color="warn">error</mat-icon>
+          <span>{{ err }}</span>
+          <button mat-button color="primary" (click)="store.loadRules()">Retry</button>
+        </div>
+
+        <div *ngIf="!store.rulesLoading() && !store.rulesError() && store.rules().length === 0" class="empty-state">
+          <mat-icon>tune</mat-icon>
+          <h3>No Rules Configured</h3>
+          <p>Create your first alert rule to start monitoring container events and health metrics.</p>
+        </div>
+
+        <table
+          mat-table
+          [dataSource]="store.rules()"
+          *ngIf="!store.rulesLoading() && !store.rulesError() && store.rules().length > 0"
+          class="rules-table mat-elevation-z1"
+        >
+          <!-- Enabled -->
+          <ng-container matColumnDef="enabled">
+            <th mat-header-cell *matHeaderCellDef>Enabled</th>
+            <td mat-cell *matCellDef="let r">
+              <mat-slide-toggle
+                [checked]="r.enabled"
+                (change)="store.toggleRule(r)"
+                [disabled]="!isAdmin"
+                color="primary"
+              ></mat-slide-toggle>
+            </td>
+          </ng-container>
+
+          <!-- Name -->
+          <ng-container matColumnDef="name">
+            <th mat-header-cell *matHeaderCellDef>Rule Name</th>
+            <td mat-cell *matCellDef="let r">
+              <div class="rule-title-cell">
+                <strong>{{ r.name }}</strong>
+                <span *ngIf="r.description" class="rule-desc">{{ r.description }}</span>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Type -->
+          <ng-container matColumnDef="type">
+            <th mat-header-cell *matHeaderCellDef>Type</th>
+            <td mat-cell *matCellDef="let r">
+              <div class="type-cell">
+                <mat-icon class="type-icon">{{ getTypeIcon(r.rule_type) }}</mat-icon>
+                <span>{{ getTypeLabel(r.rule_type) }}</span>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Scope -->
+          <ng-container matColumnDef="scope">
+            <th mat-header-cell *matHeaderCellDef>Scope</th>
+            <td mat-cell *matCellDef="let r">
+              <span class="scope-pill">
+                {{ r.scope_type | uppercase }}
+                <span *ngIf="r.scope_value">({{ r.scope_value }})</span>
+              </span>
+            </td>
+          </ng-container>
+
+          <!-- Severity -->
+          <ng-container matColumnDef="severity">
+            <th mat-header-cell *matHeaderCellDef>Severity</th>
+            <td mat-cell *matCellDef="let r">
+              <span class="severity-tag" [class]="'sev-' + r.severity">
+                {{ r.severity | titlecase }}
+              </span>
+            </td>
+          </ng-container>
+
+          <!-- Threshold & Duration -->
+          <ng-container matColumnDef="threshold">
+            <th mat-header-cell *matHeaderCellDef>Threshold</th>
+            <td mat-cell *matCellDef="let r">
+              <span *ngIf="r.threshold !== null && r.threshold !== undefined">
+                {{ r.threshold }}
+                <span *ngIf="r.duration_minutes > 0"> (sustained {{ r.duration_minutes }}m)</span>
+              </span>
+              <span *ngIf="r.threshold === null || r.threshold === undefined" class="text-muted">
+                Immediate event
+              </span>
+            </td>
+          </ng-container>
+
+          <!-- Cooldown -->
+          <ng-container matColumnDef="cooldown">
+            <th mat-header-cell *matHeaderCellDef>Cooldown</th>
+            <td mat-cell *matCellDef="let r">
+              {{ r.cooldown_minutes }}m
+            </td>
+          </ng-container>
+
+          <!-- Actions -->
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef>Actions</th>
+            <td mat-cell *matCellDef="let r">
+              <div class="row-actions">
+                <button
+                  mat-icon-button
+                  color="accent"
+                  (click)="testRule(r)"
+                  [disabled]="!isOperator"
+                  matTooltip="Dry-run test rule"
+                >
+                  <mat-icon>play_circle</mat-icon>
+                </button>
+                <button
+                  mat-icon-button
+                  (click)="openEditRuleDialog(r)"
+                  [disabled]="!isAdmin"
+                  matTooltip="Edit rule"
+                >
+                  <mat-icon>edit</mat-icon>
+                </button>
+                <button
+                  mat-icon-button
+                  color="warn"
+                  (click)="deleteRule(r)"
+                  [disabled]="!isAdmin"
+                  matTooltip="Delete rule"
+                >
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </div>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="ruleColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: ruleColumns;"></tr>
+        </table>
+      </div>
+    </mat-tab>
+  </mat-tab-group>
+</div>

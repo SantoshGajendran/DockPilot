@@ -64,4 +64,6 @@ restart_loop_window_seconds: 300
 restart_loop_threshold: 3
 events_page_size_default: 50
 events_page_size_max: 200
+alert_eval_interval_seconds: 15
+alert_default_cooldown_minutes: 15
 

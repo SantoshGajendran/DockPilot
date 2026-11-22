@@ -1,1 +1,67 @@
-# Alert rule definitions
+rules:
+  - name: "Container Down"
+    rule_type: "container_down"
+    scope_type: "all"
+    severity: "critical"
+    cooldown_minutes: 15
+    duration_minutes: 0
+    enabled: true
+    description: "Alert when a container unexpectedly exits or terminates."
+
+  - name: "Restart Loop Detected"
+    rule_type: "restart_loop"
+    scope_type: "all"
+    severity: "critical"
+    cooldown_minutes: 15
+    duration_minutes: 0
+    enabled: true
+    description: "Alert when a container crashes repeatedly within the sliding window."
+
+  - name: "Container Health Failing"
+    rule_type: "health_failing"
+    scope_type: "all"
+    severity: "warning"
+    cooldown_minutes: 15
+    duration_minutes: 0
+    enabled: true
+    description: "Alert when a container health check reports unhealthy."
+
+  - name: "High Container CPU"
+    rule_type: "cpu_high"
+    scope_type: "all"
+    threshold: 85.0
+    duration_minutes: 5
+    severity: "warning"
+    cooldown_minutes: 15
+    enabled: true
+    description: "Alert when container CPU utilization exceeds 85% for 5 minutes."
+
+  - name: "High Container Memory"
+    rule_type: "memory_high"
+    scope_type: "all"
+    threshold: 90.0
+    duration_minutes: 5
+    severity: "warning"
+    cooldown_minutes: 15
+    enabled: true
+    description: "Alert when container memory usage exceeds 90% of limit for 5 minutes."
+
+  - name: "High Disk Utilization"
+    rule_type: "disk_high"
+    scope_type: "all"
+    threshold: 85.0
+    duration_minutes: 0
+    severity: "warning"
+    cooldown_minutes: 30
+    enabled: true
+    description: "Alert when host storage mount utilization exceeds 85%."
+
+  - name: "High Host Load"
+    rule_type: "host_load"
+    scope_type: "all"
+    threshold: 4.0
+    duration_minutes: 5
+    severity: "warning"
+    cooldown_minutes: 15
+    enabled: true
+    description: "Alert when 1-minute system load average exceeds 4.0."

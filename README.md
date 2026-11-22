@@ -97,7 +97,7 @@ npm start
 ## Running Tests
 
 ### Backend Unit Tests
-Execute the pytest suite (116 unit tests):
+Execute the pytest suite (128 unit tests):
 ```bash
 cd backend && pytest -v
 ```
@@ -274,6 +274,35 @@ cd frontend && npm run build
     - High-visibility incident tags for Restart Loops, OOM Kills, and non-zero exit codes.
     - Compact mode (`[compact]="true"`) embedded in Overview Dashboard (`/dashboard`) and Container Detail Events tab (`/containers/:id?tab=events`).
   - All 116 backend tests (`pytest`) and 147 frontend tests across 33 suites (`npm test`) passing with 0 warnings in production `ng build`.
+
+### Prompt 09: Alerts Engine & Management
+- **Status:** Complete
+- **Backend Alert Evaluation & Rule Engine:**
+  - Seed alert rules automatically bootstrapped from `config/alerts.yaml` into database tables `alert_rules`, `alert_events`, `alert_silences` via Alembic migration `0005_alerts.py`.
+  - Background `AlertEvaluatorService` running scheduled evaluation loops:
+    - Scope matching (`all`, `label`, `container`).
+    - Rule types supported: `container_down`, `restart_loop`, `health_failing`, `cpu_high`, `memory_high`, `disk_high`, `host_load`, `container_missing`.
+    - Sustained threshold detection over historical sliding windows (`duration_minutes`) queryable via metrics tables.
+    - Automatic state transitions between `firing` and `resolved` with resolution timestamps.
+    - Silence suppression matching rules or targets before expiration (`alert_silences`).
+    - Flapping cooldown suppression preventing refiring within `cooldown_minutes` of resolution.
+  - Endpoints (`/api/v1/alerts`):
+    - Rules CRUD: `GET/POST /rules`, `GET/PUT/DELETE /rules/{id}` with role-based restrictions (admin only for mutations).
+    - Dry-run testing: `POST /rules/test` and `POST /rules/{id}/test` evaluating matches against live containers and host without writing DB records.
+    - Events & Ack: `GET /events` with filtering by status/severity/rule and `POST /events/{id}/ack` for operator acknowledgment.
+    - Silences: `POST /silence` with target and duration specifications.
+    - Active count: `GET /active-count` returning current firing alert count.
+- **Frontend Management UI & Bell Notification:**
+  - Standalone lazy-loaded route `/alerts` (`AlertsComponent`):
+    - **Active & History Tab:** Firing and historical alert events table with status pills, severity icons, condition messages, acknowledge action, and silence action. Status and severity filter chips.
+    - **Rules Tab:** Configured rules table with enabled toggle switches, condition metadata, scope tags, thresholds, cooldowns, dry-run test action, edit modal, and delete action.
+  - Dialogs:
+    - `RuleDialogComponent`: Reactive form dynamically adapting threshold inputs to selected rule type, scope selector, and live dry-run testing preview table.
+    - `SilenceDialogComponent`: Duration picker and optional reason input for target suppression.
+  - Header Alert Bell:
+    - Notification icon in `ShellComponent` toolbar with reactive badge displaying firing alert count, linking directly to `/alerts`.
+  - All 128 backend tests (`pytest`) and 169 frontend tests across 38 suites (`npm test`) passing with 0 warnings in production `ng build`.
+
 
 
 

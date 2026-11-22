@@ -73,6 +73,8 @@ class Settings(BaseSettings):
     restart_loop_threshold: int = 3
     events_page_size_default: int = 50
     events_page_size_max: int = 200
+    alert_eval_interval_seconds: int = 15
+    alert_default_cooldown_minutes: int = 15
 
 
 @lru_cache

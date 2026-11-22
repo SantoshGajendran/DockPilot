@@ -197,3 +197,37 @@
     - Cursor-based "Load More Events" pagination.
     - Unit tests in `events.component.spec.ts`.
   - 147 frontend unit tests passing across 33 suites (`npm test`); production `ng build` passing with 0 errors and 0 warnings.
+
+## Prompt 09: Alerts
+- **Status:** Complete
+- **Backend:**
+  - Seed alert rules automatically populated from `config/alerts.yaml` on first startup if table `alert_rules` is empty.
+  - Tables `alert_rules`, `alert_events`, `alert_silences` managed via Alembic migration `0005_alerts.py`.
+  - Background `AlertEvaluatorService` running scheduled evaluation:
+    - Scope matching: `all`, `label`, `container`.
+    - Evaluated rule types: `container_down`, `restart_loop`, `health_failing`, `cpu_high`, `memory_high`, `disk_high`, `host_load`, `container_missing`.
+    - Sustained threshold logic across sliding time window (`duration_minutes`) queryable via metrics tables.
+    - Automated lifecycle management: transition from `firing` to `resolved` when conditions cease.
+    - Cooldown period suppression (`cooldown_minutes`) and silence suppression (`silenced_until`).
+  - Endpoints in `backend/app/api/v1/alerts.py`:
+    - `GET /api/v1/alerts/rules`, `POST /api/v1/alerts/rules` (admin)
+    - `GET /api/v1/alerts/rules/{id}`, `PUT /api/v1/alerts/rules/{id}` (admin), `DELETE /api/v1/alerts/rules/{id}` (admin)
+    - `POST /api/v1/alerts/rules/test` & `POST /api/v1/alerts/rules/{id}/test` (operator/admin)
+    - `GET /api/v1/alerts/events`, `POST /api/v1/alerts/events/{id}/ack` (operator/admin)
+    - `POST /api/v1/alerts/silence` (operator/admin)
+    - `GET /api/v1/alerts/active-count`
+  - 128 backend tests passing across all suites (`pytest -q`).
+- **Frontend:**
+  - TypeScript models in `frontend/src/app/core/models/alerts.model.ts` and constants in `frontend/src/app/core/constants/alerts.constants.ts`.
+  - Service in `frontend/src/app/core/services/alerts.service.ts` with unit tests.
+  - Signal-based `AlertsStore` in `frontend/src/app/features/alerts/alerts.store.ts` with unit tests.
+  - Standalone lazy-loaded route `/alerts` (`AlertsComponent`):
+    - Dual tabs: **Active & History** and **Rules**.
+    - Active & History: Firing and historical events table with status pills, severity icons, condition messages, acknowledge button, and silence button. Status and severity filter chips.
+    - Rules: Enabled toggle switch, type icons/labels, scope tags, thresholds, cooldowns, dry-run button, edit modal, and delete action.
+  - Modal dialogs:
+    - `RuleDialogComponent`: Form dynamically adapting threshold field to rule type, scope selector, and dry-run preview table.
+    - `SilenceDialogComponent`: Duration picker and optional reason input.
+  - Header notification bell in `ShellComponent` toolbar with reactive badge displaying active firing alerts count.
+  - 169 frontend unit tests passing across 38 suites (`npm test`); production `ng build` passing with 0 errors and 0 warnings.
+
