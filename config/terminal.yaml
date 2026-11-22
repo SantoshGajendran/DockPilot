@@ -1,0 +1,12 @@
+terminal_enabled: false
+terminal_idle_timeout_seconds: 300
+terminal_max_session_seconds: 3600
+terminal_max_concurrent_sessions: 5
+terminal_record_sessions: true
+terminal_transcript_retention_days: 30
+terminal_default_shell: "/bin/sh"
+terminal_allowed_shells:
+  - "/bin/sh"
+  - "/bin/bash"
+  - "sh"
+  - "bash"

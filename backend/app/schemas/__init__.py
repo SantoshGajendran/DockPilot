@@ -73,6 +73,12 @@ from app.schemas.resources import (
     PruneResultResponse,
     PullImageRequest,
 )
+from app.schemas.terminal import (
+    TerminalResizeMessage,
+    TerminalStatusResponse,
+    TerminalSessionResponse,
+    TerminalSessionsListResponse,
+)
 
 __all__ = [
     "LoginRequest",
@@ -93,6 +99,10 @@ __all__ = [
     "EnvRevealResponse",
     "LogEntry",
     "LogSearchResponse",
+    "TerminalResizeMessage",
+    "TerminalStatusResponse",
+    "TerminalSessionResponse",
+    "TerminalSessionsListResponse",
 ]
 
 

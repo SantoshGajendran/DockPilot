@@ -97,7 +97,7 @@ npm start
 ## Running Tests
 
 ### Backend Unit Tests
-Execute the pytest suite (151 unit tests):
+Execute the pytest suite (161 unit tests):
 ```bash
 cd backend && pytest -v
 ```
@@ -107,7 +107,7 @@ python -m pytest backend/tests -v
 ```
 
 ### Frontend Unit Tests & Build
-Execute the Jest unit test suite (216 unit tests across 48 suites):
+Execute the Jest unit test suite (231 unit tests across 50 suites):
 ```bash
 cd frontend && npm test
 ```
@@ -365,6 +365,36 @@ cd frontend && npm run build
     - `PruneWizardDialogComponent`: Three-step modal (Preview candidates & reclaimable space -> Confirm warning -> Success summary).
     - `PullImageDialogComponent`: Image repository/tag input with live monospace terminal displaying streaming progress lines and layer status.
   - All 151 backend tests (`pytest`) and 216 frontend tests across 48 suites (`npm test`) passing with 0 warnings in production `ng build`.
+
+### Prompt 12: Web Terminal
+- **Status:** Complete
+- **Backend Interactive Container Shell:**
+  - Configurable terminal settings in `config/terminal.yaml` and `backend/app/core/config.py`:
+    - `terminal_enabled: false`: Off by default; returns 404 when disabled.
+    - `terminal_idle_timeout_seconds: 300`: Inactivity watchdog closes socket after timeout.
+    - `terminal_max_session_seconds: 3600`: Hard session duration limit.
+    - `terminal_max_concurrent_sessions: 5`: Concurrency limiter rejecting excess sessions with 429.
+    - `terminal_record_sessions: true`: Transcript capture enabled.
+    - `terminal_session_retention_days: 30`: Retention policy for session history.
+    - `terminal_allowed_shells: ["/bin/sh", "/bin/bash", "sh", "bash"]`: Shell security whitelist.
+  - Role-based security: Strictly restricted to administrators (`Role.ADMIN`); non-admins receive 403 Forbidden.
+  - Database model in `backend/app/models/terminal.py`: `TerminalSession` recording user, container, shell, timestamps, duration, status, I/O byte counts, client IP, and full transcript.
+  - Alembic migration `0007_terminal_sessions.py`.
+  - DockerGateway extensions (`create_exec`, `start_exec`, `resize_exec`) implemented in `interface.py`, `engine.py`, and `fake.py` (with interactive mock TTY command loop).
+  - Bidirectional relay in `TerminalService` with real-time TTY dimension resizing (`{"type": "resize", "cols": int, "rows": int}`).
+  - Immutable pre- and post-action audit logging (`terminal.session_start` and `terminal.session_end`).
+  - Endpoints:
+    - WebSocket: `/api/v1/containers/{id}/exec` & `/containers/{id}/exec`.
+    - REST: `GET /api/v1/containers/{id}/terminal/status`, `GET /api/v1/containers/{id}/terminal/sessions`, `GET /api/v1/containers/terminal/sessions/{id}`.
+- **Frontend xterm.js Terminal:**
+  - Integrated `@xterm/xterm` and `@xterm/addon-fit` with custom dark theme.
+  - Standalone `ContainerTerminalComponent` on Container Detail page (`/containers/:id?tab=terminal`), only visible to administrators.
+  - Shell selector dropdown (`/bin/sh`, `/bin/bash`) with automatic reconnect.
+  - Security recording banner (`[REC] Session Recorded`) when audit recording is active.
+  - Live connection state indicators (Connected, Connecting, Disconnected, Error) and disconnect reason banner.
+  - Window and container resize observer auto-fitting terminal and synchronizing TTY dimensions with Docker exec backend.
+  - All 161 backend tests (`pytest`) and 231 frontend tests across 50 suites (`npm test`) passing with 0 warnings in production `ng build`.
+
 
 
 

@@ -101,6 +101,9 @@ def create_app() -> FastAPI:
     )
     app.include_router(health.router)
     app.include_router(api_router, prefix="/api/v1")
+    # Support both /api/v1/containers/{id}/exec and /containers/{id}/exec
+    from app.api.v1.terminal import router as terminal_router
+    app.include_router(terminal_router, prefix="/containers", include_in_schema=False)
     return app
 
 

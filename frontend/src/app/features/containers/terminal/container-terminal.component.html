@@ -1,0 +1,91 @@
+<div class="terminal-panel">
+  @if (loading()) {
+    <div class="loading-state">
+      <mat-spinner diameter="40"></mat-spinner>
+      <span>Initializing terminal...</span>
+    </div>
+  } @else if (isForbidden()) {
+    <div class="banner-state forbidden-state">
+      <mat-icon color="warn">lock</mat-icon>
+      <div class="state-text">
+        <h3>Admin Access Required</h3>
+        <p>Interactive web terminal access is restricted to system administrators.</p>
+      </div>
+    </div>
+  } @else if (isDisabled()) {
+    <div class="banner-state disabled-state">
+      <mat-icon>terminal</mat-icon>
+      <div class="state-text">
+        <h3>Web Terminal Disabled</h3>
+        <p>The interactive web terminal is currently disabled by server policy. Enable <code>terminal_enabled: true</code> in configuration to activate.</p>
+      </div>
+    </div>
+  } @else {
+    <!-- Active Terminal Surface -->
+    <div class="terminal-toolbar">
+      <div class="toolbar-left">
+        <mat-form-field appearance="outline" subscriptSizing="dynamic" class="shell-select">
+          <mat-label>Shell</mat-label>
+          <mat-select [value]="selectedShell()" (selectionChange)="onShellChange($event.value)">
+            @for (shell of allowedShells(); track shell) {
+              <mat-option [value]="shell">{{ shell }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+
+        @if (isRecorded()) {
+          <div class="recording-banner" matTooltip="This session is recorded for security audit purposes">
+            <span class="rec-dot"></span>
+            <span>REC: Session Recorded</span>
+          </div>
+        }
+      </div>
+
+      <div class="toolbar-right">
+        <!-- Connection Status Indicator -->
+        <div class="status-indicator" [ngClass]="connectionState()">
+          @if (connectionState() === 'connected') {
+            <mat-icon class="status-icon success">check_circle</mat-icon>
+            <span class="status-text">Connected</span>
+          } @else if (connectionState() === 'connecting') {
+            <mat-icon class="status-icon spin">sync</mat-icon>
+            <span class="status-text">Connecting...</span>
+          } @else if (connectionState() === 'disconnected') {
+            <mat-icon class="status-icon neutral">power_off</mat-icon>
+            <span class="status-text">Disconnected</span>
+          } @else {
+            <mat-icon class="status-icon danger">error</mat-icon>
+            <span class="status-text">Error</span>
+          }
+        </div>
+
+        <button mat-stroked-button (click)="clear()" matTooltip="Clear terminal buffer">
+          <mat-icon>clear_all</mat-icon> Clear
+        </button>
+
+        <button
+          mat-stroked-button
+          color="primary"
+          (click)="reconnect()"
+          [disabled]="connectionState() === 'connecting'"
+          matTooltip="Restart session"
+        >
+          <mat-icon>replay</mat-icon> Reconnect
+        </button>
+      </div>
+    </div>
+
+    @if (connectionState() === 'disconnected' && disconnectReason()) {
+      <div class="disconnect-banner">
+        <mat-icon>info</mat-icon>
+        <span class="banner-reason">{{ disconnectReason() }}</span>
+        <button mat-button color="primary" (click)="reconnect()">Reconnect Now</button>
+      </div>
+    }
+
+    <!-- xterm.js mount container -->
+    <div class="xterm-container" (window:resize)="fit()">
+      <div #terminalContainer class="xterm-viewport"></div>
+    </div>
+  }
+</div>

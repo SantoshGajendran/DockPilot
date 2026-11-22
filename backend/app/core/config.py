@@ -81,6 +81,14 @@ class Settings(BaseSettings):
     protected_volumes: List[str] = ["*dockpilot*", "*postgres*"]
     protected_networks: List[str] = ["bridge", "host", "none", "dockpilot*"]
     prune_token_expire_seconds: int = 300
+    terminal_enabled: bool = False
+    terminal_idle_timeout_seconds: int = 300
+    terminal_max_session_seconds: int = 3600
+    terminal_max_concurrent_sessions: int = 5
+    terminal_record_sessions: bool = True
+    terminal_transcript_retention_days: int = 30
+    terminal_default_shell: str = "/bin/sh"
+    terminal_allowed_shells: List[str] = ["/bin/sh", "/bin/bash", "sh", "bash"]
 
 
 @lru_cache
@@ -100,6 +108,27 @@ def get_settings() -> Settings:
         with open(resources_path, "r", encoding="utf-8") as f:
             res_data = yaml.safe_load(f) or {}
             data.update(res_data)
+
+    terminal_path = config_path.parent / "terminal.yaml"
+    if not terminal_path.exists():
+        terminal_path = Path("config/terminal.yaml")
+    if terminal_path.exists():
+        with open(terminal_path, "r", encoding="utf-8") as f:
+            term_data = yaml.safe_load(f) or {}
+            data.update(term_data)
+
+    import os
+    for k in list(data.keys()):
+        env_val = os.getenv(k.upper())
+        if env_val is not None:
+            if env_val.lower() in ("true", "1", "yes"):
+                data[k] = True
+            elif env_val.lower() in ("false", "0", "no"):
+                data[k] = False
+            elif env_val.isdigit():
+                data[k] = int(env_val)
+            else:
+                data[k] = env_val
 
     if data:
         return Settings(**data)

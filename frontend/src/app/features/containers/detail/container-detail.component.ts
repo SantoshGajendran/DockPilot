@@ -22,12 +22,13 @@ import { EventItem } from '../../../core/models/events.model';
 import { ActionConfirmDialogComponent } from '../dialogs/action-confirm-dialog.component';
 import { DeleteContainerDialogComponent } from '../dialogs/delete-container-dialog.component';
 import { LogViewerComponent } from '../../../shared/components/log-viewer/log-viewer.component';
+import { ContainerTerminalComponent } from '../terminal/container-terminal.component';
 import { METRIC_RANGES, MetricRange } from '../../../core/constants/container.constants';
 import { DetailTabType, ContainerDetail } from '../../../core/models/container-detail.model';
 
 Chart.register(...registerables);
 
-const TABS: DetailTabType[] = ['overview', 'metrics', 'logs', 'config', 'events'];
+const TABS: DetailTabType[] = ['overview', 'metrics', 'logs', 'config', 'events', 'terminal'];
 
 @Component({
   selector: 'dp-container-detail',
@@ -47,6 +48,7 @@ const TABS: DetailTabType[] = ['overview', 'metrics', 'logs', 'config', 'events'
     BaseChartDirective,
     LogViewerComponent,
     EventsTimelineComponent,
+    ContainerTerminalComponent,
   ],
 
   providers: [ContainerDetailStore],
@@ -69,9 +71,15 @@ export class ContainerDetailComponent implements OnInit, OnDestroy {
   readonly canOperate = computed(() => this.authService.hasRole('operator'));
   readonly canAdmin = computed(() => this.authService.hasRole('admin'));
 
+  readonly availableTabs = computed(() => {
+    return this.canAdmin()
+      ? (['overview', 'metrics', 'logs', 'config', 'events', 'terminal'] as DetailTabType[])
+      : (['overview', 'metrics', 'logs', 'config', 'events'] as DetailTabType[]);
+  });
+
   readonly selectedTabIndex = computed(() => {
     const tab = this.store.activeTab();
-    const idx = TABS.indexOf(tab);
+    const idx = this.availableTabs().indexOf(tab);
     return idx >= 0 ? idx : 0;
   });
 
@@ -199,7 +207,7 @@ export class ContainerDetailComponent implements OnInit, OnDestroy {
 
     this.querySub = this.route.queryParams.subscribe((params) => {
       const tabParam = params['tab'] as DetailTabType | undefined;
-      if (tabParam && TABS.includes(tabParam)) {
+      if (tabParam && this.availableTabs().includes(tabParam)) {
         this.store.setTab(tabParam);
       }
     });
@@ -218,7 +226,7 @@ export class ContainerDetailComponent implements OnInit, OnDestroy {
   }
 
   onTabChange(index: number): void {
-    const tab = TABS[index] || 'overview';
+    const tab = this.availableTabs()[index] || 'overview';
     this.store.setTab(tab);
     if (tab === 'events') {
       const id = this.store.containerId();

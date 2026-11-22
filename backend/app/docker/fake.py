@@ -1,6 +1,74 @@
+import asyncio
 from datetime import datetime, timezone
-from typing import Any, AsyncGenerator, Dict, List, Optional, Union
+from typing import Any, AsyncGenerator, Dict, List, Optional, Tuple, Union
+import uuid
 from app.docker.interface import DockerGateway
+
+
+class FakeExecSession:
+    def __init__(self, exec_id: str, container_id: str, cmd: List[str]):
+        self.exec_id = exec_id
+        self.container_id = container_id
+        self.cmd = cmd
+        self.height = 24
+        self.width = 80
+        self.resized_history: List[Tuple[int, int]] = []
+        self.input_buffer = ""
+        self.output_queue: asyncio.Queue[bytes] = asyncio.Queue()
+        self.closed = False
+        # Send initial banner & prompt
+        self.output_queue.put_nowait(b"\x1b[1;32mConnected to container shell.\x1b[0m\r\n# ")
+
+    async def write(self, data: bytes) -> None:
+        if self.closed:
+            return
+        text = data.decode("utf-8", errors="replace")
+        for char in text:
+            if char in ("\r", "\n"):
+                self.output_queue.put_nowait(b"\r\n")
+                line = self.input_buffer.strip()
+                self.input_buffer = ""
+                if line == "exit":
+                    self.closed = True
+                    self.output_queue.put_nowait(b"exit\r\n")
+                    return
+                elif line == "pwd":
+                    self.output_queue.put_nowait(b"/root\r\n# ")
+                elif line == "whoami":
+                    self.output_queue.put_nowait(b"root\r\n# ")
+                elif line == "ls":
+                    self.output_queue.put_nowait(b"bin  dev  etc  home  lib  root  tmp  var\r\n# ")
+                elif line.startswith("echo "):
+                    echo_text = line[5:] + "\r\n# "
+                    self.output_queue.put_nowait(echo_text.encode())
+                elif line:
+                    self.output_queue.put_nowait(f"{line}: command executed\r\n# ".encode())
+                else:
+                    self.output_queue.put_nowait(b"# ")
+            elif char == "\x03":  # Ctrl+C
+                self.input_buffer = ""
+                self.output_queue.put_nowait(b"^C\r\n# ")
+            elif char in ("\x08", "\x7f"):  # Backspace
+                if self.input_buffer:
+                    self.input_buffer = self.input_buffer[:-1]
+                    self.output_queue.put_nowait(b"\b \b")
+            else:
+                self.input_buffer += char
+                self.output_queue.put_nowait(char.encode())
+
+    async def read(self) -> bytes:
+        if self.closed and self.output_queue.empty():
+            return b""
+        try:
+            return await asyncio.wait_for(self.output_queue.get(), timeout=0.1)
+        except asyncio.TimeoutError:
+            return b""
+
+    def resize(self, height: int, width: int) -> None:
+        self.height = height
+        self.width = width
+        self.resized_history.append((height, width))
+
 
 class FakeGateway(DockerGateway):
     def __init__(
@@ -318,6 +386,7 @@ class FakeGateway(DockerGateway):
                     "connected_container_ids": [],
                 },
             }
+        self.exec_sessions: Dict[str, FakeExecSession] = {}
 
     async def ping(self) -> bool:
         return True
@@ -653,6 +722,33 @@ class FakeGateway(DockerGateway):
             del self.networks[k]
 
         return {"items_deleted": deleted, "space_reclaimed": 0}
+
+    async def create_exec(
+        self,
+        container_id: str,
+        cmd: List[str],
+        tty: bool = True,
+        stdin: bool = True,
+        privileged: bool = False,
+        user: Optional[str] = None,
+    ) -> str:
+        if container_id not in self.containers:
+            raise ValueError(f"Container {container_id} not found")
+        exec_id = f"exec_{uuid.uuid4().hex[:12]}"
+        session = FakeExecSession(exec_id=exec_id, container_id=container_id, cmd=cmd)
+        self.exec_sessions[exec_id] = session
+        return exec_id
+
+    async def start_exec(self, exec_id: str, tty: bool = True) -> Any:
+        if exec_id not in self.exec_sessions:
+            raise ValueError(f"Exec session {exec_id} not found")
+        return self.exec_sessions[exec_id]
+
+    async def resize_exec(self, exec_id: str, height: int, width: int) -> None:
+        if exec_id not in self.exec_sessions:
+            raise ValueError(f"Exec session {exec_id} not found")
+        self.exec_sessions[exec_id].resize(height, width)
+
 
 
 

@@ -304,5 +304,45 @@
     - `PullImageDialogComponent`: Image repository/tag input with live monospace terminal displaying streaming progress lines and layer status.
   - 216 frontend unit tests passing across 48 suites (`npm test`); production `ng build` passing with 0 errors and 0 warnings.
 
+## Prompt 12: Web Terminal
+- **Status:** Complete
+- **Backend:**
+  - Configurable terminal settings in `config/terminal.yaml` and `backend/app/core/config.py`: `terminal_enabled: false` (default disabled), `terminal_idle_timeout_seconds: 300`, `terminal_max_session_seconds: 3600`, `terminal_max_concurrent_sessions: 5`, `terminal_record_sessions: true`, `terminal_session_retention_days: 30`, `terminal_allowed_shells: ["/bin/sh", "/bin/bash", "sh", "bash"]`.
+  - Database model in `backend/app/models/terminal.py`: `TerminalSession` recording session start, end, duration, status, bytes sent/received, IP address, and full transcript.
+  - Alembic migration `0007_terminal_sessions.py`.
+  - DockerGateway extensions (`create_exec`, `start_exec`, `resize_exec`) implemented in `interface.py`, `engine.py`, and `fake.py` (with simulated TTY command response loop and input/output queue).
+  - Pydantic schemas in `backend/app/schemas/terminal.py`: `TerminalResizeMessage`, `TerminalStatusResponse`, `TerminalSessionResponse`, `TerminalSessionsListResponse`.
+  - `TerminalService` in `backend/app/services/terminal_service.py`:
+    - Feature flag check (`terminal_enabled`): returns 404 when disabled.
+    - RBAC enforcement: strictly restricted to administrators (`Role.ADMIN`); returns 403 Forbidden for non-admins.
+    - Allowed shells validation: verifies requested shell against configuration.
+    - Concurrency limiter: enforces `terminal_max_concurrent_sessions` with 429 Too Many Requests.
+    - Idle timeout & max duration watchdog: closes socket on 300s inactivity or max session duration.
+    - Bidirectional relay between WebSocket and Docker exec stream with window resize message parsing (`{"type": "resize", "cols": int, "rows": int}`).
+    - Full session transcript capture and persistence into `terminal_sessions` table.
+    - Structured audit logging before session start (`terminal.session_start`) and after termination (`terminal.session_end` with duration, exit status, bytes transferred).
+  - Endpoints:
+    - WebSocket `/api/v1/containers/{id}/exec` & `/containers/{id}/exec`.
+    - `GET /api/v1/containers/{id}/terminal/status`.
+    - `GET /api/v1/containers/{id}/terminal/sessions`.
+    - `GET /api/v1/containers/terminal/sessions/{session_id}`.
+  - 161 backend unit tests passing across all suites (`pytest -q`).
+- **Frontend:**
+  - Installed `@xterm/xterm` and `@xterm/addon-fit`.
+  - Global xterm styles imported in `frontend/src/styles.scss`.
+  - Models in `frontend/src/app/core/models/terminal.model.ts` and constants in `frontend/src/app/core/constants/terminal.constants.ts`.
+  - Service in `frontend/src/app/core/services/terminal.service.ts` with unit tests in `terminal.service.spec.ts`.
+  - Standalone `ContainerTerminalComponent` in `frontend/src/app/features/containers/terminal/`:
+    - Shell selector dropdown (`/bin/sh`, `/bin/bash`) with automatic session reconnect.
+    - Visual recording banner (`[REC] Session Recorded`) when audit recording is active.
+    - Connection state indicator (Connecting, Connected, Disconnected, Error) with disconnect reason banner.
+    - Quick actions: Reconnect and Clear screen buttons.
+    - Fit addon integration with automatic viewport resizing and window resize observer.
+    - Disabled server policy and non-admin forbidden guard states.
+    - Unit tests in `container-terminal.component.spec.ts`.
+  - Integrated Terminal tab on container detail page (`/containers/:id?tab=terminal`), only visible to administrators (`canAdmin()`).
+  - 231 frontend unit tests passing across 50 suites (`npm test`); production `ng build` passing with 0 errors and 0 warnings.
+
+
 
 

@@ -639,6 +639,42 @@ class EngineGateway(DockerGateway):
             return {"items_deleted": deleted, "space_reclaimed": 0}
         return await asyncio.to_thread(_prune)
 
+    async def create_exec(
+        self,
+        container_id: str,
+        cmd: List[str],
+        tty: bool = True,
+        stdin: bool = True,
+        privileged: bool = False,
+        user: Optional[str] = None,
+    ) -> str:
+        def _create():
+            create_kwargs: Dict[str, Any] = {
+                "cmd": cmd,
+                "stdin": stdin,
+                "tty": tty,
+                "privileged": privileged,
+            }
+            if user:
+                create_kwargs["user"] = user
+            res = self._client.api.exec_create(container_id, **create_kwargs)
+            return res["Id"]
+
+        return await asyncio.to_thread(_create)
+
+    async def start_exec(self, exec_id: str, tty: bool = True) -> Any:
+        def _start():
+            return self._client.api.exec_start(exec_id, detach=False, tty=tty, stream=True, socket=True)
+
+        return await asyncio.to_thread(_start)
+
+    async def resize_exec(self, exec_id: str, height: int, width: int) -> None:
+        def _resize():
+            self._client.api.exec_resize(exec_id, height=height, width=width)
+
+        await asyncio.to_thread(_resize)
+
+
 
 
 

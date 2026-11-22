@@ -346,6 +346,18 @@
           </div>
         </div>
       </mat-tab>
+
+      <!-- TAB 6: TERMINAL (Admin Only) -->
+      @if (canAdmin()) {
+        <mat-tab label="Terminal">
+          <div class="tab-content">
+            <dp-container-terminal
+              [containerId]="detail.id"
+              [containerName]="detail.name"
+            ></dp-container-terminal>
+          </div>
+        </mat-tab>
+      }
     </mat-tab-group>
   }
 </div>

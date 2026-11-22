@@ -9,6 +9,7 @@ import { ContainerDetailComponent } from './container-detail.component';
 import { ContainerDetailStore } from './container-detail.store';
 import { AuthService } from '../../../core/services/auth.service';
 import { EventsService } from '../../../core/services/events.service';
+import { TerminalService } from '../../../core/services/terminal.service';
 import { ContainerDetail } from '../../../core/models/container-detail.model';
 
 describe('ContainerDetailComponent', () => {
@@ -105,6 +106,13 @@ describe('ContainerDetailComponent', () => {
           useValue: { getEvents: jest.fn().mockReturnValue(of({ items: [], total: 0 })) },
         },
         {
+          provide: TerminalService,
+          useValue: {
+            getStatus: jest.fn().mockReturnValue(of({ enabled: true, allowed_shells: ['/bin/sh'] })),
+            createWebSocket: jest.fn().mockReturnValue({ close: jest.fn() }),
+          },
+        },
+        {
           provide: ActivatedRoute,
           useValue: {
             snapshot: { paramMap: { get: () => 'c1' } },
@@ -160,5 +168,16 @@ describe('ContainerDetailComponent', () => {
     expect(component.formatBytes(1024)).toBe('1 KB');
     expect(component.formatBytes(1048576)).toBe('1 MB');
     expect(component.formatBytes(1073741824)).toBe('1 GB');
+  });
+
+  it('should include terminal tab in availableTabs for admin', () => {
+    expect(component.availableTabs()).toContain('terminal');
+  });
+
+  it('should exclude terminal tab in availableTabs for non-admin', () => {
+    mockAuthService.hasRole.mockReturnValue(false);
+    const nonAdminFixture = TestBed.createComponent(ContainerDetailComponent);
+    const nonAdminComp = nonAdminFixture.componentInstance;
+    expect(nonAdminComp.availableTabs()).not.toContain('terminal');
   });
 });

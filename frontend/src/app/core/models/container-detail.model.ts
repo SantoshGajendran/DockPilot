@@ -68,4 +68,4 @@ export interface EnvRevealResponse {
   env: EnvVarItem[];
 }
 
-export type DetailTabType = 'overview' | 'metrics' | 'logs' | 'config' | 'events';
+export type DetailTabType = 'overview' | 'metrics' | 'logs' | 'config' | 'events' | 'terminal';

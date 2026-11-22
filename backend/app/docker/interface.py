@@ -140,4 +140,28 @@ class DockerGateway(ABC):
         """Prune unused Docker networks."""
         pass
 
+    @abstractmethod
+    async def create_exec(
+        self,
+        container_id: str,
+        cmd: List[str],
+        tty: bool = True,
+        stdin: bool = True,
+        privileged: bool = False,
+        user: Optional[str] = None,
+    ) -> str:
+        """Create an exec instance inside a container and return exec_id."""
+        pass
+
+    @abstractmethod
+    async def start_exec(self, exec_id: str, tty: bool = True) -> Any:
+        """Start an exec instance with attached socket."""
+        pass
+
+    @abstractmethod
+    async def resize_exec(self, exec_id: str, height: int, width: int) -> None:
+        """Resize TTY dimensions for an active exec instance."""
+        pass
+
+
 
