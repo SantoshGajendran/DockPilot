@@ -58,4 +58,10 @@ compose_project_paths:
   worker: "/opt/stacks/worker"
   cache: "/opt/stacks/cache"
 compose_job_timeout_seconds: 300
+events_retention_days: 30
+events_reconnect_interval_seconds: 3
+restart_loop_window_seconds: 300
+restart_loop_threshold: 3
+events_page_size_default: 50
+events_page_size_max: 200
 

@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, inject, computed } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, computed, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { MatTabsModule } from '@angular/material/tabs';
@@ -16,6 +16,9 @@ import { Subscription } from 'rxjs';
 
 import { ContainerDetailStore } from './container-detail.store';
 import { AuthService } from '../../../core/services/auth.service';
+import { EventsService } from '../../../core/services/events.service';
+import { EventsTimelineComponent } from '../../events/components/events-timeline.component';
+import { EventItem } from '../../../core/models/events.model';
 import { ActionConfirmDialogComponent } from '../dialogs/action-confirm-dialog.component';
 import { DeleteContainerDialogComponent } from '../dialogs/delete-container-dialog.component';
 import { LogViewerComponent } from '../../../shared/components/log-viewer/log-viewer.component';
@@ -43,6 +46,7 @@ const TABS: DetailTabType[] = ['overview', 'metrics', 'logs', 'config', 'events'
     MatDialogModule,
     BaseChartDirective,
     LogViewerComponent,
+    EventsTimelineComponent,
   ],
 
   providers: [ContainerDetailStore],
@@ -52,9 +56,12 @@ const TABS: DetailTabType[] = ['overview', 'metrics', 'logs', 'config', 'events'
 export class ContainerDetailComponent implements OnInit, OnDestroy {
   readonly store = inject(ContainerDetailStore);
   private readonly authService = inject(AuthService);
+  private readonly eventsService = inject(EventsService, { optional: true });
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly dialog = inject(MatDialog);
+
+  readonly containerEvents = signal<EventItem[]>([]);
 
   private querySub: Subscription | null = null;
   readonly metricRanges = METRIC_RANGES;
@@ -187,6 +194,7 @@ export class ContainerDetailComponent implements OnInit, OnDestroy {
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
       this.store.loadContainer(id);
+      this.loadContainerEvents(id);
     }
 
     this.querySub = this.route.queryParams.subscribe((params) => {
@@ -194,6 +202,13 @@ export class ContainerDetailComponent implements OnInit, OnDestroy {
       if (tabParam && TABS.includes(tabParam)) {
         this.store.setTab(tabParam);
       }
+    });
+  }
+
+  loadContainerEvents(id: string): void {
+    this.eventsService?.getEvents({ container_id: id, limit: 50 }).subscribe({
+      next: (resp) => this.containerEvents.set(resp.items),
+      error: () => {},
     });
   }
 
@@ -205,6 +220,10 @@ export class ContainerDetailComponent implements OnInit, OnDestroy {
   onTabChange(index: number): void {
     const tab = TABS[index] || 'overview';
     this.store.setTab(tab);
+    if (tab === 'events') {
+      const id = this.store.containerId();
+      if (id) this.loadContainerEvents(id);
+    }
     this.router.navigate([], {
       relativeTo: this.route,
       queryParams: { tab },

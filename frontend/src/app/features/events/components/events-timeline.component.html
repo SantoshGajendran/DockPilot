@@ -1,0 +1,65 @@
+<div class="timeline-wrapper" [class.compact-mode]="compact">
+  <!-- Day Groups -->
+  <div class="day-group" *ngFor="let group of dayGroups()">
+    <div class="day-header">
+      <span class="day-badge">{{ group.dayLabel }}</span>
+      <span class="day-count">({{ group.events.length }} events)</span>
+    </div>
+
+    <div class="events-list">
+      <div class="timeline-item" *ngFor="let ev of group.events">
+        <!-- Node indicator -->
+        <div class="node-col">
+          <div class="node-icon" [ngClass]="getActionMeta(ev.action).colorClass">
+            <mat-icon>{{ getActionMeta(ev.action).icon }}</mat-icon>
+          </div>
+          <div class="vertical-line"></div>
+        </div>
+
+        <!-- Event Body -->
+        <div class="event-body">
+          <div class="event-header-row">
+            <span class="event-time">{{ formatTime(ev.timestamp) }}</span>
+
+            <ng-container *ngIf="showContainerLink && ev.container_id; else plainContainer">
+              <a [routerLink]="['/containers', ev.container_id]" class="container-chip" matTooltip="View container details">
+                <mat-icon class="cont-icon">view_in_ar</mat-icon>
+                <span>{{ ev.container_name }}</span>
+              </a>
+            </ng-container>
+            <ng-template #plainContainer>
+              <span class="container-chip static">
+                <mat-icon class="cont-icon">view_in_ar</mat-icon>
+                <span>{{ ev.container_name }}</span>
+              </span>
+            </ng-template>
+
+            <span class="action-tag" [ngClass]="getActionMeta(ev.action).colorClass">
+              {{ getActionMeta(ev.action).label }}
+            </span>
+
+            <!-- Incident Chips -->
+            <div class="incident-chips">
+              <span class="chip chip-loop" *ngIf="ev.is_restart_loop" matTooltip="High restart frequency within sliding window">
+                <mat-icon>sync_problem</mat-icon>
+                Restart Loop
+              </span>
+              <span class="chip chip-oom" *ngIf="ev.is_oom" matTooltip="Out-Of-Memory Killer detected">
+                <mat-icon>memory</mat-icon>
+                OOM Kill
+              </span>
+              <span class="chip chip-crash" *ngIf="ev.is_unexpected_exit" matTooltip="Non-zero exit code">
+                <mat-icon>warning</mat-icon>
+                Exit {{ ev.exit_code }}
+              </span>
+            </div>
+          </div>
+
+          <div class="event-meta-row" *ngIf="!compact && ev.image">
+            <span class="image-text">Image: <code>{{ ev.image }}</code></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -204,27 +204,8 @@
         <p>No recent events recorded</p>
       </div>
 
-      <div class="events-table-wrapper" *ngIf="(store.data()?.recent_events?.length ?? 0) > 0">
-        <table class="events-table">
-          <thead>
-            <tr>
-              <th>Action</th>
-              <th>Actor</th>
-              <th>Type</th>
-              <th>Time</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let ev of store.data()?.recent_events">
-              <td>
-                <span class="event-badge">{{ ev.action }}</span>
-              </td>
-              <td class="actor-cell">{{ ev.actor_name }}</td>
-              <td class="type-cell">{{ ev.actor_type }}</td>
-              <td class="time-cell">{{ ev.timestamp | date:'medium' }}</td>
-            </tr>
-          </tbody>
-        </table>
+      <div class="timeline-embed" *ngIf="timelineEvents().length > 0">
+        <dp-events-timeline [events]="timelineEvents()" [compact]="true"></dp-events-timeline>
       </div>
     </mat-card-content>
   </mat-card>

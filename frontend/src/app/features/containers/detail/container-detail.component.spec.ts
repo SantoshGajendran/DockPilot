@@ -8,6 +8,7 @@ import { signal } from '@angular/core';
 import { ContainerDetailComponent } from './container-detail.component';
 import { ContainerDetailStore } from './container-detail.store';
 import { AuthService } from '../../../core/services/auth.service';
+import { EventsService } from '../../../core/services/events.service';
 import { ContainerDetail } from '../../../core/models/container-detail.model';
 
 describe('ContainerDetailComponent', () => {
@@ -99,6 +100,10 @@ describe('ContainerDetailComponent', () => {
         { provide: AuthService, useValue: mockAuthService },
         { provide: Router, useValue: mockRouter },
         { provide: MatDialog, useValue: mockDialog },
+        {
+          provide: EventsService,
+          useValue: { getEvents: jest.fn().mockReturnValue(of({ items: [], total: 0 })) },
+        },
         {
           provide: ActivatedRoute,
           useValue: {

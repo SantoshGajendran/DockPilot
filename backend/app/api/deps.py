@@ -17,6 +17,8 @@ from app.models.user import User
 from app.services.overview_service import OverviewCollectorService
 from app.services.host_service import HostService
 from app.services.compose_service import ComposeService
+from app.services.event_listener_service import EventListenerService
+from app.services.events_service import EventsService
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login", auto_error=False)
 
@@ -58,6 +60,27 @@ def get_overview_collector(
     elif collector.docker_gateway is None and docker_gateway is not None:
         collector._docker_gateway = docker_gateway
     return collector
+
+
+def get_event_listener(
+    request: Request,
+    docker_gateway: DockerGateway = Depends(get_docker_gateway),
+) -> EventListenerService:
+    listener = getattr(request.app.state, "event_listener", None)
+    if listener is None:
+        listener = EventListenerService(docker_gateway=docker_gateway)
+        request.app.state.event_listener = listener
+    elif listener._docker_gateway is None and docker_gateway is not None:
+        listener._docker_gateway = docker_gateway
+    return listener
+
+
+def get_events_service(
+    request: Request,
+    db: AsyncSession = Depends(get_db_session),
+    event_listener: EventListenerService = Depends(get_event_listener),
+) -> EventsService:
+    return EventsService(db=db, event_listener=event_listener)
 
 
 async def get_db() -> AsyncGenerator[AsyncSession, None]:

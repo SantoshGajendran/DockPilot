@@ -67,6 +67,14 @@ export const routes: Routes = [
           ),
         data: { title: 'Compose Projects' },
       },
+      {
+        path: 'events',
+        loadComponent: () =>
+          import('./features/events/events.component').then(
+            (m) => m.EventsComponent
+          ),
+        data: { title: 'Events Timeline' },
+      },
 
 
     ],

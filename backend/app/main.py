@@ -13,6 +13,7 @@ from app.core.security import hash_password
 from app.models.audit import AuditLog
 from app.models.user import User
 from app.services.overview_service import OverviewCollectorService
+from app.services.event_listener_service import EventListenerService
 
 
 async def bootstrap_default_admin() -> None:
@@ -59,9 +60,14 @@ async def lifespan(app: FastAPI):
     collector = OverviewCollectorService(docker_gateway=docker_gw)
     app.state.overview_collector = collector
     await collector.start()
+
+    event_listener = EventListenerService(docker_gateway=docker_gw)
+    app.state.event_listener = event_listener
+    await event_listener.start()
     try:
         yield
     finally:
+        await event_listener.stop()
         await collector.stop()
 
 

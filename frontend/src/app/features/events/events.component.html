@@ -1,0 +1,118 @@
+<div class="events-page">
+  <!-- Page Header -->
+  <div class="page-header">
+    <div class="title-section">
+      <div class="icon-bubble">
+        <mat-icon>timeline</mat-icon>
+      </div>
+      <div>
+        <h2>Events Timeline</h2>
+        <p class="subtitle">Live and historical container lifecycle transitions and incidents</p>
+      </div>
+    </div>
+
+    <div class="header-actions">
+      <button
+        mat-stroked-button
+        [color]="store.isLive() ? 'accent' : ''"
+        (click)="store.toggleLive()"
+        [matTooltip]="store.isLive() ? 'Pause live SSE stream' : 'Resume live SSE stream'"
+      >
+        <mat-icon>{{ store.isLive() ? 'sensors' : 'sensors_off' }}</mat-icon>
+        {{ store.isLive() ? 'Live (SSE)' : 'Paused' }}
+      </button>
+
+      <button mat-stroked-button (click)="store.loadEvents()" [disabled]="store.isLoading()">
+        <mat-icon>refresh</mat-icon>
+        Refresh
+      </button>
+    </div>
+  </div>
+
+  <!-- Filters Card -->
+  <div class="filter-card">
+    <div class="filter-inputs">
+      <!-- Container Name Filter -->
+      <mat-form-field appearance="outline" density="compact" class="search-field">
+        <mat-label>Filter by Container</mat-label>
+        <input
+          matInput
+          [(ngModel)]="filterContainerName"
+          (keyup.enter)="applyFilters()"
+          placeholder="e.g. web, redis, api"
+        />
+        <mat-icon matSuffix>search</mat-icon>
+      </mat-form-field>
+
+      <!-- Action Select -->
+      <mat-form-field appearance="outline" density="compact" class="select-field">
+        <mat-label>Event Action</mat-label>
+        <mat-select [(ngModel)]="filterAction" (selectionChange)="applyFilters()">
+          <mat-option *ngFor="let opt of actionOptions" [value]="opt.value">
+            {{ opt.label }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <!-- Incidents Only Toggle -->
+      <div class="toggle-section">
+        <mat-slide-toggle [(ngModel)]="filterIncidentsOnly" (change)="applyFilters()" color="warn">
+          Incidents Only (OOM, Loop, Crash)
+        </mat-slide-toggle>
+      </div>
+
+      <!-- Action buttons -->
+      <div class="filter-buttons">
+        <button mat-flat-button color="primary" (click)="applyFilters()">
+          Filter
+        </button>
+        <button mat-button (click)="clearFilters()">
+          Clear
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="store.isLoading()" class="loading-state">
+    <mat-spinner diameter="40"></mat-spinner>
+    <p>Loading timeline events...</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="store.error()" class="error-banner">
+    <mat-icon>error_outline</mat-icon>
+    <span>{{ store.error() }}</span>
+    <button mat-button color="warn" (click)="store.loadEvents()">Retry</button>
+  </div>
+
+  <!-- Empty State -->
+  <div *ngIf="!store.isLoading() && store.events().length === 0 && !store.error()" class="empty-state">
+    <mat-icon class="empty-icon">event_busy</mat-icon>
+    <h3>No Events Found</h3>
+    <p>No container lifecycle events matched the selected filter criteria.</p>
+  </div>
+
+  <!-- Events Timeline Card -->
+  <div class="timeline-container" *ngIf="!store.isLoading() && store.events().length > 0">
+    <div class="timeline-card">
+      <dp-events-timeline [events]="store.events()"></dp-events-timeline>
+
+      <!-- Pagination / Load More -->
+      <div class="pagination-footer">
+        <span class="count-text">Showing {{ store.events().length }} of {{ store.total() }} events</span>
+        <button
+          *ngIf="store.hasMore()"
+          mat-stroked-button
+          color="primary"
+          (click)="store.loadMore()"
+          [disabled]="store.isLoadingMore()"
+        >
+          <mat-spinner *ngIf="store.isLoadingMore()" diameter="18" class="spinner-inline"></mat-spinner>
+          <mat-icon *ngIf="!store.isLoadingMore()">expand_more</mat-icon>
+          Load More Events
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

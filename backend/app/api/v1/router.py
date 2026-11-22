@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from app.api.v1 import health, auth, overview, containers, logs, host, compose, jobs
+from app.api.v1 import health, auth, overview, containers, logs, host, compose, jobs, events
 
 api_router = APIRouter()
 api_router.include_router(health.router, tags=["Health"])
@@ -10,4 +10,5 @@ api_router.include_router(logs.router, prefix="/logs", tags=["Logs"])
 api_router.include_router(host.router, prefix="/host", tags=["Host"])
 api_router.include_router(compose.router, prefix="/compose", tags=["Compose"])
 api_router.include_router(jobs.router, prefix="/jobs", tags=["Jobs"])
+api_router.include_router(events.router, prefix="/events", tags=["Events"])
 

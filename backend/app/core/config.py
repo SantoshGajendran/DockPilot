@@ -67,6 +67,12 @@ class Settings(BaseSettings):
         "cache": "/opt/stacks/cache",
     }
     compose_job_timeout_seconds: int = 300
+    events_retention_days: int = 30
+    events_reconnect_interval_seconds: float = 3.0
+    restart_loop_window_seconds: int = 300
+    restart_loop_threshold: int = 3
+    events_page_size_default: int = 50
+    events_page_size_max: int = 200
 
 
 @lru_cache

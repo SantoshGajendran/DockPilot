@@ -1,7 +1,7 @@
 import asyncio
 from datetime import datetime, timezone
 import time
-from typing import Any, AsyncGenerator, Dict, List, Optional
+from typing import Any, AsyncGenerator, Dict, List, Optional, Union
 import docker
 from docker.errors import DockerException, NotFound
 
@@ -121,10 +121,15 @@ class EngineGateway(DockerGateway):
                 return False
         return await asyncio.to_thread(_remove)
 
-    async def stream_events(self) -> AsyncGenerator[Dict[str, Any], None]:
+    async def stream_events(
+        self, since: Optional[Union[int, datetime]] = None
+    ) -> AsyncGenerator[Dict[str, Any], None]:
         loop = asyncio.get_running_loop()
         try:
-            event_stream = self._client.events(decode=True)
+            kwargs: Dict[str, Any] = {"decode": True}
+            if since is not None:
+                kwargs["since"] = since
+            event_stream = self._client.events(**kwargs)
             iterator = iter(event_stream)
         except Exception:
             return

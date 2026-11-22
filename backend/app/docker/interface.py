@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
-from typing import Any, AsyncGenerator, Dict, List, Optional
+from datetime import datetime
+from typing import Any, AsyncGenerator, Dict, List, Optional, Union
 
 
 class DockerGateway(ABC):
@@ -29,7 +30,9 @@ class DockerGateway(ABC):
         pass
 
     @abstractmethod
-    async def stream_events(self) -> AsyncGenerator[Dict[str, Any], None]:
+    async def stream_events(
+        self, since: Optional[Union[int, datetime]] = None
+    ) -> AsyncGenerator[Dict[str, Any], None]:
         """Stream Docker events."""
         pass
 

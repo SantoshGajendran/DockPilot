@@ -167,3 +167,33 @@
     - Expandable nested table detailing service name, container name, image, state, and health.
     - Unit tests in `compose-projects.component.spec.ts`.
   - 130 frontend unit tests passing across 29 suites (`npm test`); production `ng build` passing with 0 errors and 0 warnings.
+
+## Prompt 08: Events Timeline
+- **Status:** Complete
+- **Backend:**
+  - Database table `container_events` with Alembic migration `0004_container_events.py`.
+  - Configurable parameters in `config/app.yaml` and `backend/app/core/config.py`: `events_retention_days`, `events_reconnect_interval_seconds`, `restart_loop_window_seconds`, `restart_loop_threshold`, `events_page_size_default`, `events_page_size_max`.
+  - Background daemon `EventListenerService` connected to `DockerGateway.stream_events` with automatic reconnection, deduplication, and broadcasting to active SSE clients.
+  - Derived failure flags:
+    - OOM Kill (`is_oom`): `action == 'oom'` or attribute `oom=True`.
+    - Unexpected Exit (`is_unexpected_exit`): `action == 'die'` with non-zero exit code.
+    - Restart Loop Detection (`is_restart_loop`): counts container crash/restart events within `restart_loop_window_seconds` >= `restart_loop_threshold`.
+  - Endpoints in `backend/app/api/v1/events.py`:
+    - `GET /api/v1/events`: Multi-criteria filtering (container, action, incidents_only, date range) with integer cursor-based pagination.
+    - `GET /api/v1/events/stream`: Real-time Server-Sent Events (SSE) feed with keepalive heartbeats.
+  - 116 backend tests passing across all suites (`pytest -q`).
+- **Frontend:**
+  - TypeScript models in `frontend/src/app/core/models/events.model.ts` and constants in `frontend/src/app/core/constants/events.constants.ts`.
+  - `EventsService` (`frontend/src/app/core/services/events.service.ts`) with unit tests in `events.service.spec.ts`.
+  - Signal-based `EventsStore` (`frontend/src/app/features/events/events.store.ts`) with unit tests in `events.store.spec.ts`.
+  - Reusable `EventsTimelineComponent` (`<dp-events-timeline>`):
+    - Vertical timeline grouped by day ("Today", "Yesterday", and formatted dates).
+    - Color-coded icons and badges per event action.
+    - Incident chips for Restart Loops, OOM Kills, and exit codes.
+    - Compact mode (`[compact]="true"`) embedded in Overview Dashboard (`/dashboard`) and Container Detail Events tab (`/containers/:id?tab=events`).
+  - Standalone lazy-loaded route `/events` (`EventsComponent`):
+    - Filter controls (container name search, action selection, incidents-only toggle).
+    - Real-time SSE toggle button (Live / Paused) and manual refresh.
+    - Cursor-based "Load More Events" pagination.
+    - Unit tests in `events.component.spec.ts`.
+  - 147 frontend unit tests passing across 33 suites (`npm test`); production `ng build` passing with 0 errors and 0 warnings.

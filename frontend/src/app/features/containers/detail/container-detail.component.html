@@ -337,19 +337,12 @@
       <!-- TAB 5: EVENTS -->
       <mat-tab label="Events">
         <div class="tab-content">
-          <div class="events-timeline">
-            <div class="event-entry">
-              <span class="event-time">Just now</span>
-              <span class="event-desc">
-                Container <strong>{{ detail.name }}</strong> telemetry synchronized.
-              </span>
-            </div>
-            <div class="event-entry">
-              <span class="event-time">{{ detail.created | date:'short' }}</span>
-              <span class="event-desc">
-                Container <strong>{{ detail.name }}</strong> created from image <code>{{ detail.image }}</code>.
-              </span>
-            </div>
+          <div class="config-card">
+            @if (containerEvents().length === 0) {
+              <div class="empty-state">No lifecycle events recorded for this container</div>
+            } @else {
+              <dp-events-timeline [events]="containerEvents()" [compact]="true" [showContainerLink]="false"></dp-events-timeline>
+            }
           </div>
         </div>
       </mat-tab>

@@ -31,6 +31,7 @@ from app.schemas.compose import (
     ComposeProjectsListResponse,
     ComposeActionResponse,
 )
+from app.schemas.events import EventItem, EventsListResponse, EventsFilterParams
 
 __all__ = [
     "LoginRequest",

@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
@@ -11,6 +11,8 @@ import { BaseChartDirective } from 'ng2-charts';
 import { Chart, ChartOptions, registerables } from 'chart.js';
 import { DashboardStore } from './dashboard.store';
 import { CONTAINER_STATE_COLORS, CONTAINER_STATE_LABELS, HOST_THRESHOLDS } from '../../core/constants/overview.constants';
+import { EventsTimelineComponent } from '../events/components/events-timeline.component';
+import { EventItem } from '../../core/models/events.model';
 
 Chart.register(...registerables);
 
@@ -26,7 +28,8 @@ Chart.register(...registerables);
     MatChipsModule,
     MatTabsModule,
     MatTooltipModule,
-    BaseChartDirective
+    BaseChartDirective,
+    EventsTimelineComponent,
   ],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.scss']
@@ -37,6 +40,22 @@ export class DashboardComponent implements OnInit, OnDestroy {
   readonly stateColors = CONTAINER_STATE_COLORS;
   readonly stateLabels = CONTAINER_STATE_LABELS;
   readonly thresholds = HOST_THRESHOLDS;
+
+  readonly timelineEvents = computed<EventItem[]>(() => {
+    const rawEvents = this.store.data()?.recent_events || [];
+    return rawEvents.map((e, idx) => ({
+      id: String(e.id || idx),
+      event_id: String(e.id || idx),
+      timestamp: e.timestamp,
+      action: e.action,
+      container_id: '',
+      container_name: e.actor_name,
+      is_oom: e.action === 'oom',
+      is_unexpected_exit: false,
+      is_restart_loop: false,
+      attributes: {},
+    }));
+  });
 
   readonly donutChartOptions: ChartOptions<'doughnut'> = {
     responsive: true,

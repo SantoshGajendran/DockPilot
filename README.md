@@ -97,7 +97,7 @@ npm start
 ## Running Tests
 
 ### Backend Unit Tests
-Execute the pytest suite (107 unit tests):
+Execute the pytest suite (116 unit tests):
 ```bash
 cd backend && pytest -v
 ```
@@ -107,7 +107,7 @@ python -m pytest backend/tests -v
 ```
 
 ### Frontend Unit Tests & Build
-Execute the Jest unit test suite (130 unit tests across 29 suites):
+Execute the Jest unit test suite (147 unit tests across 33 suites):
 ```bash
 cd frontend && npm test
 ```
@@ -250,5 +250,30 @@ cd frontend && npm run build
   - Expandable nested table detailing service names, container names, images, container runtime states, and health statuses.
   - Real-time `JobOutputDialogComponent` modal launched upon triggering an action, streaming live ANSI-formatted terminal output via SSE with autoscroll and status badges.
   - All 107 backend tests (`pytest`) and 130 frontend tests across 29 suites (`npm test`) passing with 0 warnings in production `ng build`.
+
+### Prompt 08: Events Timeline
+- **Status:** Complete
+- **Backend Event Ingestion & Incident Detection:**
+  - Database table `container_events` with Alembic migration `0004_container_events.py`.
+  - Asynchronous background listener `EventListenerService` connected to Docker event stream with exponential backoff / reconnect interval and deduplication by event key.
+  - Derived failure flags:
+    - OOM Kill (`is_oom`): `action == 'oom'` or `attributes.oom == 'true'`.
+    - Unexpected Exit (`is_unexpected_exit`): `action == 'die'` with non-zero exit code.
+    - Restart Loop Detection (`is_restart_loop`): counts container crashes/restarts within configurable sliding window (`restart_loop_window_seconds: 300`) and flags flapping containers exceeding `restart_loop_threshold: 3`.
+  - Endpoints:
+    - `GET /api/v1/events`: Multi-criteria filtering (container, action, incidents_only, date range) with efficient cursor-based pagination.
+    - `GET /api/v1/events/stream`: Real-time Server-Sent Events (SSE) event feed with keepalive heartbeats.
+- **Frontend UI & Reusable Timeline Component:**
+  - Standalone lazy-loaded route `/events` (`EventsComponent`):
+    - Filter controls for container name search, action selection, and incidents-only toggle.
+    - Real-time SSE toggle button (Live / Paused) and manual refresh.
+    - Cursor-based "Load More Events" pagination.
+  - Reusable `EventsTimelineComponent` (`<dp-events-timeline>`):
+    - Vertical timeline grouped by day ("Today", "Yesterday", and formatted dates).
+    - Color-coded icons and badges per event action.
+    - High-visibility incident tags for Restart Loops, OOM Kills, and non-zero exit codes.
+    - Compact mode (`[compact]="true"`) embedded in Overview Dashboard (`/dashboard`) and Container Detail Events tab (`/containers/:id?tab=events`).
+  - All 116 backend tests (`pytest`) and 147 frontend tests across 33 suites (`npm test`) passing with 0 warnings in production `ng build`.
+
 
 

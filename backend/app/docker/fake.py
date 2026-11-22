@@ -1,4 +1,5 @@
-from typing import Any, AsyncGenerator, Dict, List, Optional
+from datetime import datetime, timezone
+from typing import Any, AsyncGenerator, Dict, List, Optional, Union
 from app.docker.interface import DockerGateway
 
 class FakeGateway(DockerGateway):
@@ -135,6 +136,7 @@ class FakeGateway(DockerGateway):
                 "timestamp": "2026-11-18T20:00:00Z",
             }
         ]
+        self.mock_stream_events: List[Dict[str, Any]] = []
 
     async def ping(self) -> bool:
         return True
@@ -164,8 +166,26 @@ class FakeGateway(DockerGateway):
             return True
         return False
 
-    async def stream_events(self) -> AsyncGenerator[Dict[str, Any], None]:
-        yield {"status": "start", "id": "c1", "from": "redis:7-alpine"}
+    async def stream_events(
+        self, since: Optional[Union[int, datetime]] = None
+    ) -> AsyncGenerator[Dict[str, Any], None]:
+        if self.mock_stream_events:
+            for ev in self.mock_stream_events:
+                yield ev
+        else:
+            now_ts = int(datetime.now(timezone.utc).timestamp())
+            yield {
+                "id": "c1",
+                "Action": "start",
+                "status": "start",
+                "Type": "container",
+                "Actor": {
+                    "ID": "c1",
+                    "Attributes": {"name": "dockpilot-redis", "image": "redis:7-alpine"},
+                },
+                "time": now_ts,
+                "timeNano": int(now_ts * 1e9),
+            }
 
     async def get_container_stats(self, container_id: str) -> Dict[str, Any]:
         if container_id in self.containers:
