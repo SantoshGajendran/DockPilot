@@ -22,12 +22,20 @@ def _format_container(container: Any) -> Dict[str, Any]:
     restart_count = attrs.get("RestartCount", 0) if isinstance(attrs, dict) else 0
 
     image_tag = ""
-    if hasattr(container, "image") and container.image:
-        tags = getattr(container.image, "tags", None)
-        if tags:
-            image_tag = tags[0]
-        else:
-            image_tag = getattr(container.image, "id", "")
+    if isinstance(config, dict) and config.get("Image"):
+        image_tag = str(config["Image"])
+    elif isinstance(attrs, dict) and attrs.get("Image"):
+        image_tag = str(attrs["Image"])
+
+    try:
+        if hasattr(container, "image") and container.image:
+            tags = getattr(container.image, "tags", None)
+            if tags and len(tags) > 0:
+                image_tag = tags[0]
+            elif not image_tag:
+                image_tag = getattr(container.image, "id", "")
+    except Exception:
+        pass
 
     name = getattr(container, "name", "")
     if name and name.startswith("/"):

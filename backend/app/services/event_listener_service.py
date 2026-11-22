@@ -1,5 +1,6 @@
 import asyncio
 from datetime import datetime, timedelta, timezone
+import hashlib
 import logging
 from typing import Any, Callable, Dict, Optional, Set
 from sqlalchemy import func, select
@@ -122,7 +123,9 @@ class EventListenerService:
             event_dt = datetime.now(timezone.utc)
 
         # Unique event identifier for deduplication
-        event_id = f"{container_id}_{action}_{time_nano or time_sec or int(event_dt.timestamp() * 1e6)}"
+        raw_event_key = f"{container_id}_{action}_{time_nano or time_sec or int(event_dt.timestamp() * 1e6)}"
+        event_id = hashlib.sha256(raw_event_key.encode("utf-8")).hexdigest()
+        clean_action = action[:64]
 
         # Exit code extraction
         exit_code: Optional[int] = None
@@ -167,7 +170,7 @@ class EventListenerService:
             record = ContainerEventRecord(
                 event_id=event_id,
                 timestamp=event_dt,
-                action=action,
+                action=clean_action,
                 container_id=container_id,
                 container_name=container_name,
                 image=image,
