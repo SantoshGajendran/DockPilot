@@ -139,7 +139,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
         borderColor: 'rgba(255, 255, 255, 0.1)',
         borderWidth: 1,
         callbacks: {
-          afterBody: () => 'Click to inspect container details'
+          afterBody: () => 'Inspect container details ↗'
         }
       }
     },

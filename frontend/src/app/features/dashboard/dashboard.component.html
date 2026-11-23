@@ -21,7 +21,7 @@
       (keydown.enter)="navigateToHost()"
       tabindex="0"
       role="button"
-      matTooltip="Click to inspect Host CPU telemetry">
+      matTooltip="Inspect Host CPU ↗">
       <mat-card-header>
         <mat-icon mat-card-avatar class="card-icon cpu-icon">memory</mat-icon>
         <mat-card-title>Host CPU</mat-card-title>
@@ -45,7 +45,7 @@
       (keydown.enter)="navigateToHost()"
       tabindex="0"
       role="button"
-      matTooltip="Click to inspect Host Memory telemetry">
+      matTooltip="Inspect Host Memory ↗">
       <mat-card-header>
         <mat-icon mat-card-avatar class="card-icon mem-icon">storage</mat-icon>
         <mat-card-title>Host Memory</mat-card-title>
@@ -69,7 +69,7 @@
       (keydown.enter)="navigateToHost()"
       tabindex="0"
       role="button"
-      matTooltip="Click to inspect Host Disk telemetry">
+      matTooltip="Inspect Host Disk ↗">
       <mat-card-header>
         <mat-icon mat-card-avatar class="card-icon disk-icon">dns</mat-icon>
         <mat-card-title>Host Disk</mat-card-title>
@@ -93,7 +93,7 @@
       (keydown.enter)="navigateToContainers()"
       tabindex="0"
       role="button"
-      matTooltip="Click to view Docker containers fleet">
+      matTooltip="View Docker workloads ↗">
       <mat-card-header>
         <mat-icon mat-card-avatar class="card-icon uptime-icon">schedule</mat-icon>
         <mat-card-title>Server Uptime</mat-card-title>
@@ -138,7 +138,7 @@
               (keydown.enter)="navigateToContainers()"
               tabindex="0"
               role="button"
-              matTooltip="View all containers">
+              matTooltip="View all containers ({{ store.data()?.containers?.total ?? 0 }}) ↗">
               <span class="total-number">{{ store.data()?.containers?.total ?? 0 }}</span>
               <span class="total-label">Total</span>
             </div>
@@ -152,7 +152,7 @@
               (keydown.enter)="navigateToContainers('running')"
               tabindex="0"
               role="button"
-              matTooltip="Filter containers: Running">
+              matTooltip="Filter: Running ({{ c.running }}) ↗">
               <span class="dot"></span>
               <span class="name">{{ stateLabels.running }}:</span>
               <strong>{{ c.running }}</strong>
@@ -164,7 +164,7 @@
               (keydown.enter)="navigateToContainers('exited')"
               tabindex="0"
               role="button"
-              matTooltip="Filter containers: Exited">
+              matTooltip="Filter: Exited ({{ c.exited }}) ↗">
               <span class="dot"></span>
               <span class="name">{{ stateLabels.exited }}:</span>
               <strong>{{ c.exited }}</strong>
@@ -176,7 +176,7 @@
               (keydown.enter)="navigateToContainers('restarting')"
               tabindex="0"
               role="button"
-              matTooltip="Filter containers: Restarting">
+              matTooltip="Filter: Restarting ({{ c.restarting }}) ↗">
               <span class="dot"></span>
               <span class="name">{{ stateLabels.restarting }}:</span>
               <strong>{{ c.restarting }}</strong>
@@ -188,7 +188,7 @@
               (keydown.enter)="navigateToContainers('unhealthy')"
               tabindex="0"
               role="button"
-              matTooltip="Filter containers: Unhealthy">
+              matTooltip="Filter: Unhealthy ({{ c.unhealthy }}) ↗">
               <span class="dot"></span>
               <span class="name">{{ stateLabels.unhealthy }}:</span>
               <strong>{{ c.unhealthy }}</strong>
@@ -200,7 +200,7 @@
               (keydown.enter)="navigateToContainers('paused')"
               tabindex="0"
               role="button"
-              matTooltip="Filter containers: Paused">
+              matTooltip="Filter: Paused ({{ c.paused }}) ↗">
               <span class="dot"></span>
               <span class="name">{{ stateLabels.paused }}:</span>
               <strong>{{ c.paused }}</strong>

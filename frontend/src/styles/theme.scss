@@ -93,6 +93,13 @@
   --mdc-dialog-container-color: var(--bg-surface-solid);
   --mdc-dialog-subhead-color: var(--text-primary);
   --mdc-dialog-supporting-text-color: var(--text-secondary);
+
+  /* Tooltip Overrides */
+  --mat-tooltip-container-color: rgba(15, 23, 42, 0.95);
+  --mat-tooltip-text-color: #f8fafc;
+  --mdc-plain-tooltip-container-color: rgba(15, 23, 42, 0.95);
+  --mdc-plain-tooltip-supporting-text-color: #f8fafc;
+  --mdc-plain-tooltip-container-shape: 8px;
 }
 
 .light-theme {
@@ -187,4 +194,11 @@
   --mdc-dialog-container-color: #ffffff;
   --mdc-dialog-subhead-color: var(--text-primary);
   --mdc-dialog-supporting-text-color: var(--text-secondary);
+
+  /* Tooltip Overrides */
+  --mat-tooltip-container-color: rgba(15, 23, 42, 0.94);
+  --mat-tooltip-text-color: #f8fafc;
+  --mdc-plain-tooltip-container-color: rgba(15, 23, 42, 0.94);
+  --mdc-plain-tooltip-supporting-text-color: #f8fafc;
+  --mdc-plain-tooltip-container-shape: 8px;
 }
