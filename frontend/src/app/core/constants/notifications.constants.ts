@@ -45,7 +45,7 @@ export const CHANNEL_TYPES: ChannelTypeMeta[] = [
 ];
 
 export const NOTIFICATION_ENDPOINTS = {
-  channels: '/api/v1/alerts/channels',
-  routes: '/api/v1/alerts/routes',
-  deliveryLog: '/api/v1/alerts/delivery-log',
+  channels: 'api/v1/alerts/channels',
+  routes: 'api/v1/alerts/routes',
+  deliveryLog: 'api/v1/alerts/delivery-log',
 };

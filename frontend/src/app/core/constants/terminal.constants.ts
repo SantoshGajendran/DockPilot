@@ -29,11 +29,15 @@ export const TERMINAL_CONFIG = {
 } as const;
 
 export const TERMINAL_ENDPOINTS = {
-  status: (containerId: string) => `/api/v1/containers/${containerId}/terminal/status`,
-  sessions: (containerId: string) => `/api/v1/containers/${containerId}/terminal/sessions`,
+  status: (containerId: string) => `api/v1/containers/${containerId}/terminal/status`,
+  sessions: (containerId: string) => `api/v1/containers/${containerId}/terminal/sessions`,
   execWs: (containerId: string, token: string, shell: string) => {
     const loc = window.location;
     const proto = loc.protocol === 'https:' ? 'wss:' : 'ws:';
-    return `${proto}//${loc.host}/api/v1/containers/${containerId}/exec?token=${encodeURIComponent(token)}&shell=${encodeURIComponent(shell)}`;
+    const baseElem = document.querySelector('base');
+    const baseHref = baseElem?.getAttribute('href') || '/';
+    const prefix = baseHref.startsWith('/') ? baseHref : `/${baseHref}`;
+    const cleanPrefix = prefix.endsWith('/') ? prefix : `${prefix}/`;
+    return `${proto}//${loc.host}${cleanPrefix}api/v1/containers/${containerId}/exec?token=${encodeURIComponent(token)}&shell=${encodeURIComponent(shell)}`;
   },
 };

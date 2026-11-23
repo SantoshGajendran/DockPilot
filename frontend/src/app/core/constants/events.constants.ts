@@ -1,6 +1,6 @@
 export const EVENTS_ENDPOINTS = {
-  events: '/api/v1/events',
-  stream: '/api/v1/events/stream',
+  events: 'api/v1/events',
+  stream: 'api/v1/events/stream',
 };
 
 export interface EventActionMeta {

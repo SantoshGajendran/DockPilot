@@ -3,7 +3,7 @@ import { HttpClient, HttpContext } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { Observable, Subject, of } from 'rxjs';
-import { tap, map, catchError } from 'rxjs/operators';
+import { tap, map, catchError, finalize, shareReplay } from 'rxjs/operators';
 import { User, UserRole } from '../models/user.model';
 import { LoginRequest, TokenResponse } from '../models/auth.model';
 import { AUTH_ENDPOINTS } from '../constants/auth.constants';
@@ -54,13 +54,23 @@ export class AuthService {
     );
   }
 
+  private refreshInProgress$: Observable<TokenResponse> | null = null;
+
   refreshSession(): Observable<TokenResponse> {
-    return this.httpClient.post<TokenResponse>(AUTH_ENDPOINTS.refresh, {}, { withCredentials: true }).pipe(
+    if (this.refreshInProgress$) {
+      return this.refreshInProgress$;
+    }
+    this.refreshInProgress$ = this.httpClient.post<TokenResponse>(AUTH_ENDPOINTS.refresh, {}, { withCredentials: true }).pipe(
       tap(res => {
         this.setToken(res.access_token);
         this.currentUser.set(res.user);
-      })
+      }),
+      finalize(() => {
+        this.refreshInProgress$ = null;
+      }),
+      shareReplay(1)
     );
+    return this.refreshInProgress$;
   }
 
   init(): Observable<boolean> {

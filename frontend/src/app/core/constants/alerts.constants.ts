@@ -31,9 +31,9 @@ export const SCOPE_TYPES: Array<{ value: 'all' | 'label' | 'container'; label: s
 ];
 
 export const ALERTS_ENDPOINTS = {
-  rules: '/api/v1/alerts/rules',
-  rulesTest: '/api/v1/alerts/rules/test',
-  events: '/api/v1/alerts/events',
-  silence: '/api/v1/alerts/silence',
-  activeCount: '/api/v1/alerts/active-count',
+  rules: 'api/v1/alerts/rules',
+  rulesTest: 'api/v1/alerts/rules/test',
+  events: 'api/v1/alerts/events',
+  silence: 'api/v1/alerts/silence',
+  activeCount: 'api/v1/alerts/active-count',
 };

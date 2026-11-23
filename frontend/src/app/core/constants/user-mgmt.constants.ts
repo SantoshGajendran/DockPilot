@@ -1,11 +1,11 @@
 export const USERS_ENDPOINTS = {
-  users: '/api/v1/users',
-  changePassword: '/api/v1/auth/change-password',
-  totpEnrol: '/api/v1/auth/2fa/enrol',
-  totpVerify: '/api/v1/auth/2fa/verify',
-  totpDisable: '/api/v1/auth/2fa/disable',
-  sessions: '/api/v1/auth/sessions',
-  revokeAll: '/api/v1/auth/sessions/revoke-all',
+  users: 'api/v1/users',
+  changePassword: 'api/v1/auth/change-password',
+  totpEnrol: 'api/v1/auth/2fa/enrol',
+  totpVerify: 'api/v1/auth/2fa/verify',
+  totpDisable: 'api/v1/auth/2fa/disable',
+  sessions: 'api/v1/auth/sessions',
+  revokeAll: 'api/v1/auth/sessions/revoke-all',
 };
 
 export interface RoleMeta {

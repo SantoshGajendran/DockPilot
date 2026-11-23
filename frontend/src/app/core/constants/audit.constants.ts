@@ -1,6 +1,6 @@
 export const AUDIT_ENDPOINTS = {
-  audit: '/api/v1/audit',
-  export: '/api/v1/audit/export',
+  audit: 'api/v1/audit',
+  export: 'api/v1/audit/export',
 };
 
 export interface AuditResultMeta {

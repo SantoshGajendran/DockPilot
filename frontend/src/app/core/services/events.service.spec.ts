@@ -59,7 +59,7 @@ describe('EventsService', () => {
     });
 
     const req = httpMock.expectOne((r) =>
-      r.url === '/api/v1/events' &&
+      r.url === 'api/v1/events' &&
       r.params.get('container_name') === 'test' &&
       r.params.get('incidents_only') === 'true' &&
       r.params.get('limit') === '20'
@@ -70,6 +70,6 @@ describe('EventsService', () => {
 
   it('should delegate streamEvents to SseService', () => {
     service.streamEvents();
-    expect(sseMock.connect).toHaveBeenCalledWith('/api/v1/events/stream');
+    expect(sseMock.connect).toHaveBeenCalledWith('api/v1/events/stream');
   });
 });

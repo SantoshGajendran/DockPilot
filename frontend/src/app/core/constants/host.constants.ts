@@ -1,8 +1,8 @@
 export const HOST_ENDPOINTS = {
-  info: '/api/v1/host/info',
-  metrics: '/api/v1/host/metrics',
-  history: (range: string = '1h') => `/api/v1/host/metrics/history?range=${range}`,
-  dockerUsage: '/api/v1/host/docker-usage',
+  info: 'api/v1/host/info',
+  metrics: 'api/v1/host/metrics',
+  history: (range: string = '1h') => `api/v1/host/metrics/history?range=${range}`,
+  dockerUsage: 'api/v1/host/docker-usage',
 };
 
 export const HOST_THRESHOLDS = {

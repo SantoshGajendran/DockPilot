@@ -14,23 +14,23 @@ import {
 import { SseService } from './sse.service';
 
 export const RESOURCES_ENDPOINTS = {
-  images: '/api/v1/resources/images',
-  removeImage: (id: string) => `/api/v1/resources/images/${encodeURIComponent(id)}`,
-  pullImage: '/api/v1/resources/images/pull',
-  pruneImagesPreview: '/api/v1/resources/images/prune/preview',
-  pruneImagesConfirm: '/api/v1/resources/images/prune',
+  images: 'api/v1/resources/images',
+  removeImage: (id: string) => `api/v1/resources/images/${encodeURIComponent(id)}`,
+  pullImage: 'api/v1/resources/images/pull',
+  pruneImagesPreview: 'api/v1/resources/images/prune/preview',
+  pruneImagesConfirm: 'api/v1/resources/images/prune',
 
-  volumes: '/api/v1/resources/volumes',
-  removeVolume: (name: string) => `/api/v1/resources/volumes/${encodeURIComponent(name)}`,
-  pruneVolumesPreview: '/api/v1/resources/volumes/prune/preview',
-  pruneVolumesConfirm: '/api/v1/resources/volumes/prune',
+  volumes: 'api/v1/resources/volumes',
+  removeVolume: (name: string) => `api/v1/resources/volumes/${encodeURIComponent(name)}`,
+  pruneVolumesPreview: 'api/v1/resources/volumes/prune/preview',
+  pruneVolumesConfirm: 'api/v1/resources/volumes/prune',
 
-  networks: '/api/v1/resources/networks',
-  removeNetwork: (id: string) => `/api/v1/resources/networks/${encodeURIComponent(id)}`,
-  pruneNetworksPreview: '/api/v1/resources/networks/prune/preview',
-  pruneNetworksConfirm: '/api/v1/resources/networks/prune',
+  networks: 'api/v1/resources/networks',
+  removeNetwork: (id: string) => `api/v1/resources/networks/${encodeURIComponent(id)}`,
+  pruneNetworksPreview: 'api/v1/resources/networks/prune/preview',
+  pruneNetworksConfirm: 'api/v1/resources/networks/prune',
 
-  jobStream: (id: string) => `/api/v1/jobs/${id}/stream`,
+  jobStream: (id: string) => `api/v1/jobs/${id}/stream`,
 };
 
 @Injectable({ providedIn: 'root' })

@@ -1,9 +1,11 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, signal, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { SseConnectionState } from '../models/sse-status.model';
+import { AuthService } from './auth.service';
 
 @Injectable({ providedIn: 'root' })
 export class SseService {
+  private readonly authService = inject(AuthService, { optional: true });
   readonly connectionState = signal<SseConnectionState>('disconnected');
   private eventSource: EventSource | null = null;
   private retryCount = 0;
@@ -17,7 +19,13 @@ export class SseService {
 
   connect<T>(url: string): Observable<T> {
     return new Observable<T>(observer => {
-      this.eventSource = new EventSource(url);
+      let streamUrl = url;
+      const token = this.authService?.getToken();
+      if (token && !streamUrl.includes('token=')) {
+        const separator = streamUrl.includes('?') ? '&' : '?';
+        streamUrl = `${streamUrl}${separator}token=${encodeURIComponent(token)}`;
+      }
+      this.eventSource = new EventSource(streamUrl);
       this.connectionState.set('connected');
 
       this.eventSource.onmessage = (event) => {

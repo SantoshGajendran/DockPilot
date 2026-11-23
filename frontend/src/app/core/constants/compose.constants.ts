@@ -1,10 +1,10 @@
 import { ComposeAction } from '../models/compose.model';
 
 export const COMPOSE_ENDPOINTS = {
-  projects: '/api/v1/compose/projects',
-  action: (name: string, action: string) => `/api/v1/compose/projects/${name}/${action}`,
-  job: (id: string) => `/api/v1/jobs/${id}`,
-  jobStream: (id: string) => `/api/v1/jobs/${id}/stream`,
+  projects: 'api/v1/compose/projects',
+  action: (name: string, action: string) => `api/v1/compose/projects/${name}/${action}`,
+  job: (id: string) => `api/v1/jobs/${id}`,
+  jobStream: (id: string) => `api/v1/jobs/${id}/stream`,
 };
 
 export const COMPOSE_ACTIONS: { label: string; action: ComposeAction; icon: string; color: string }[] = [
