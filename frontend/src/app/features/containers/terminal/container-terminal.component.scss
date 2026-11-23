@@ -2,10 +2,10 @@
   display: flex;
   flex-direction: column;
   height: 600px;
-  background-color: #1e1e1e;
+  background-color: var(--bg-surface-solid, #080c14);
   border-radius: 8px;
   overflow: hidden;
-  border: 1px solid var(--border-color, #333);
+  border: 1px solid var(--border-subtle, var(--border-color, #333));
 }
 
 .loading-state {
@@ -25,9 +25,9 @@
   padding: 40px;
   margin: auto;
   max-width: 600px;
-  background-color: var(--card-bg, #252526);
+  background-color: var(--bg-surface, var(--card-bg, #252526));
   border-radius: 8px;
-  border: 1px solid var(--border-color, #3c3c3c);
+  border: 1px solid var(--border-subtle, var(--border-color, #3c3c3c));
 
   mat-icon {
     font-size: 48px;
@@ -65,8 +65,8 @@
   justify-content: space-between;
   align-items: center;
   padding: 8px 16px;
-  background-color: #252526;
-  border-bottom: 1px solid #333;
+  background-color: var(--bg-surface, #252526);
+  border-bottom: 1px solid var(--border-subtle, #333);
   flex-wrap: wrap;
   gap: 12px;
 
@@ -194,7 +194,7 @@
 .xterm-container {
   flex: 1;
   position: relative;
-  background-color: #1e1e1e;
+  background-color: var(--bg-canvas, #080c14);
   overflow: hidden;
   padding: 8px;
 

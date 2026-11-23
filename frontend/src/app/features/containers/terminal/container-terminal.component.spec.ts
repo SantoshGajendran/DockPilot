@@ -5,6 +5,8 @@ import { of, throwError } from 'rxjs';
 import { ContainerTerminalComponent } from './container-terminal.component';
 import { TerminalService } from '../../../core/services/terminal.service';
 import { AuthService } from '../../../core/services/auth.service';
+import { ThemeService } from '../../../core/services/theme.service';
+import { TERMINAL_DARK_THEME, TERMINAL_LIGHT_THEME } from '../../terminal/terminal-view.component';
 import { TerminalStatus } from '../../../core/models/terminal.model';
 
 class MockWebSocket {
@@ -154,5 +156,26 @@ describe('ContainerTerminalComponent', () => {
 
     expect(mockWs.close).toHaveBeenCalled();
     expect(component.ws).toBeNull();
+  });
+
+  it('should reactively update terminal theme when activeTheme changes', () => {
+    fixture.detectChanges();
+    const mockTerm: any = {
+      options: { theme: {} },
+      dispose: jest.fn(),
+      clear: jest.fn(),
+    };
+    component.terminal = mockTerm;
+
+    const themeService = TestBed.inject(ThemeService);
+    themeService.setMode('light');
+    TestBed.flushEffects();
+    fixture.detectChanges();
+    expect(component.terminal.options.theme).toEqual(TERMINAL_LIGHT_THEME);
+
+    themeService.setMode('dark');
+    TestBed.flushEffects();
+    fixture.detectChanges();
+    expect(component.terminal.options.theme).toEqual(TERMINAL_DARK_THEME);
   });
 });

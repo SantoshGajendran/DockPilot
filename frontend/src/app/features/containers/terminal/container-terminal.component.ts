@@ -8,6 +8,7 @@ import {
   computed,
   inject,
   signal,
+  effect,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -24,6 +25,8 @@ import { FitAddon } from '@xterm/addon-fit';
 
 import { AuthService } from '../../../core/services/auth.service';
 import { TerminalService } from '../../../core/services/terminal.service';
+import { ThemeService } from '../../../core/services/theme.service';
+import { TERMINAL_DARK_THEME, TERMINAL_LIGHT_THEME } from '../../terminal/terminal-view.component';
 import {
   TerminalConnectionState,
   TerminalResizeMessage,
@@ -57,6 +60,7 @@ export class ContainerTerminalComponent implements OnInit, OnDestroy {
 
   private readonly terminalService = inject(TerminalService);
   private readonly authService = inject(AuthService);
+  readonly themeService = inject(ThemeService);
 
   readonly terminalStatus = signal<TerminalStatus | null>(null);
   readonly loading = signal<boolean>(true);
@@ -72,6 +76,22 @@ export class ContainerTerminalComponent implements OnInit, OnDestroy {
   fitAddon: FitAddon | null = null;
   ws: WebSocket | null = null;
   private resizeObserver: ResizeObserver | null = null;
+
+  get term(): Terminal | null {
+    return this.terminal;
+  }
+  set term(t: Terminal | null) {
+    this.terminal = t;
+  }
+
+  constructor() {
+    effect(() => {
+      const theme = this.themeService.activeTheme();
+      if (this.terminal) {
+        this.terminal.options.theme = theme === 'dark' ? TERMINAL_DARK_THEME : TERMINAL_LIGHT_THEME;
+      }
+    });
+  }
 
   ngOnInit(): void {
     if (!this.authService.hasRole('admin')) {
@@ -128,11 +148,12 @@ export class ContainerTerminalComponent implements OnInit, OnDestroy {
     }
 
     try {
+      const theme = this.themeService.activeTheme();
       this.terminal = new Terminal({
         fontFamily: TERMINAL_CONFIG.fontFamily,
         fontSize: TERMINAL_CONFIG.fontSize,
         cursorBlink: TERMINAL_CONFIG.cursorBlink,
-        theme: TERMINAL_CONFIG.theme,
+        theme: theme === 'dark' ? TERMINAL_DARK_THEME : TERMINAL_LIGHT_THEME,
       });
 
       this.fitAddon = new FitAddon();

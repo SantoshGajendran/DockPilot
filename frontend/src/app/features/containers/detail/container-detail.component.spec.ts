@@ -10,6 +10,7 @@ import { ContainerDetailStore } from './container-detail.store';
 import { AuthService } from '../../../core/services/auth.service';
 import { EventsService } from '../../../core/services/events.service';
 import { TerminalService } from '../../../core/services/terminal.service';
+import { ThemeService } from '../../../core/services/theme.service';
 import { ContainerDetail } from '../../../core/models/container-detail.model';
 
 describe('ContainerDetailComponent', () => {
@@ -179,5 +180,20 @@ describe('ContainerDetailComponent', () => {
     const nonAdminFixture = TestBed.createComponent(ContainerDetailComponent);
     const nonAdminComp = nonAdminFixture.componentInstance;
     expect(nonAdminComp.availableTabs()).not.toContain('terminal');
+  });
+
+  it('should reactively update chart options when theme changes', () => {
+    const themeService = TestBed.inject(ThemeService);
+    themeService.setMode('light');
+    TestBed.flushEffects();
+    fixture.detectChanges();
+    expect((component.lineChartOptions.scales?.['y']?.grid as any)?.color).toBe('rgba(15, 23, 42, 0.08)');
+    expect((component.lineChartOptions.scales?.['y']?.ticks as any)?.color).toBe('#475569');
+
+    themeService.setMode('dark');
+    TestBed.flushEffects();
+    fixture.detectChanges();
+    expect((component.lineChartOptions.scales?.['y']?.grid as any)?.color).toBe('rgba(255, 255, 255, 0.06)');
+    expect((component.lineChartOptions.scales?.['y']?.ticks as any)?.color).toBe('#94a3b8');
   });
 });

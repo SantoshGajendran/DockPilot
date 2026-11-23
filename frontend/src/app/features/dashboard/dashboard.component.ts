@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, inject, computed } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, computed, effect, ViewChildren, QueryList } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
@@ -10,6 +10,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { BaseChartDirective } from 'ng2-charts';
 import { Chart, ChartOptions, registerables } from 'chart.js';
 import { DashboardStore } from './dashboard.store';
+import { ThemeService } from '../../core/services/theme.service';
 import { CONTAINER_STATE_COLORS, CONTAINER_STATE_LABELS, HOST_THRESHOLDS } from '../../core/constants/overview.constants';
 import { EventsTimelineComponent } from '../events/components/events-timeline.component';
 import { EventItem } from '../../core/models/events.model';
@@ -36,6 +37,9 @@ Chart.register(...registerables);
 })
 export class DashboardComponent implements OnInit, OnDestroy {
   readonly store = inject(DashboardStore);
+  readonly themeService = inject(ThemeService);
+
+  @ViewChildren(BaseChartDirective) charts?: QueryList<BaseChartDirective>;
 
   readonly stateColors = CONTAINER_STATE_COLORS;
   readonly stateLabels = CONTAINER_STATE_LABELS;
@@ -57,21 +61,29 @@ export class DashboardComponent implements OnInit, OnDestroy {
     }));
   });
 
-  readonly donutChartOptions: ChartOptions<'doughnut'> = {
+  donutChartOptions: ChartOptions<'doughnut'> = {
     responsive: true,
     maintainAspectRatio: false,
     cutout: '72%',
     plugins: {
       legend: {
-        display: false
+        display: false,
+        labels: {
+          color: '#94a3b8'
+        }
       },
       tooltip: {
-        enabled: true
+        enabled: true,
+        backgroundColor: 'rgba(15, 23, 42, 0.92)',
+        titleColor: '#f8fafc',
+        bodyColor: '#94a3b8',
+        borderColor: 'rgba(255, 255, 255, 0.1)',
+        borderWidth: 1
       }
     }
   };
 
-  readonly barChartOptions: ChartOptions<'bar'> = {
+  barChartOptions: ChartOptions<'bar'> = {
     responsive: true,
     maintainAspectRatio: false,
     indexAxis: 'y',
@@ -80,7 +92,12 @@ export class DashboardComponent implements OnInit, OnDestroy {
         display: false
       },
       tooltip: {
-        enabled: true
+        enabled: true,
+        backgroundColor: 'rgba(15, 23, 42, 0.92)',
+        titleColor: '#f8fafc',
+        bodyColor: '#94a3b8',
+        borderColor: 'rgba(255, 255, 255, 0.1)',
+        borderWidth: 1
       }
     },
     scales: {
@@ -105,6 +122,80 @@ export class DashboardComponent implements OnInit, OnDestroy {
       }
     }
   };
+
+  constructor() {
+    effect(() => {
+      const theme = this.themeService.activeTheme();
+      const isDark = theme === 'dark';
+      const textColor = isDark ? '#f8fafc' : '#0f172a';
+      const legendColor = isDark ? '#94a3b8' : '#475569';
+      const gridColor = isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(15, 23, 42, 0.08)';
+      const tooltipBg = isDark ? 'rgba(15, 23, 42, 0.92)' : 'rgba(255, 255, 255, 0.96)';
+      const tooltipBorder = isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(15, 23, 42, 0.12)';
+
+      this.donutChartOptions = {
+        ...this.donutChartOptions,
+        plugins: {
+          ...this.donutChartOptions.plugins,
+          legend: {
+            ...this.donutChartOptions.plugins?.legend,
+            labels: {
+              ...this.donutChartOptions.plugins?.legend?.labels,
+              color: legendColor
+            }
+          },
+          tooltip: {
+            ...this.donutChartOptions.plugins?.tooltip,
+            backgroundColor: tooltipBg,
+            titleColor: textColor,
+            bodyColor: legendColor,
+            borderColor: tooltipBorder,
+            borderWidth: 1
+          }
+        }
+      };
+
+      this.barChartOptions = {
+        ...this.barChartOptions,
+        plugins: {
+          ...this.barChartOptions.plugins,
+          tooltip: {
+            ...this.barChartOptions.plugins?.tooltip,
+            backgroundColor: tooltipBg,
+            titleColor: textColor,
+            bodyColor: legendColor,
+            borderColor: tooltipBorder,
+            borderWidth: 1
+          }
+        },
+        scales: {
+          x: {
+            beginAtZero: true,
+            suggestedMax: 100,
+            grid: {
+              color: gridColor
+            },
+            ticks: {
+              color: legendColor,
+              callback: (value) => `${value}%`
+            }
+          },
+          y: {
+            grid: {
+              display: false
+            },
+            ticks: {
+              color: textColor
+            }
+          }
+        }
+      };
+
+      this.charts?.forEach((chartDirective) => {
+        chartDirective.chart?.update('none');
+      });
+    });
+  }
 
   ngOnInit(): void {
     this.store.init();

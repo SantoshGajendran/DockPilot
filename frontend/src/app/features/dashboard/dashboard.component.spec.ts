@@ -4,6 +4,7 @@ import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { signal, WritableSignal } from '@angular/core';
 import { DashboardComponent } from './dashboard.component';
 import { DashboardStore } from './dashboard.store';
+import { ThemeService } from '../../core/services/theme.service';
 import { OverviewResponse } from '../../core/models/overview.model';
 
 describe('DashboardComponent', () => {
@@ -125,5 +126,22 @@ describe('DashboardComponent', () => {
     expect(component.formatUptime(120)).toBe('2m');
     expect(component.formatUptime(3660)).toBe('1h 1m');
     expect(component.formatUptime(90060)).toBe('1d 1h 1m');
+  });
+
+  it('should adapt chart colors reactively when active theme changes', () => {
+    const themeService = TestBed.inject(ThemeService);
+    themeService.setMode('light');
+    TestBed.flushEffects();
+    fixture.detectChanges();
+    expect(component.donutChartOptions.plugins?.legend?.labels?.color).toBe('#475569');
+    expect((component.barChartOptions.scales?.['x']?.grid as any)?.color).toBe('rgba(15, 23, 42, 0.08)');
+    expect((component.barChartOptions.scales?.['x']?.ticks as any)?.color).toBe('#475569');
+
+    themeService.setMode('dark');
+    TestBed.flushEffects();
+    fixture.detectChanges();
+    expect(component.donutChartOptions.plugins?.legend?.labels?.color).toBe('#94a3b8');
+    expect((component.barChartOptions.scales?.['x']?.grid as any)?.color).toBe('rgba(255, 255, 255, 0.08)');
+    expect((component.barChartOptions.scales?.['x']?.ticks as any)?.color).toBe('#94a3b8');
   });
 });

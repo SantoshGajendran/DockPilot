@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, inject, computed, signal } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, computed, signal, effect, ViewChildren, QueryList } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { MatTabsModule } from '@angular/material/tabs';
@@ -17,6 +17,7 @@ import { Subscription } from 'rxjs';
 import { ContainerDetailStore } from './container-detail.store';
 import { AuthService } from '../../../core/services/auth.service';
 import { EventsService } from '../../../core/services/events.service';
+import { ThemeService } from '../../../core/services/theme.service';
 import { EventsTimelineComponent } from '../../events/components/events-timeline.component';
 import { EventItem } from '../../../core/models/events.model';
 import { ActionConfirmDialogComponent } from '../dialogs/action-confirm-dialog.component';
@@ -62,6 +63,9 @@ export class ContainerDetailComponent implements OnInit, OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly dialog = inject(MatDialog);
+  readonly themeService = inject(ThemeService);
+
+  @ViewChildren(BaseChartDirective) charts?: QueryList<BaseChartDirective>;
 
   readonly containerEvents = signal<EventItem[]>([]);
 
@@ -83,18 +87,105 @@ export class ContainerDetailComponent implements OnInit, OnDestroy {
     return idx >= 0 ? idx : 0;
   });
 
-  readonly lineChartOptions: ChartOptions<'line'> = {
+  lineChartOptions: ChartOptions<'line'> = {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
-      legend: { display: true, position: 'top' },
-      tooltip: { enabled: true },
+      legend: {
+        display: true,
+        position: 'top',
+        labels: {
+          color: '#94a3b8',
+        },
+      },
+      tooltip: {
+        enabled: true,
+        backgroundColor: 'rgba(15, 23, 42, 0.92)',
+        titleColor: '#f8fafc',
+        bodyColor: '#94a3b8',
+        borderColor: 'rgba(255, 255, 255, 0.1)',
+        borderWidth: 1,
+      },
     },
     scales: {
-      x: { grid: { display: false } },
-      y: { beginAtZero: true },
+      x: {
+        grid: {
+          display: false,
+          color: 'rgba(255, 255, 255, 0.06)',
+        },
+        ticks: {
+          color: '#94a3b8',
+        },
+      },
+      y: {
+        beginAtZero: true,
+        grid: {
+          color: 'rgba(255, 255, 255, 0.06)',
+        },
+        ticks: {
+          color: '#94a3b8',
+        },
+      },
     },
   };
+
+  constructor() {
+    effect(() => {
+      const theme = this.themeService.activeTheme();
+      const isDark = theme === 'dark';
+      const textColor = isDark ? '#f8fafc' : '#0f172a';
+      const tickColor = isDark ? '#94a3b8' : '#475569';
+      const gridColor = isDark ? 'rgba(255, 255, 255, 0.06)' : 'rgba(15, 23, 42, 0.08)';
+      const tooltipBg = isDark ? 'rgba(15, 23, 42, 0.92)' : 'rgba(255, 255, 255, 0.96)';
+      const tooltipBorder = isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(15, 23, 42, 0.12)';
+
+      this.lineChartOptions = {
+        ...this.lineChartOptions,
+        plugins: {
+          ...this.lineChartOptions.plugins,
+          legend: {
+            ...this.lineChartOptions.plugins?.legend,
+            labels: {
+              ...this.lineChartOptions.plugins?.legend?.labels,
+              color: tickColor,
+            },
+          },
+          tooltip: {
+            ...this.lineChartOptions.plugins?.tooltip,
+            backgroundColor: tooltipBg,
+            titleColor: textColor,
+            bodyColor: tickColor,
+            borderColor: tooltipBorder,
+            borderWidth: 1,
+          },
+        },
+        scales: {
+          x: {
+            grid: {
+              display: false,
+              color: gridColor,
+            },
+            ticks: {
+              color: tickColor,
+            },
+          },
+          y: {
+            beginAtZero: true,
+            grid: {
+              color: gridColor,
+            },
+            ticks: {
+              color: tickColor,
+            },
+          },
+        },
+      };
+
+      this.charts?.forEach((chartDirective) => {
+        chartDirective.chart?.update('none');
+      });
+    });
+  }
 
   readonly cpuChartData = computed<ChartConfiguration<'line'>['data']>(() => {
     const points = this.store.metricsHistory();
