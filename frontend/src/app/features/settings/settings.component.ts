@@ -16,6 +16,7 @@ import { MatDividerModule } from '@angular/material/divider';
 
 import { SettingsStore } from './settings.store';
 import { AuthService } from '../../core/services/auth.service';
+import { AtmosphereService } from '../../core/services/atmosphere.service';
 import { SETTINGS_SECTIONS, SettingsSection } from '../../core/constants/settings.constants';
 import { ComponentCanDeactivate } from '../../core/guards/pending-changes.guard';
 import { FieldMetadata } from '../../core/models/settings.model';
@@ -46,6 +47,7 @@ import { FieldMetadata } from '../../core/models/settings.model';
 export class SettingsComponent implements OnInit, ComponentCanDeactivate {
   readonly store = inject(SettingsStore);
   readonly authService = inject(AuthService);
+  readonly atmosphereService = inject(AtmosphereService);
   private readonly fb = inject(FormBuilder);
 
   readonly sections: SettingsSection[] = SETTINGS_SECTIONS;

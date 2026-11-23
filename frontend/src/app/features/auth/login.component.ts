@@ -1,14 +1,12 @@
-import { Component, signal, inject } from '@angular/core';
+import { Component, signal, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { MatCardModule } from '@angular/material/card';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { AuthService } from '../../core/services/auth.service';
+import { GlassPanelComponent } from '../../shared/components/glass-panel/glass-panel.component';
+import { IconComponent } from '../../shared/components/icon/icon.component';
+import { SkeletonShimmerComponent } from '../../shared/components/skeleton-shimmer/skeleton-shimmer.component';
+import { MagneticHoverDirective } from '../../shared/directives/magnetic-hover.directive';
 
 @Component({
   selector: 'dp-login',
@@ -16,17 +14,15 @@ import { AuthService } from '../../core/services/auth.service';
   imports: [
     CommonModule,
     ReactiveFormsModule,
-    MatCardModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatButtonModule,
-    MatIconModule,
-    MatProgressSpinnerModule
+    GlassPanelComponent,
+    IconComponent,
+    SkeletonShimmerComponent,
+    MagneticHoverDirective
   ],
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.scss']
 })
-export class LoginComponent {
+export class LoginComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
@@ -34,30 +30,60 @@ export class LoginComponent {
 
   readonly loginForm: FormGroup = this.fb.group({
     username: ['', [Validators.required]],
-    password: ['', [Validators.required]]
+    password: ['', [Validators.required]],
+    totpCode: ['']
   });
 
   readonly isLoading = signal<boolean>(false);
   readonly hidePassword = signal<boolean>(true);
   readonly errorMessage = signal<string | null>(null);
+  readonly isSuccess = signal<boolean>(false);
+  readonly currentStage = signal<'credentials' | 'totp'>('credentials');
+  readonly isOffline = signal<boolean>(typeof navigator !== 'undefined' ? !navigator.onLine : false);
+
+  ngOnInit(): void {
+    if (typeof window !== 'undefined') {
+      window.addEventListener('online', () => this.isOffline.set(false));
+      window.addEventListener('offline', () => this.isOffline.set(true));
+    }
+  }
 
   togglePasswordVisibility(): void {
     this.hidePassword.update((val) => !val);
   }
 
+  showTotpStage(): void {
+    if (this.loginForm.get('username')?.valid && this.loginForm.get('password')?.valid) {
+      this.currentStage.set('totp');
+      this.errorMessage.set(null);
+    } else {
+      this.loginForm.markAllAsTouched();
+    }
+  }
+
+  backToCredentials(): void {
+    this.currentStage.set('credentials');
+  }
+
   onSubmit(): void {
-    if (this.loginForm.invalid || this.isLoading()) {
+    if (this.loginForm.get('username')?.invalid || this.loginForm.get('password')?.invalid || this.isLoading()) {
+      this.loginForm.markAllAsTouched();
       return;
     }
 
     this.isLoading.set(true);
     this.errorMessage.set(null);
 
-    const { username, password } = this.loginForm.value;
+    const { username, password, totpCode } = this.loginForm.value;
+    const credentials: { username: string; password: string; totp_code?: string } = { username, password };
+    if (totpCode) {
+      credentials.totp_code = totpCode;
+    }
 
-    this.authService.login({ username, password }).subscribe({
+    this.authService.login(credentials).subscribe({
       next: () => {
         this.isLoading.set(false);
+        this.isSuccess.set(true);
         const returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/dashboard';
         this.router.navigateByUrl(returnUrl);
       },

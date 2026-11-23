@@ -61,6 +61,8 @@ export class LogViewerComponent implements OnInit, OnDestroy, OnChanges {
   readonly wrapLines = signal<boolean>(true);
   readonly showTimestamps = signal<boolean>(true);
   readonly isPaused = signal<boolean>(false);
+  readonly pausedNewLinesCount = signal<number>(0);
+  readonly expandedJsonLines = signal<Set<number>>(new Set());
 
   readonly allLines = computed<LogEntry[]>(() => {
     const custom = this.inputLines();
@@ -75,6 +77,25 @@ export class LogViewerComponent implements OnInit, OnDestroy, OnChanges {
     const query = this.filterQuery().trim().toLowerCase();
     if (!query) return list;
     return list.filter((l) => l.message.toLowerCase().includes(query));
+  });
+
+  // Minimap ticks for WARN/ERROR density
+  readonly minimapTicks = computed(() => {
+    const lines = this.filteredLines();
+    const total = lines.length;
+    if (total === 0) return [];
+
+    const ticks: { topPercent: number; level: string }[] = [];
+    for (let i = 0; i < total; i++) {
+      const level = lines[i].level?.toUpperCase();
+      if (level === 'ERROR' || level === 'FATAL' || level === 'WARN' || lines[i].stream === 'stderr') {
+        ticks.push({
+          topPercent: (i / total) * 100,
+          level: (level === 'ERROR' || level === 'FATAL' || lines[i].stream === 'stderr') ? 'error' : 'warn'
+        });
+      }
+    }
+    return ticks;
   });
 
   ngOnInit(): void {
@@ -93,7 +114,14 @@ export class LogViewerComponent implements OnInit, OnDestroy, OnChanges {
       }
     }
     if (changes['lines']) {
-      this.checkAndAutoScroll();
+      if (this.isPaused()) {
+        const diff = (this.lines?.length ?? 0) - (changes['lines'].previousValue?.length ?? 0);
+        if (diff > 0) {
+          this.pausedNewLinesCount.update((c) => c + diff);
+        }
+      } else {
+        this.checkAndAutoScroll();
+      }
     }
   }
 
@@ -107,12 +135,18 @@ export class LogViewerComponent implements OnInit, OnDestroy, OnChanges {
   startLogStream(cid: string): void {
     this.streamSub?.unsubscribe();
     this.internalLines.set([]);
+    this.pausedNewLinesCount.set(0);
 
     const url = CONTAINER_ENDPOINTS.containerLogs(cid, 200, true);
     this.streamSub = this.sseService.connect<LogEntry>(url).subscribe({
       next: (entry) => {
+        if (this.isPaused()) {
+          this.pausedNewLinesCount.update((c) => c + 1);
+        }
         this.internalLines.update((prev) => [...prev, entry]);
-        this.checkAndAutoScroll();
+        if (!this.isPaused()) {
+          this.checkAndAutoScroll();
+        }
       },
       error: () => {
         // Handled silently
@@ -128,14 +162,20 @@ export class LogViewerComponent implements OnInit, OnDestroy, OnChanges {
   togglePause(): void {
     this.isPaused.set(!this.isPaused());
     if (!this.isPaused()) {
+      this.pausedNewLinesCount.set(0);
       this.scrollToBottom();
     }
+  }
+
+  resumeAndScroll(): void {
+    this.isPaused.set(false);
+    this.pausedNewLinesCount.set(0);
+    this.scrollToBottom();
   }
 
   onScroll(index: number): void {
     const total = this.filteredLines().length;
     if (total > 10 && index < total - 5) {
-      // User scrolled up manually
       this.isPaused.set(true);
     }
   }
@@ -180,10 +220,60 @@ export class LogViewerComponent implements OnInit, OnDestroy, OnChanges {
   clearLogs(): void {
     this.inputLines.set(null);
     this.internalLines.set([]);
+    this.pausedNewLinesCount.set(0);
   }
 
   parseSpans(msg: string): AnsiSpan[] {
     return this.ansiParser.parseToSpans(msg);
+  }
+
+  // JSON prettify helpers
+  isLikelyJson(msg: string): boolean {
+    const trimmed = msg.trim();
+    return (trimmed.startsWith('{') && trimmed.endsWith('}')) || (trimmed.startsWith('[') && trimmed.endsWith(']'));
+  }
+
+  toggleJsonExpansion(index: number): void {
+    this.expandedJsonLines.update((set) => {
+      const next = new Set(set);
+      if (next.has(index)) {
+        next.delete(index);
+      } else {
+        next.add(index);
+      }
+      return next;
+    });
+  }
+
+  getPrettyJson(msg: string): string {
+    try {
+      const parsed = JSON.parse(msg.trim());
+      return JSON.stringify(parsed, null, 2);
+    } catch {
+      return msg;
+    }
+  }
+
+  // Gutter colors matching design spec
+  getGutterColor(entry: LogEntry): string {
+    const level = entry.level?.toUpperCase();
+    if (level === 'ERROR' || level === 'FATAL' || entry.stream === 'stderr') return '#F43F5E';
+    if (level === 'WARN') return '#F59E0B';
+    if (level === 'INFO') return '#8B5CF6';
+    if (level === 'DEBUG' || level === 'TRACE') return '#6B6980';
+    return 'transparent';
+  }
+
+  // Consistent color hash for container chips
+  getContainerColor(name?: string): string {
+    if (!name) return '#A78BFA';
+    const colors = ['#38BDF8', '#A78BFA', '#34D399', '#F59E0B', '#EC4899', '#60A5FA'];
+    let hash = 0;
+    for (let i = 0; i < name.length; i++) {
+      hash = (hash << 5) - hash + name.charCodeAt(i);
+      hash |= 0;
+    }
+    return colors[Math.abs(hash) % colors.length];
   }
 
   trackByFn(index: number, item: LogEntry): string {

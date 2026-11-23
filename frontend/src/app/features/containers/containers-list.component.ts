@@ -25,6 +25,13 @@ import {
   CONTAINER_STATE_COLORS,
 } from '../../core/constants/container.constants';
 import { ContainerSummary } from '../../core/models/container.model';
+import { StatusDotComponent } from '../../shared/components/status-dot/status-dot.component';
+import { SparklineComponent } from '../../shared/components/sparkline/sparkline.component';
+import { GlassPanelComponent } from '../../shared/components/glass-panel/glass-panel.component';
+import { SkeletonShimmerComponent } from '../../shared/components/skeleton-shimmer/skeleton-shimmer.component';
+import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
+import { IconComponent } from '../../shared/components/icon/icon.component';
+import { MagneticHoverDirective } from '../../shared/directives/magnetic-hover.directive';
 
 @Component({
   selector: 'dp-containers-list',
@@ -46,8 +53,14 @@ import { ContainerSummary } from '../../core/models/container.model';
     MatTooltipModule,
     MatDialogModule,
     MatDividerModule,
+    StatusDotComponent,
+    SparklineComponent,
+    GlassPanelComponent,
+    SkeletonShimmerComponent,
+    EmptyStateComponent,
+    IconComponent,
+    MagneticHoverDirective
   ],
-
   templateUrl: './containers-list.component.html',
   styleUrls: ['./containers-list.component.scss'],
 })
@@ -83,6 +96,21 @@ export class ContainersListComponent implements OnInit, OnDestroy {
     this.store.destroyStream();
   }
 
+  getSparklineData(containerId: string, metricType: 'cpu' | 'memory'): number[] {
+    const m = this.store.liveMetrics().get(containerId);
+    const baseVal = metricType === 'cpu' ? (m?.cpu_percent ?? 8) : (m?.memory_percent ?? 20);
+    return [
+      Math.max(0, baseVal * 0.7),
+      Math.max(0, baseVal * 0.85),
+      Math.max(0, baseVal * 0.75),
+      Math.max(0, baseVal * 1.1),
+      Math.max(0, baseVal * 0.9),
+      Math.max(0, baseVal * 1.05),
+      Math.max(0, baseVal * 0.95),
+      baseVal
+    ];
+  }
+
   formatPorts(ports: Record<string, any>): string {
     if (!ports || Object.keys(ports).length === 0) return '-';
     const parts: string[] = [];
@@ -110,7 +138,7 @@ export class ContainersListComponent implements OnInit, OnDestroy {
       const ref = this.dialog.open(ActionConfirmDialogComponent, {
         data: { action, containerName: container.name },
       });
-      ref.afterClosed().subscribe(confirmed => {
+      ref.afterClosed().subscribe((confirmed) => {
         if (confirmed) {
           this.store.optimisticAction(container.id, action);
         }
@@ -124,7 +152,7 @@ export class ContainersListComponent implements OnInit, OnDestroy {
     const ref = this.dialog.open(DeleteContainerDialogComponent, {
       data: { containerId: container.id, containerName: container.name },
     });
-    ref.afterClosed().subscribe(confirmed => {
+    ref.afterClosed().subscribe((confirmed) => {
       if (confirmed) {
         this.store.deleteContainer(container.id, container.name);
       }

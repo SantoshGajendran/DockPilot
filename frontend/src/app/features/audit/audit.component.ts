@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
@@ -150,6 +150,13 @@ export class AuditComponent implements OnInit {
     navigator.clipboard?.writeText(text).then(() => {
       this.toast.show('Payload copied to clipboard');
     });
+  }
+
+  @HostListener('document:keydown.escape')
+  onEscape(): void {
+    if (this.store.selectedItem()) {
+      this.closeDrawer();
+    }
   }
 
   openDrawer(item: AuditLog): void {

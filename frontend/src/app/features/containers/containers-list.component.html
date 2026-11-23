@@ -1,52 +1,75 @@
 <div class="containers-page">
   <!-- Page Header -->
   <header class="page-header">
-    <div>
-      <h1 class="page-title">Containers</h1>
+    <div class="header-titles">
+      <div class="title-row">
+        <dp-icon name="ship" [size]="20" class="header-icon"></dp-icon>
+        <h1 class="page-title">Containers</h1>
+      </div>
       <p class="page-subtitle">Inspect, filter, and control Docker workloads across the host</p>
     </div>
     <div class="header-actions">
-      <button mat-stroked-button (click)="store.loadContainers()">
-        <mat-icon>refresh</mat-icon>
-        Refresh
+      <button class="btn-secondary refresh-btn" (click)="store.loadContainers()">
+        <dp-icon name="refresh-cw" [size]="14"></dp-icon>
+        <span>REFRESH TELEMETRY</span>
       </button>
     </div>
   </header>
 
-  <!-- Filter Bar -->
-  <section class="filter-card">
+  <!-- Filter Controls Glass Panel -->
+  <dp-glass-panel [padding]="'16px'" class="filter-panel filter-card">
     <div class="filter-row">
       <!-- Search Input -->
-      <mat-form-field appearance="outline" class="search-field" subscriptSizing="dynamic">
-        <mat-icon matPrefix>search</mat-icon>
+      <div class="search-input-shell">
+        <dp-icon name="search" [size]="15" class="search-icon"></dp-icon>
         <input
-          matInput
+          type="text"
           [ngModel]="store.filters().q"
           (ngModelChange)="store.setFilter('q', $event)"
-          placeholder="Search containers by name, image, or ID..."
+          placeholder="Name, ID or image"
+          class="obsidian-filter-input"
         />
         @if (store.filters().q) {
-          <button matSuffix mat-icon-button aria-label="Clear" (click)="store.setFilter('q', '')">
-            <mat-icon>close</mat-icon>
+          <button type="button" class="clear-search-btn" (click)="store.setFilter('q', '')">
+            <dp-icon name="close" [size]="14"></dp-icon>
           </button>
         }
-      </mat-form-field>
+      </div>
 
-      <!-- State Dropdown -->
-      <mat-form-field appearance="outline" class="select-field" subscriptSizing="dynamic">
-        <mat-label>State</mat-label>
-        <mat-select
-          [ngModel]="store.filters().state"
-          (ngModelChange)="store.setFilter('state', $event)"
-        >
-          <mat-option value="">All States</mat-option>
-          <mat-option value="running">Running</mat-option>
-          <mat-option value="exited">Exited</mat-option>
-          <mat-option value="restarting">Restarting</mat-option>
-          <mat-option value="unhealthy">Unhealthy</mat-option>
-          <mat-option value="paused">Paused</mat-option>
-        </mat-select>
-      </mat-form-field>
+      <!-- State Filter Chips -->
+      <div class="state-chips-group">
+        <button
+          type="button"
+          class="state-filter-pill"
+          [class.active]="!store.filters().state"
+          (click)="store.setFilter('state', '')">
+          ALL
+        </button>
+        <button
+          type="button"
+          class="state-filter-pill"
+          [class.active]="store.filters().state === 'running'"
+          (click)="store.setFilter('state', 'running')">
+          <dp-status-dot status="running"></dp-status-dot>
+          <span>RUNNING</span>
+        </button>
+        <button
+          type="button"
+          class="state-filter-pill"
+          [class.active]="store.filters().state === 'exited'"
+          (click)="store.setFilter('state', 'exited')">
+          <dp-status-dot status="stopped"></dp-status-dot>
+          <span>STOPPED</span>
+        </button>
+        <button
+          type="button"
+          class="state-filter-pill"
+          [class.active]="store.filters().state === 'restarting'"
+          (click)="store.setFilter('state', 'restarting')">
+          <dp-status-dot status="restarting"></dp-status-dot>
+          <span>RESTARTING</span>
+        </button>
+      </div>
 
       <!-- Health Dropdown -->
       <mat-form-field appearance="outline" class="select-field" subscriptSizing="dynamic">
@@ -64,21 +87,22 @@
       </mat-form-field>
 
       <!-- Compose Project Input -->
-      <mat-form-field appearance="outline" class="project-field" subscriptSizing="dynamic">
-        <mat-label>Project</mat-label>
+      <div class="project-input-shell">
+        <dp-icon name="layers" [size]="14" class="project-icon"></dp-icon>
         <input
-          matInput
+          type="text"
           [ngModel]="store.filters().compose_project"
           (ngModelChange)="store.setFilter('compose_project', $event)"
-          placeholder="e.g. dockpilot"
+          placeholder="Compose Project"
+          class="obsidian-filter-input"
         />
-      </mat-form-field>
+      </div>
 
       <!-- Presets & Actions -->
       <div class="filter-actions">
-        <button mat-stroked-button [matMenuTriggerFor]="presetsMenu">
-          <mat-icon>bookmark_border</mat-icon>
-          Presets
+        <button class="btn-secondary preset-trigger-btn" [matMenuTriggerFor]="presetsMenu">
+          <dp-icon name="bookmark" [size]="14"></dp-icon>
+          <span>PRESETS</span>
         </button>
         <mat-menu #presetsMenu="matMenu">
           <div class="preset-menu-header" (click)="$event.stopPropagation()">
@@ -100,281 +124,316 @@
           }
         </mat-menu>
 
-        <button mat-button color="warn" (click)="store.clearFilters()">Clear</button>
+        <button class="btn-secondary clear-filters-btn" (click)="store.clearFilters()">CLEAR</button>
       </div>
     </div>
-  </section>
+  </dp-glass-panel>
 
-  <!-- Bulk Action Bar -->
+  <!-- Error Banner -->
+  @if (store.error()) {
+    <div class="error-banner" role="alert">
+      <dp-icon name="alert-triangle" [size]="16" class="error-icon"></dp-icon>
+      <span>{{ store.error() }}</span>
+      <button class="btn-secondary retry-btn" (click)="store.loadContainers()">RECONNECT TELEMETRY</button>
+    </div>
+  }
+
+  <!-- Dense Telemetry Table Container -->
+  <dp-glass-panel [padding]="'0'" class="table-glass-panel">
+    @if (store.loading()) {
+      <div class="table-loading-container">
+        <dp-skeleton-shimmer variant="table" [lines]="8"></dp-skeleton-shimmer>
+      </div>
+    } @else {
+      <table mat-table [dataSource]="store.containers()" class="containers-table dense-deck-table">
+        <!-- Select Checkbox -->
+        <ng-container matColumnDef="select">
+          <th mat-header-cell *matHeaderCellDef class="col-select">
+            <mat-checkbox
+              [checked]="store.allSelected()"
+              [indeterminate]="store.isIndeterminate()"
+              (change)="store.toggleSelectAll($event.checked)"
+              aria-label="Select all containers"
+            ></mat-checkbox>
+          </th>
+          <td mat-cell *matCellDef="let c" class="col-select">
+            <mat-checkbox
+              [checked]="store.selectedIds().has(c.id)"
+              (change)="store.toggleSelect(c.id)"
+              [aria-label]="'Select container ' + c.name"
+            ></mat-checkbox>
+          </td>
+        </ng-container>
+
+        <!-- State & Health Column -->
+        <ng-container matColumnDef="state">
+          <th mat-header-cell *matHeaderCellDef (click)="store.setSort('state')" class="sortable-header col-state">
+            STATE
+          </th>
+          <td mat-cell *matCellDef="let c" class="col-state">
+            <div class="state-cell">
+              <dp-status-dot [status]="c.state"></dp-status-dot>
+              <span class="state-label micro-label">{{ c.state }}</span>
+            </div>
+          </td>
+        </ng-container>
+
+        <!-- Name & Image Column (Shared Element view transition anchor) -->
+        <ng-container matColumnDef="name">
+          <th mat-header-cell *matHeaderCellDef (click)="store.setSort('name')" class="sortable-header col-name">
+            CRAFT IDENTIFIER &amp; IMAGE
+          </th>
+          <td mat-cell *matCellDef="let c" class="col-name">
+            <div class="name-col">
+              <a
+                [routerLink]="['/containers', c.id]"
+                class="container-name"
+                [style.view-transition-name]="'container-title-' + c.id"
+                [matTooltip]="'Inspect ' + c.name + ' (' + c.id + ')'">
+                {{ c.name }}
+              </a>
+              <span class="container-image micro-label" [matTooltip]="c.image">{{ c.image }}</span>
+            </div>
+          </td>
+        </ng-container>
+
+        <!-- Project Column -->
+        <ng-container matColumnDef="project">
+          <th mat-header-cell *matHeaderCellDef (click)="store.setSort('compose_project')" class="sortable-header col-project">
+            PROJECT
+          </th>
+          <td mat-cell *matCellDef="let c" class="col-project">
+            @if (c.compose_project) {
+              <span class="project-pill micro-label">{{ c.compose_project }}</span>
+            } @else {
+              <span class="text-muted">-</span>
+            }
+          </td>
+        </ng-container>
+
+        <!-- Ports Column -->
+        <ng-container matColumnDef="ports">
+          <th mat-header-cell *matHeaderCellDef class="col-ports">PORTS</th>
+          <td mat-cell *matCellDef="let c" class="col-ports">
+            <span class="ports-text micro-label">{{ formatPorts(c.ports) }}</span>
+          </td>
+        </ng-container>
+
+        <!-- CPU Live Column with Miniature Sparkline -->
+        <ng-container matColumnDef="cpu">
+          <th mat-header-cell *matHeaderCellDef class="col-cpu">CPU TELEMETRY</th>
+          <td mat-cell *matCellDef="let c" class="col-cpu">
+            @let metrics = store.liveMetrics().get(c.id);
+            <div class="metric-cell">
+              <div class="sparkline-container">
+                <dp-sparkline
+                  [data]="getSparklineData(c.id, 'cpu')"
+                  [height]="22"
+                  strokeColor="var(--gold)"
+                  class="row-sparkline"
+                ></dp-sparkline>
+              </div>
+              <span class="metric-val tabular-nums">{{ metrics ? (metrics.cpu_percent | number:'1.1-1') + '%' : '-' }}</span>
+            </div>
+          </td>
+        </ng-container>
+
+        <!-- Memory Live Column with Miniature Sparkline -->
+        <ng-container matColumnDef="memory">
+          <th mat-header-cell *matHeaderCellDef class="col-memory">MEMORY TELEMETRY</th>
+          <td mat-cell *matCellDef="let c" class="col-memory">
+            @let metrics = store.liveMetrics().get(c.id);
+            <div class="metric-cell">
+              <div class="sparkline-container">
+                <dp-sparkline
+                  [data]="getSparklineData(c.id, 'memory')"
+                  [height]="22"
+                  strokeColor="var(--violet)"
+                  class="row-sparkline"
+                ></dp-sparkline>
+              </div>
+              <span class="metric-val tabular-nums">
+                {{ metrics ? formatBytes(metrics.memory_bytes) + ' (' + (metrics.memory_percent | number:'1.0-0') + '%)' : '-' }}
+              </span>
+            </div>
+          </td>
+        </ng-container>
+
+        <!-- Status / Uptime Column -->
+        <ng-container matColumnDef="status">
+          <th mat-header-cell *matHeaderCellDef class="col-status">UPTIME</th>
+          <td mat-cell *matCellDef="let c" class="col-status">
+            <span class="status-text tabular-nums">{{ c.status }}</span>
+          </td>
+        </ng-container>
+
+        <!-- Restarts Column -->
+        <ng-container matColumnDef="restarts">
+          <th mat-header-cell *matHeaderCellDef (click)="store.setSort('restart_count')" class="sortable-header col-restarts">
+            RESTARTS
+          </th>
+          <td mat-cell *matCellDef="let c" class="col-restarts">
+            <span class="restart-badge tabular-nums" [class.restart-alert]="c.restart_count > 0">{{ c.restart_count }}</span>
+          </td>
+        </ng-container>
+
+        <!-- Actions Column with Hover Fade-in Quick Controls -->
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef class="col-actions">CONTROLS</th>
+          <td mat-cell *matCellDef="let c" class="col-actions">
+            @if (authService.hasRole('operator')) {
+              <div class="actions-wrapper">
+                <!-- Hover Quick Actions -->
+                <div class="quick-hover-actions">
+                  @if (c.state !== 'running') {
+                    <button class="quick-btn start" (click)="onActionClick(c, 'start')" matTooltip="Start craft">
+                      <dp-icon name="play" [size]="14"></dp-icon>
+                    </button>
+                  }
+                  @if (c.state === 'running') {
+                    <button class="quick-btn stop" (click)="onActionClick(c, 'stop')" matTooltip="Stop craft">
+                      <dp-icon name="square" [size]="13"></dp-icon>
+                    </button>
+                    <button class="quick-btn restart" (click)="onActionClick(c, 'restart')" matTooltip="Restart craft">
+                      <dp-icon name="refresh-cw" [size]="13"></dp-icon>
+                    </button>
+                  }
+                  <a [routerLink]="['/containers', c.id]" [queryParams]="{tab: 'terminal'}" class="quick-btn terminal" matTooltip="Terminal">
+                    <dp-icon name="terminal" [size]="14"></dp-icon>
+                  </a>
+                </div>
+
+                <!-- Overflow Menu Trigger -->
+                <button mat-icon-button [matMenuTriggerFor]="rowMenu" [attr.aria-label]="'Actions for ' + c.name" class="menu-btn">
+                  <mat-icon>more_vert</mat-icon>
+                </button>
+                <mat-menu #rowMenu="matMenu">
+                  @if (c.state !== 'running') {
+                    <button mat-menu-item (click)="onActionClick(c, 'start')">
+                      <mat-icon>play_arrow</mat-icon>
+                      <span>Start</span>
+                    </button>
+                  }
+                  @if (c.state === 'running') {
+                    <button mat-menu-item (click)="onActionClick(c, 'stop')">
+                      <mat-icon>stop</mat-icon>
+                      <span>Stop</span>
+                    </button>
+                    <button mat-menu-item (click)="onActionClick(c, 'restart')">
+                      <mat-icon>replay</mat-icon>
+                      <span>Restart</span>
+                    </button>
+                    <button mat-menu-item (click)="onActionClick(c, 'pause')">
+                      <mat-icon>pause</mat-icon>
+                      <span>Pause</span>
+                    </button>
+                  }
+                  @if (c.state === 'paused') {
+                    <button mat-menu-item (click)="onActionClick(c, 'unpause')">
+                      <mat-icon>play_circle</mat-icon>
+                      <span>Unpause</span>
+                    </button>
+                  }
+                  <button mat-menu-item (click)="onActionClick(c, 'kill')">
+                    <mat-icon color="warn">flash_on</mat-icon>
+                    <span>Kill</span>
+                  </button>
+                  @if (authService.hasRole('admin')) {
+                    <mat-divider></mat-divider>
+                    <button mat-menu-item (click)="onDeleteClick(c)">
+                      <mat-icon color="warn">delete_forever</mat-icon>
+                      <span class="text-danger">Delete Container</span>
+                    </button>
+                  }
+                </mat-menu>
+              </div>
+            } @else {
+              <span class="text-muted" title="Viewer mode - Read only">-</span>
+            }
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns" class="container-data-row"></tr>
+      </table>
+
+      <!-- Empty State -->
+      @if (store.containers().length === 0) {
+        <div class="empty-state-wrapper">
+          <dp-empty-state
+            icon="ship"
+            title="No containers found"
+            message="No workloads match the selected filter criteria."
+            actionLabel="Clear Filters"
+            (action)="store.clearFilters()"
+          ></dp-empty-state>
+        </div>
+      }
+
+      <!-- Pagination Footer -->
+      <footer class="pagination-footer">
+        <span class="pagination-info micro-label">
+          SHOWING {{ store.containers().length }} OF {{ store.total() }} CRAFT (PAGE {{ store.page() }} / {{ store.totalPages() }})
+        </span>
+        <div class="pagination-controls">
+          <button
+            class="pagination-nav-btn"
+            [disabled]="store.page() <= 1"
+            (click)="store.setPage(store.page() - 1)"
+            aria-label="Previous page"
+          >
+            <dp-icon name="chevron-left" [size]="14"></dp-icon>
+          </button>
+          <span class="page-current tabular-nums">{{ store.page() }}</span>
+          <button
+            class="pagination-nav-btn"
+            [disabled]="store.page() >= store.totalPages()"
+            (click)="store.setPage(store.page() + 1)"
+            aria-label="Next page"
+          >
+            <dp-icon name="chevron-right" [size]="14"></dp-icon>
+          </button>
+        </div>
+      </footer>
+    }
+  </dp-glass-panel>
+
+  <!-- Floating Bottom Bulk Action Bar -->
   @if (store.selectedCount() > 0) {
-    <aside class="bulk-toolbar" role="region" aria-label="Bulk actions toolbar">
-      <div class="bulk-info">
-        <span class="bulk-badge">{{ store.selectedCount() }}</span>
-        <span>containers selected</span>
-      </div>
-      <div class="bulk-buttons">
-        <button mat-flat-button color="primary" (click)="store.executeBulkAction('start')">
-          <mat-icon>play_arrow</mat-icon>
-          Start
-        </button>
-        <button mat-flat-button color="warn" (click)="store.executeBulkAction('stop')">
-          <mat-icon>stop</mat-icon>
-          Stop
-        </button>
-        <button mat-stroked-button (click)="store.executeBulkAction('restart')">
-          <mat-icon>replay</mat-icon>
-          Restart
-        </button>
-        <button mat-stroked-button (click)="store.executeBulkAction('pause')">
-          <mat-icon>pause</mat-icon>
-          Pause
-        </button>
-        <button mat-stroked-button (click)="store.executeBulkAction('unpause')">
-          <mat-icon>play_circle</mat-icon>
-          Unpause
-        </button>
-        <button mat-button (click)="store.clearSelection()">Cancel</button>
-      </div>
+    <aside class="floating-bulk-toolbar" role="region" aria-label="Bulk actions toolbar">
+      <dp-glass-panel [padding]="'10px 18px'" [borderSweep]="true" class="bulk-glass-panel">
+        <div class="bulk-inner-content">
+          <div class="bulk-info">
+            <span class="bulk-badge tabular-nums">{{ store.selectedCount() }}</span>
+            <span class="bulk-text micro-label">CRAFT SELECTED</span>
+          </div>
+          <div class="bulk-buttons">
+            <button class="btn-primary bulk-action-btn" dpMagneticHover (click)="store.executeBulkAction('start')">
+              <dp-icon name="play" [size]="13"></dp-icon>
+              <span>START</span>
+            </button>
+            <button class="btn-destructive bulk-action-btn" (click)="store.executeBulkAction('stop')">
+              <dp-icon name="square" [size]="13"></dp-icon>
+              <span>STOP</span>
+            </button>
+            <button class="btn-secondary bulk-action-btn" (click)="store.executeBulkAction('restart')">
+              <dp-icon name="refresh-cw" [size]="13"></dp-icon>
+              <span>RESTART</span>
+            </button>
+            <button class="btn-secondary bulk-action-btn" (click)="store.executeBulkAction('pause')">
+              <dp-icon name="pause" [size]="13"></dp-icon>
+              <span>PAUSE</span>
+            </button>
+            <button class="btn-secondary bulk-action-btn" (click)="store.executeBulkAction('unpause')">
+              <dp-icon name="play" [size]="13"></dp-icon>
+              <span>UNPAUSE</span>
+            </button>
+            <button class="btn-secondary cancel-bulk-btn" (click)="store.clearSelection()">
+              CANCEL
+            </button>
+          </div>
+        </div>
+      </dp-glass-panel>
     </aside>
   }
-
-  <!-- Error Alert -->
-  @if (store.error()) {
-    <div class="error-banner">
-      <mat-icon>error_outline</mat-icon>
-      <span>{{ store.error() }}</span>
-      <button mat-button (click)="store.loadContainers()">Retry</button>
-    </div>
-  }
-
-  <!-- Table Container -->
-  <div class="table-card mat-elevation-z1">
-    <table mat-table [dataSource]="store.containers()" class="containers-table">
-      <!-- Select Checkbox -->
-      <ng-container matColumnDef="select">
-        <th mat-header-cell *matHeaderCellDef>
-          <mat-checkbox
-            [checked]="store.allSelected()"
-            [indeterminate]="store.isIndeterminate()"
-            (change)="store.toggleSelectAll($event.checked)"
-            aria-label="Select all containers"
-          ></mat-checkbox>
-        </th>
-        <td mat-cell *matCellDef="let c">
-          <mat-checkbox
-            [checked]="store.selectedIds().has(c.id)"
-            (change)="store.toggleSelect(c.id)"
-            [aria-label]="'Select container ' + c.name"
-          ></mat-checkbox>
-        </td>
-      </ng-container>
-
-      <!-- State & Health Column -->
-      <ng-container matColumnDef="state">
-        <th mat-header-cell *matHeaderCellDef (click)="store.setSort('state')" class="sortable-header">
-          State
-        </th>
-        <td mat-cell *matCellDef="let c">
-          <div class="chips-col">
-            <span
-              class="state-chip"
-              [style.background-color]="stateColors[c.state] || stateColors['unknown']"
-            >
-              {{ c.state }}
-            </span>
-            @if (c.health && c.health !== 'none') {
-              <span
-                class="health-chip"
-                [style.background-color]="healthColors[c.health] || healthColors['none']"
-              >
-                {{ c.health }}
-              </span>
-            }
-          </div>
-        </td>
-      </ng-container>
-
-      <!-- Name & Image Column -->
-      <ng-container matColumnDef="name">
-        <th mat-header-cell *matHeaderCellDef (click)="store.setSort('name')" class="sortable-header">
-          Name &amp; Image
-        </th>
-        <td mat-cell *matCellDef="let c">
-          <div class="name-col">
-            <a [routerLink]="['/containers', c.id]" class="container-name" [matTooltip]="c.id">{{ c.name }}</a>
-            <span class="container-image">{{ c.image }}</span>
-          </div>
-        </td>
-      </ng-container>
-
-      <!-- Project Column -->
-      <ng-container matColumnDef="project">
-        <th mat-header-cell *matHeaderCellDef (click)="store.setSort('compose_project')" class="sortable-header">
-          Project
-        </th>
-        <td mat-cell *matCellDef="let c">
-          @if (c.compose_project) {
-            <span class="project-badge">{{ c.compose_project }}</span>
-          } @else {
-            <span class="text-muted">-</span>
-          }
-        </td>
-      </ng-container>
-
-      <!-- Ports Column -->
-      <ng-container matColumnDef="ports">
-        <th mat-header-cell *matHeaderCellDef>Ports</th>
-        <td mat-cell *matCellDef="let c">
-          <span class="ports-text">{{ formatPorts(c.ports) }}</span>
-        </td>
-      </ng-container>
-
-      <!-- CPU Live Column -->
-      <ng-container matColumnDef="cpu">
-        <th mat-header-cell *matHeaderCellDef>CPU</th>
-        <td mat-cell *matCellDef="let c">
-          @let metrics = store.liveMetrics().get(c.id);
-          <div class="metric-cell">
-            <span class="metric-val">{{ metrics ? (metrics.cpu_percent | number:'1.1-1') + '%' : '-' }}</span>
-            <mat-progress-bar
-              mode="determinate"
-              [value]="metrics ? metrics.cpu_percent : 0"
-              class="metric-progress"
-              [class.warn]="metrics && metrics.cpu_percent > 70 && metrics.cpu_percent <= 85"
-              [class.danger]="metrics && metrics.cpu_percent > 85"
-            ></mat-progress-bar>
-          </div>
-        </td>
-      </ng-container>
-
-      <!-- Memory Live Column -->
-      <ng-container matColumnDef="memory">
-        <th mat-header-cell *matHeaderCellDef>Memory</th>
-        <td mat-cell *matCellDef="let c">
-          @let metrics = store.liveMetrics().get(c.id);
-          <div class="metric-cell">
-            <span class="metric-val">
-              {{ metrics ? formatBytes(metrics.memory_bytes) + ' (' + (metrics.memory_percent | number:'1.0-0') + '%)' : '-' }}
-            </span>
-            <mat-progress-bar
-              mode="determinate"
-              [value]="metrics ? metrics.memory_percent : 0"
-              class="metric-progress"
-              [class.warn]="metrics && metrics.memory_percent > 75 && metrics.memory_percent <= 90"
-              [class.danger]="metrics && metrics.memory_percent > 90"
-            ></mat-progress-bar>
-          </div>
-        </td>
-      </ng-container>
-
-      <!-- Status Column -->
-      <ng-container matColumnDef="status">
-        <th mat-header-cell *matHeaderCellDef>Status</th>
-        <td mat-cell *matCellDef="let c">
-          <span class="status-text">{{ c.status }}</span>
-        </td>
-      </ng-container>
-
-      <!-- Restarts Column -->
-      <ng-container matColumnDef="restarts">
-        <th mat-header-cell *matHeaderCellDef (click)="store.setSort('restart_count')" class="sortable-header">
-          Restarts
-        </th>
-        <td mat-cell *matCellDef="let c">
-          <span [class.text-danger]="c.restart_count > 0">{{ c.restart_count }}</span>
-        </td>
-      </ng-container>
-
-      <!-- Actions Column -->
-      <ng-container matColumnDef="actions">
-        <th mat-header-cell *matHeaderCellDef>Actions</th>
-        <td mat-cell *matCellDef="let c">
-          @if (authService.hasRole('operator')) {
-            <button mat-icon-button [matMenuTriggerFor]="rowMenu" [attr.aria-label]="'Actions for ' + c.name">
-              <mat-icon>more_vert</mat-icon>
-            </button>
-            <mat-menu #rowMenu="matMenu">
-              @if (c.state !== 'running') {
-                <button mat-menu-item (click)="onActionClick(c, 'start')">
-                  <mat-icon>play_arrow</mat-icon>
-                  <span>Start</span>
-                </button>
-              }
-              @if (c.state === 'running') {
-                <button mat-menu-item (click)="onActionClick(c, 'stop')">
-                  <mat-icon>stop</mat-icon>
-                  <span>Stop</span>
-                </button>
-                <button mat-menu-item (click)="onActionClick(c, 'restart')">
-                  <mat-icon>replay</mat-icon>
-                  <span>Restart</span>
-                </button>
-                <button mat-menu-item (click)="onActionClick(c, 'pause')">
-                  <mat-icon>pause</mat-icon>
-                  <span>Pause</span>
-                </button>
-              }
-              @if (c.state === 'paused') {
-                <button mat-menu-item (click)="onActionClick(c, 'unpause')">
-                  <mat-icon>play_circle</mat-icon>
-                  <span>Unpause</span>
-                </button>
-              }
-              <button mat-menu-item (click)="onActionClick(c, 'kill')">
-                <mat-icon color="warn">flash_on</mat-icon>
-                <span>Kill</span>
-              </button>
-              @if (authService.hasRole('admin')) {
-                <mat-divider></mat-divider>
-                <button mat-menu-item (click)="onDeleteClick(c)">
-                  <mat-icon color="warn">delete_forever</mat-icon>
-                  <span class="text-danger">Delete Container</span>
-                </button>
-              }
-            </mat-menu>
-          } @else {
-            <span class="text-muted" title="Viewer mode - Read only">-</span>
-          }
-        </td>
-      </ng-container>
-
-      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-      <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
-    </table>
-
-    <!-- Empty State -->
-    @if (!store.loading() && store.containers().length === 0) {
-      <div class="empty-state">
-        <mat-icon class="empty-icon">inbox</mat-icon>
-        <h3>No containers found</h3>
-        <p>No workloads match the selected filter criteria.</p>
-        <button mat-stroked-button (click)="store.clearFilters()">Clear Filters</button>
-      </div>
-    }
-
-    <!-- Pagination Footer -->
-    <div class="pagination-footer">
-      <span class="pagination-info">
-        Showing {{ store.containers().length }} of {{ store.total() }} containers (Page {{ store.page() }} of {{ store.totalPages() }})
-      </span>
-      <div class="pagination-controls">
-        <button
-          mat-icon-button
-          [disabled]="store.page() <= 1"
-          (click)="store.setPage(store.page() - 1)"
-          aria-label="Previous page"
-        >
-          <mat-icon>chevron_left</mat-icon>
-        </button>
-        <button
-          mat-icon-button
-          [disabled]="store.page() >= store.totalPages()"
-          (click)="store.setPage(store.page() + 1)"
-          aria-label="Next page"
-        >
-          <mat-icon>chevron_right</mat-icon>
-        </button>
-      </div>
-    </div>
-  </div>
 </div>

@@ -11,6 +11,8 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 
 import { LogsStore } from './logs.store';
 import { LogViewerComponent } from '../../shared/components/log-viewer/log-viewer.component';
+import { GlassPanelComponent } from '../../shared/components/glass-panel/glass-panel.component';
+import { IconComponent } from '../../shared/components/icon/icon.component';
 
 @Component({
   selector: 'dp-logs-explorer',
@@ -26,6 +28,8 @@ import { LogViewerComponent } from '../../shared/components/log-viewer/log-viewe
     MatFormFieldModule,
     MatTooltipModule,
     LogViewerComponent,
+    GlassPanelComponent,
+    IconComponent,
   ],
   providers: [LogsStore],
   templateUrl: './logs-explorer.component.html',

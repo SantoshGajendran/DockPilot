@@ -1,27 +1,27 @@
-<div class="log-toolbar">
+<div class="log-toolbar font-mono">
   <div class="toolbar-left">
     <span class="status-indicator">
       <span class="dot" [class.paused]="isPaused()"></span>
-      <span>{{ isPaused() ? 'Paused' : 'Streaming' }}</span>
+      <span class="status-text">{{ isPaused() ? 'STREAM PAUSED' : 'LIVE TELEMETRY' }}</span>
     </span>
 
     <div class="search-input-box">
       <mat-icon>search</mat-icon>
       <input
         type="text"
-        placeholder="Filter output..."
+        placeholder="Search regex/tokens..."
         [value]="filterQuery()"
         (input)="onFilterChange($event)"
       />
     </div>
 
-    <span>{{ filteredLines().length }} lines</span>
+    <span class="lines-count-chip">{{ filteredLines().length }} LINES</span>
   </div>
 
   <div class="toolbar-right">
     <button
       mat-icon-button
-      [matTooltip]="isPaused() ? 'Resume auto-scroll' : 'Pause auto-scroll'"
+      [matTooltip]="isPaused() ? 'Resume stream' : 'Pause stream'"
       (click)="togglePause()"
     >
       <mat-icon>{{ isPaused() ? 'play_arrow' : 'pause' }}</mat-icon>
@@ -79,40 +79,87 @@
   </div>
 </div>
 
-<div class="viewport-container">
+<div class="viewport-container font-mono">
+  <!-- Floating New Lines Alert Pill -->
+  @if (isPaused() && pausedNewLinesCount() > 0) {
+    <button class="floating-pause-pill" (click)="resumeAndScroll()">
+      <span class="pulse-indicator"></span>
+      <span>{{ pausedNewLinesCount() }} NEW LINES RECORDED ↓</span>
+    </button>
+  }
+
   @if (filteredLines().length === 0) {
-    <div class="empty-logs">No log lines to display</div>
+    <div class="empty-logs">
+      <mat-icon>waves</mat-icon>
+      <span>QUIET STREAM // NO LOG MESSAGES RECEIVED</span>
+    </div>
   } @else {
-    <cdk-virtual-scroll-viewport
-      #viewport
-      itemSize="20"
-      class="log-viewport"
-      [class.wrap-lines]="wrapLines()"
-      (scrolledIndexChange)="onScroll($event)"
-    >
-      <div
-        *cdkVirtualFor="let entry of filteredLines(); trackBy: trackByFn"
-        class="log-line"
-        [ngClass]="entry.stream"
+    <div class="viewport-with-minimap">
+      <cdk-virtual-scroll-viewport
+        #viewport
+        itemSize="22"
+        class="log-viewport"
+        [class.wrap-lines]="wrapLines()"
+        (scrolledIndexChange)="onScroll($event)"
       >
-        @if (showContainerName && entry.container_name) {
-          <span class="container-tag">[{{ entry.container_name }}]</span>
-        }
-
-        @if (showTimestamps() && entry.timestamp) {
-          <span class="log-ts">{{ entry.timestamp | date:'HH:mm:ss.SSS' }}</span>
-        }
-
-        @if (entry.level) {
-          <span class="level-badge" [ngClass]="entry.level">{{ entry.level }}</span>
-        }
-
-        <span class="log-msg">
-          @for (span of parseSpans(entry.message); track $index) {
-            <span [ngClass]="span.classes">{{ span.text }}</span>
+        <div
+          *cdkVirtualFor="let entry of filteredLines(); trackBy: trackByFn; let i = index"
+          class="log-line"
+          [style.border-left-color]="getGutterColor(entry)"
+          (click)="isLikelyJson(entry.message) ? toggleJsonExpansion(i) : null"
+          [class.json-expandable]="isLikelyJson(entry.message)"
+        >
+          @if (showContainerName && entry.container_name) {
+            <span
+              class="container-tag"
+              [style.color]="getContainerColor(entry.container_name)"
+              [style.border-color]="getContainerColor(entry.container_name)"
+            >
+              [{{ entry.container_name }}]
+            </span>
           }
-        </span>
-      </div>
-    </cdk-virtual-scroll-viewport>
+
+          @if (showTimestamps() && entry.timestamp) {
+            <span class="log-ts">{{ entry.timestamp | date:'HH:mm:ss.SSS' }}</span>
+          }
+
+          @if (entry.level) {
+            <span class="level-badge" [ngClass]="entry.level.toLowerCase()">{{ entry.level }}</span>
+          }
+
+          <div class="log-content-col">
+            <span class="log-msg">
+              @for (span of parseSpans(entry.message); track $index) {
+                <span [ngClass]="span.classes">{{ span.text }}</span>
+              }
+            </span>
+
+            <!-- Inline JSON Auto-Prettified Block -->
+            @if (expandedJsonLines().has(i)) {
+              <div class="json-expanded-drawer" (click)="$event.stopPropagation()">
+                <div class="json-drawer-header">
+                  <span>FORMATTED JSON PAYLOAD</span>
+                  <button class="btn-copy-json" (click)="toggleJsonExpansion(i)">COLLAPSE ▲</button>
+                </div>
+                <pre class="json-code-block">{{ getPrettyJson(entry.message) }}</pre>
+              </div>
+            }
+          </div>
+        </div>
+      </cdk-virtual-scroll-viewport>
+
+      <!-- Error Density Minimap Track -->
+      @if (minimapTicks().length > 0) {
+        <div class="error-minimap-track" matTooltip="Log density minimap (red: errors, gold: warnings)">
+          @for (tick of minimapTicks(); track $index) {
+            <div
+              class="minimap-tick"
+              [ngClass]="tick.level"
+              [style.top.%]="tick.topPercent"
+            ></div>
+          }
+        </div>
+      }
+    </div>
   }
 </div>

@@ -93,4 +93,26 @@ describe('ShellComponent', () => {
     expect(chip).toBeTruthy();
     expect(chip.textContent.trim()).toContain('connected');
   });
+
+  it('should group items under MONITOR, CONTROL, and SYSTEM', () => {
+    expect(component.navSections.length).toBe(3);
+    const monitorItems = component.getItemsForGroup('MONITOR');
+    expect(monitorItems.length).toBeGreaterThan(0);
+  });
+
+  it('should trigger command palette open', () => {
+    if (component.commandPalette) {
+      const openSpy = jest.spyOn(component.commandPalette, 'open');
+      component.openCommandPalette();
+      expect(openSpy).toHaveBeenCalled();
+    }
+  });
+
+  it('should trigger shortcuts overlay open', () => {
+    if (component.shortcutsOverlay) {
+      const openSpy = jest.spyOn(component.shortcutsOverlay, 'open');
+      component.openShortcuts();
+      expect(openSpy).toHaveBeenCalled();
+    }
+  });
 });

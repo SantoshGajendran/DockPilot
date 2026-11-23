@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatTabsModule } from '@angular/material/tabs';
@@ -57,6 +57,10 @@ export class ResourcesComponent implements OnInit {
   readonly tabs = RESOURCE_TABS;
   readonly statusConfig = RESOURCE_STATUS_CONFIG;
   readonly formatBytes = formatBytes;
+
+  readonly totalVolumeSize = computed(() => {
+    return this.store.volumes().reduce((acc, v) => acc + (v.size || 0), 0);
+  });
 
   readonly imageColumns: string[] = ['tags', 'shortId', 'size', 'created', 'status', 'actions'];
   readonly volumeColumns: string[] = ['name', 'driver', 'mountpoint', 'created', 'size', 'status', 'actions'];

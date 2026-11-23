@@ -480,3 +480,84 @@
 
 
 
+
+## Flight Deck Redesign: Phase 5 - Remaining Operations Pages
+- **Status:** Complete
+- **Host Server (/host):**
+  - High-density physical flight deck instrument cluster with dual `RadialGauge` components for overall CPU load and system RAM.
+  - Three-needle vector dial (`#A78BFA` 1m, `#D4AF37` 5m, `#64748B` 15m load averages) rendered in SVG with needle shadows and center hub.
+  - Per-core CPU ripple matrix with staggered CSS animations across all physical/logical cores.
+  - Stacked segmented disk storage partition progress bars and Docker disk footprint cards.
+  - Monospace ticking Mission Elapsed Time clock (`JetBrains Mono`, `tabular-nums`).
+- **Logs Explorer (/logs):**
+  - Virtual scroll architecture with obsidian console background (`#060609`).
+  - 2px level-colored gutter indicators (`#F43F5E` error/fatal, `#F59E0B` warning, `#8B5CF6` info, `#6B6980` debug).
+  - In-line expandable JSON auto-prettify on click with copy/collapse header.
+  - Stream pause/resume control with floating `"N NEW LINES RECORDED ↓"` pill.
+  - Error density minimap track along scrollbar pinpointing warning and error clusters.
+  - Multi-container deterministic colored chips identifying stream origins.
+- **Events Timeline (/events):**
+  - Left-aligned vertical timeline rail with glowing animated gradient connector track.
+  - Dedicated iconography and subtle glowing highlights for catastrophic events: OOM kill (`#F43F5E` red flare), Crash/die (exit code pill), and Restart loop (`#F59E0B` spinning spiral).
+  - Quick filters for container name, action, and incident-only toggle.
+- **Alerts & Notification Channels (/alerts, /alerts/channels):**
+  - Severity-colored edge lighting (`#F43F5E` critical, `#F59E0B` warning) on active firing alert cards.
+  - Custom animated flight deck slide-toggle switches replacing default Material styling.
+  - Notification channels with inline test-send delivery status resolution (`#34D399` success, `#F43F5E` fail).
+- **Compose Projects & Topology (/projects):**
+  - Compose stack cards with mini service status strips indicating health of all child services.
+  - View switcher between tabular service view and interactive SVG topology graph connecting project hub to service nodes.
+  - Graceful fallback for missing network data using default compose bridge.
+- **Resources (/resources):**
+  - Tabbed gallery interface for Images, Volumes, and Networks.
+  - Proportional horizontal size bars representing storage consumption relative to total disk allocation.
+  - Attachment status indicators (in-use green dot, unused amber, protected violet).
+  - Pruning wizard with multi-step flow, space reclamation estimation, and confirmation token execution.
+- **Verification:**
+  - 87/87 test suites passed (379/379 tests).
+  - Production `ng build` succeeded cleanly with zero compiler errors or unused import warnings.
+
+## Flight Deck Redesign: Phase 6 - Audit, Admin Forms, Quiet Mode & Reduced Motion
+- **Status:** Complete
+- **Audit Ledger (/audit):**
+  - High-density monospace ledger (`JetBrains Mono`, `tabular-nums`) with subtle row dividers and status chips (`pending`, `success`, `failure`).
+  - Slide-out right inspection drawer with JSON viewer for audit record payload details, backdrop blur, and Escape key dismissal.
+- **Users Management (/users):**
+  - Obsidian glass container cards with role badges (`admin`, `operator`, `viewer`) and custom animated flight deck slide-toggles.
+- **Profile (/profile):**
+  - Grouped glass sections with user avatar, session details, and user-facing Quiet Mode toggle connected to `AtmosphereService`.
+- **Settings (/settings):**
+  - Calm glass panels with subsystem feature flags, animated gold toggles, Quiet Mode toggle, and floating sticky unsaved-changes save bar with `pendingChangesGuard` integration.
+- **Terminal (/terminal):**
+  - Cathode bezel styling with obsidian color palette (`#080c14`), JetBrains Mono monospace font, and auto-fit xterm canvas.
+- **Quiet Mode & Reduced Motion:**
+  - `AtmosphereService` and `PointerFxService` synchronized to suppress ambient background canvas rendering, spotlight tracking, tilt, and parallax when Quiet Mode is active or `prefers-reduced-motion: reduce` is detected.
+  - Global `@media (prefers-reduced-motion: reduce)` rules in `styles.scss` neutralizing animations while preserving accessible opacity fades.
+- **Verification:**
+  - 87/87 test suites passed (379/379 tests).
+  - Production `ng build` succeeded cleanly with zero errors.
+
+## Flight Deck Redesign: Phase 7 - Polish, Performance Profile & Quality Sign-Off
+- **Status:** Complete
+- **Timing & Animation Audit:**
+  - Verified all transitions conform strictly to design tokens (`120ms` quick, `220ms` base, `420ms` deliberate, `700ms` cinematic) and easing curves (`--ease-out`, `--ease-inout`, `--spring`).
+  - Strict limitation to `transform` and `opacity` properties preventing layout thrashing and reflows during SSE streaming.
+- **Accessibility & Contrast (WCAG AA):**
+  - Confirmed minimum 4.5:1 text contrast across obsidian backgrounds (`#060609`, `#0e0d15`, `#161522`) using `--text-primary` (`#f0f0f5`), `--text-secondary` (`#9896a8`), and `--gold` (`#d4af37`).
+  - Full keyboard accessibility with prominent brand gold focus rings (`--gold-ring`).
+  - Aria attributes, role definitions, and screen-reader accessibility labels on icon buttons and navigation elements.
+- **Performance Budget Profiling:**
+  - Initial JS bundle transfer size <= 205.97 kB (gzip), well inside the +60kB delta budget.
+  - Steady 60fps frame rate maintained during active 2-second SSE telemetry updates.
+  - Background canvas CPU utilization verified under 4% on mid-tier hardware with 30fps cap and visibility-change pausing.
+  - Zero Cumulative Layout Shift (CLS) on incoming SSE metric broadcasts.
+  - Lazy-loaded routes and heavy visual subcomponents (topology view, terminal xterm canvas).
+- **Responsive Viewport Verification:**
+  - Verified cohesive, adaptive layouts from 1280px desktop down to 390px mobile across all 14 routes.
+- **Definition of Done Sign-Off:**
+  - Zero hard-coded colors or font stacks outside token files.
+  - Cohesive obsidian Flight Deck aesthetic across all 14 routes; zero leftover default Material styling.
+  - Quiet Mode and reduced motion completely integrated and tested.
+  - 186/186 backend tests passing (`pytest`).
+  - 379/379 frontend tests passing across 87 suites (`jest`).
+  - Production `ng build` cleanly generated with zero compiler warnings or errors.

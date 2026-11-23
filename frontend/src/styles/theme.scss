@@ -1,24 +1,78 @@
 @use '@angular/material' as mat;
 
-:root,
-.dark-theme {
+:root {
   color-scheme: dark;
 
-  /* Backgrounds */
-  --bg-canvas: #080c14;
-  --bg-surface: rgba(15, 23, 42, 0.85);
-  --bg-surface-solid: #0f172a;
-  --bg-surface-elevated: #1e293b;
-  --bg-surface-hover: rgba(255, 255, 255, 0.05);
+  /* Obsidian Scale Surfaces */
+  --bg-0: #060609; /* App base */
+  --bg-1: #0B0B11;
+  --bg-2: #11111A;
+  --bg-3: #181824;
+  --bg-4: #20202E;
 
-  /* Borders & Dividers */
-  --border-subtle: rgba(255, 255, 255, 0.08);
-  --border-highlight: rgba(255, 255, 255, 0.14);
-  --border-color: var(--border-subtle);
+  /* Lines */
+  --line-soft: rgba(255, 255, 255, 0.05);
+  --line: rgba(255, 255, 255, 0.09);
+  --line-strong: rgba(255, 255, 255, 0.16);
+
+  /* Text */
+  --text: #ECEAF4;
+  --text-dim: #A09EB4;
+  --text-mute: #6B6980;
+
+  /* Brand: Gold & Violet */
+  --gold: #D4AF37;
+  --gold-hi: #F2D27A;
+  --gold-lo: #8C7424;
+  --violet: #8B5CF6;
+  --violet-hi: #B39DFF;
+  --violet-lo: #4B2FA8;
+
+  /* Status Tokens (distinct from brand) */
+  --status-running: #34D399;
+  --status-running-glow: rgba(52, 211, 153, 0.25);
+  --status-warning: #F59E0B;
+  --status-warning-glow: rgba(245, 158, 11, 0.25);
+  --status-critical: #F43F5E;
+  --status-critical-glow: rgba(244, 63, 94, 0.25);
+  --status-stopped: #6B6980;
+  --status-stopped-glow: rgba(107, 105, 128, 0.20);
+  --status-restarting: #60A5FA;
+  --status-restarting-glow: rgba(96, 165, 250, 0.25);
+
+  /* Geometry & Spacing */
+  --radius-6: 6px;
+  --radius-10: 10px;
+  --radius-16: 16px;
+  --radius-24: 24px;
+  --radius-sm: var(--radius-6);
+  --radius-md: var(--radius-10);
+  --radius-lg: var(--radius-16);
+  --radius-xl: var(--radius-24);
+  --space-base: 4px;
+
+  /* Blur Tokens */
+  --blur-12: 12px;
+  --blur-24: 24px;
+  --blur-40: 40px;
+  --blur-sm: var(--blur-12);
+  --blur-md: var(--blur-24);
+  --blur-lg: var(--blur-40);
+
+  /* Elevation: Layered Inner Highlights (1px top inner line) + Outer Glow */
+  --elevation-inner-highlight: inset 0 1px 0 0 rgba(255, 255, 255, 0.12);
+  --elevation-glass: inset 0 1px 0 0 rgba(255, 255, 255, 0.10), 0 4px 20px -2px rgba(0, 0, 0, 0.70);
+  --elevation-glass-elevated: inset 0 1px 0 0 rgba(255, 255, 255, 0.15), 0 12px 32px -4px rgba(0, 0, 0, 0.85);
+  --glow-gold: 0 0 16px rgba(212, 175, 55, 0.25);
+  --glow-violet: 0 0 20px rgba(139, 92, 246, 0.25);
+  --glow-critical: 0 0 20px rgba(244, 63, 94, 0.30);
 
   /* Typography */
-  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  --font-sans: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
+  --font-ui: var(--font-sans);
+  --font-numbers: var(--font-mono);
+
   --text-2xs: 0.6875rem;
   --text-xs: 0.75rem;
   --text-sm: 0.8125rem;
@@ -27,178 +81,211 @@
   --text-lg: 1.125rem;
   --text-xl: 1.5rem;
   --text-2xl: 2rem;
-  --text-primary: #f8fafc;
-  --text-secondary: #94a3b8;
-  --text-muted: #64748b;
+  --text-numeral-lg: 48px;
+  --text-numeral-xl: 72px;
 
-  /* Accents & Brand */
-  --primary-color: #3b82f6;
-  --primary-hover: #60a5fa;
-  --accent-glow: 0 0 20px rgba(59, 130, 246, 0.25);
+  /* Motion Tokens */
+  --ease-out: cubic-bezier(.22, 1, .36, 1);
+  --ease-inout: cubic-bezier(.65, 0, .35, 1);
+  --spring: cubic-bezier(.175, .885, .32, 1.275);
+  --duration-120: 120ms;
+  --duration-220: 220ms;
+  --duration-420: 420ms;
+  --duration-700: 700ms;
 
-  /* Semantic Workload States */
-  --status-running: #10b981;
-  --status-running-halo: rgba(16, 185, 129, 0.25);
-  --status-danger: #ef4444;
-  --status-warning: #f59e0b;
-  --status-paused: #06b6d4;
-
-  /* Elevation Shadows */
-  --shadow-ambient: 0 4px 20px -2px rgba(0, 0, 0, 0.5);
-  --shadow-lifted: 0 12px 30px -4px rgba(0, 0, 0, 0.65);
+  /* Pointer Spotlight Coordinates (delegated) */
+  --mx: 50vw;
+  --my: 50vh;
 
   /* Layout Dimensions */
   --header-height: 64px;
   --sidebar-width: 240px;
   --sidebar-collapsed-width: 68px;
 
-  /* Backward Compatibility Aliases */
-  --background-color: var(--bg-canvas);
-  --surface-color: var(--bg-surface-solid);
-  --surface-hover: var(--bg-surface-hover);
-  --success-color: var(--status-running);
+  /* Compatibility Aliases for Existing Components */
+  --bg-canvas: var(--bg-0);
+  --bg-surface: var(--bg-2);
+  --bg-surface-solid: var(--bg-1);
+  --bg-surface-elevated: var(--bg-3);
+  --bg-surface-hover: rgba(255, 255, 255, 0.05);
+  --border-subtle: var(--line-soft);
+  --border-highlight: var(--line-strong);
+  --border-color: var(--line);
+  --text-primary: var(--text);
+  --text-secondary: var(--text-dim);
+  --text-muted: var(--text-mute);
+  --primary-color: var(--gold);
+  --primary-hover: var(--gold-hi);
+  --accent-glow: var(--glow-gold);
+  --shadow-ambient: var(--elevation-glass);
+  --shadow-lifted: var(--elevation-glass-elevated);
+  --status-danger: var(--status-critical);
+  --danger-color: var(--status-critical);
   --warning-color: var(--status-warning);
-  --danger-color: var(--status-danger);
-  --info-color: var(--status-paused);
+  --success-color: var(--status-running);
+  --background-color: var(--bg-0);
+  --surface-color: var(--bg-1);
+  --surface-hover: var(--bg-surface-hover);
+  --info-color: var(--status-restarting);
 
-  /* Angular Material Component Overrides */
-  --mat-sidenav-container-background-color: var(--bg-canvas);
-  --mat-toolbar-container-background-color: var(--bg-surface);
-  --mat-toolbar-container-text-color: var(--text-primary);
-  --mat-sidenav-content-background-color: var(--bg-canvas);
-  --mat-card-container-background-color: var(--bg-surface);
-  --mat-card-container-text-color: var(--text-primary);
+  /* Angular Material Component Visual Overrides */
+  --mat-sidenav-container-background-color: var(--bg-0);
+  --mat-toolbar-container-background-color: rgba(11, 11, 17, 0.75);
+  --mat-toolbar-container-text-color: var(--text);
+  --mat-sidenav-content-background-color: var(--bg-0);
+  --mat-card-container-background-color: var(--bg-2);
+  --mat-card-container-text-color: var(--text);
 
-  /* Form Fields & Search Overrides */
+  /* Form Fields Overrides */
   --mat-form-field-container-height: 48px;
   --mat-form-field-container-vertical-padding: 12px;
-  --mdc-outlined-text-field-container-shape: 8px;
-  --mdc-outlined-text-field-outline-color: var(--border-subtle);
-  --mdc-outlined-text-field-hover-outline-color: var(--border-highlight);
-  --mdc-outlined-text-field-focus-outline-color: var(--primary-color);
-  --mdc-outlined-text-field-input-text-color: var(--text-primary);
-  --mdc-outlined-text-field-input-text-placeholder-color: var(--text-muted);
-  --mdc-outlined-text-field-label-text-color: var(--text-secondary);
-  --mdc-outlined-text-field-focus-label-text-color: var(--primary-color);
-  --mdc-outlined-text-field-disabled-input-text-color: var(--text-muted);
-  --mdc-outlined-text-field-disabled-outline-color: rgba(255, 255, 255, 0.04);
-  --mat-select-panel-background-color: var(--bg-surface-solid);
-  --mat-select-enabled-trigger-text-color: var(--text-primary);
-  --mat-menu-container-color: var(--bg-surface-solid);
+  --mdc-outlined-text-field-container-shape: var(--radius-sm);
+  --mdc-outlined-text-field-outline-color: var(--line);
+  --mdc-outlined-text-field-hover-outline-color: var(--line-strong);
+  --mdc-outlined-text-field-focus-outline-color: var(--gold);
+  --mdc-outlined-text-field-input-text-color: var(--text);
+  --mdc-outlined-text-field-input-text-placeholder-color: var(--text-mute);
+  --mdc-outlined-text-field-label-text-color: var(--text-dim);
+  --mdc-outlined-text-field-focus-label-text-color: var(--gold);
+  --mdc-outlined-text-field-disabled-input-text-color: var(--text-mute);
+  --mdc-outlined-text-field-disabled-outline-color: var(--line-soft);
+  --mat-select-panel-background-color: var(--bg-2);
+  --mat-select-enabled-trigger-text-color: var(--text);
+  --mat-menu-container-color: var(--bg-2);
 
   /* Dialog Overrides */
-  --mat-dialog-container-color: var(--bg-surface-solid);
+  --mat-dialog-container-color: var(--bg-2);
   --mat-dialog-container-max-width: 560px;
-  --mat-dialog-container-shape: 14px;
-  --mdc-dialog-container-color: var(--bg-surface-solid);
-  --mdc-dialog-subhead-color: var(--text-primary);
-  --mdc-dialog-supporting-text-color: var(--text-secondary);
+  --mat-dialog-container-shape: var(--radius-md);
+  --mdc-dialog-container-color: var(--bg-2);
+  --mdc-dialog-subhead-color: var(--text);
+  --mdc-dialog-supporting-text-color: var(--text-dim);
 
   /* Tooltip Overrides */
-  --mat-tooltip-container-color: rgba(15, 23, 42, 0.95);
-  --mat-tooltip-text-color: #f8fafc;
-  --mdc-plain-tooltip-container-color: rgba(15, 23, 42, 0.95);
-  --mdc-plain-tooltip-supporting-text-color: #f8fafc;
-  --mdc-plain-tooltip-container-shape: 8px;
+  --mat-tooltip-container-color: var(--bg-3);
+  --mat-tooltip-text-color: var(--text);
+  --mdc-plain-tooltip-container-color: var(--bg-3);
+  --mdc-plain-tooltip-supporting-text-color: var(--text);
+  --mdc-plain-tooltip-container-shape: var(--radius-sm);
 }
 
-.light-theme {
-  color-scheme: light;
+/* Tabular figures rule for all live metrics, numbers, and timestamps */
+.tabular-nums,
+[data-metric],
+.metric-value,
+.stat-value,
+.timestamp,
+.uptime {
+  font-variant-numeric: tabular-nums;
+  font-family: var(--font-mono);
+}
 
-  /* Backgrounds */
-  --bg-canvas: #f8fafc;
-  --bg-surface: rgba(255, 255, 255, 0.9);
-  --bg-surface-solid: #ffffff;
-  --bg-surface-elevated: #f1f5f9;
-  --bg-surface-hover: rgba(15, 23, 42, 0.04);
+/* Micro-labels */
+.micro-label {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-mute);
+}
 
-  /* Borders & Dividers */
-  --border-subtle: rgba(15, 23, 42, 0.08);
-  --border-highlight: rgba(255, 255, 255, 0.8);
-  --border-color: var(--border-subtle);
+/* Machine Metal Glass Surface Base */
+.glass-panel {
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  box-shadow: var(--elevation-glass);
+  backdrop-filter: blur(var(--blur-sm));
+  -webkit-backdrop-filter: blur(var(--blur-sm));
+}
 
-  /* Typography */
-  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  --text-2xs: 0.6875rem;
-  --text-xs: 0.75rem;
-  --text-sm: 0.8125rem;
-  --text-base: 0.875rem;
-  --text-md: 1rem;
-  --text-lg: 1.125rem;
-  --text-xl: 1.5rem;
-  --text-2xl: 2rem;
-  --text-primary: #0f172a;
-  --text-secondary: #475569;
-  --text-muted: #94a3b8;
+/* Focused elements: visible brand gold focus ring */
+:focus-visible {
+  outline: 2px solid var(--gold) !important;
+  outline-offset: 2px !important;
+}
 
-  /* Accents & Brand */
-  --primary-color: #2563eb;
-  --primary-hover: #1d4ed8;
-  --accent-glow: 0 0 20px rgba(37, 99, 235, 0.18);
+/* Flight Deck Button Standards */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background-color: var(--gold);
+  color: var(--bg-0);
+  font-family: var(--font-sans);
+  font-size: 0.875rem;
+  font-weight: 600;
+  border: 1px solid var(--gold);
+  border-radius: var(--radius-sm);
+  box-shadow: 0 0 16px rgba(212, 175, 55, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  cursor: pointer;
+  user-select: none;
+  transition: background-color var(--duration-120) var(--ease-out), transform var(--duration-120) var(--ease-out);
 
-  /* Semantic Workload States */
-  --status-running: #059669;
-  --status-running-halo: rgba(5, 150, 105, 0.2);
-  --status-danger: #dc2626;
-  --status-warning: #d97706;
-  --status-paused: #0891b2;
+  &:hover {
+    background-color: var(--gold-hi);
+  }
 
-  /* Elevation Shadows */
-  --shadow-ambient: 0 1px 3px rgba(0, 0, 0, 0.05), 0 8px 24px -4px rgba(0, 0, 0, 0.04);
-  --shadow-lifted: 0 12px 32px -4px rgba(0, 0, 0, 0.08);
+  &:active {
+    transform: scale(0.97) !important;
+  }
+}
 
-  /* Layout Dimensions */
-  --header-height: 64px;
-  --sidebar-width: 240px;
-  --sidebar-collapsed-width: 68px;
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background-color: rgba(255, 255, 255, 0.04);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 0.875rem;
+  font-weight: 500;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  backdrop-filter: blur(var(--blur-sm));
+  cursor: pointer;
+  user-select: none;
+  transition: background-color var(--duration-120) var(--ease-out), border-color var(--duration-120) var(--ease-out), transform var(--duration-120) var(--ease-out);
 
-  /* Backward Compatibility Aliases */
-  --background-color: var(--bg-canvas);
-  --surface-color: var(--bg-surface-solid);
-  --surface-hover: var(--bg-surface-hover);
-  --success-color: var(--status-running);
-  --warning-color: var(--status-warning);
-  --danger-color: var(--status-danger);
-  --info-color: var(--status-paused);
+  &:hover {
+    background-color: rgba(255, 255, 255, 0.08);
+    border-color: var(--gold);
+    color: var(--gold-hi);
+  }
 
-  /* Angular Material Component Overrides */
-  --mat-sidenav-container-background-color: var(--bg-canvas);
-  --mat-toolbar-container-background-color: var(--bg-surface);
-  --mat-toolbar-container-text-color: var(--text-primary);
-  --mat-sidenav-content-background-color: var(--bg-canvas);
-  --mat-card-container-background-color: var(--bg-surface);
-  --mat-card-container-text-color: var(--text-primary);
+  &:active {
+    transform: scale(0.97) !important;
+  }
+}
 
-  /* Form Fields & Search Overrides */
-  --mat-form-field-container-height: 48px;
-  --mat-form-field-container-vertical-padding: 12px;
-  --mdc-outlined-text-field-container-shape: 8px;
-  --mdc-outlined-text-field-outline-color: var(--border-subtle);
-  --mdc-outlined-text-field-hover-outline-color: var(--border-highlight);
-  --mdc-outlined-text-field-focus-outline-color: var(--primary-color);
-  --mdc-outlined-text-field-input-text-color: var(--text-primary);
-  --mdc-outlined-text-field-input-text-placeholder-color: var(--text-muted);
-  --mdc-outlined-text-field-label-text-color: var(--text-secondary);
-  --mdc-outlined-text-field-focus-label-text-color: var(--primary-color);
-  --mdc-outlined-text-field-disabled-input-text-color: var(--text-muted);
-  --mdc-outlined-text-field-disabled-outline-color: rgba(15, 23, 42, 0.06);
-  --mat-select-panel-background-color: #ffffff;
-  --mat-select-enabled-trigger-text-color: var(--text-primary);
-  --mat-menu-container-color: #ffffff;
+.btn-destructive {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background-color: transparent;
+  color: var(--status-critical);
+  font-family: var(--font-sans);
+  font-size: 0.875rem;
+  font-weight: 600;
+  border: 1px solid var(--status-critical);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  user-select: none;
+  transition: background-color var(--duration-220) var(--ease-out), color var(--duration-120) var(--ease-out), transform var(--duration-120) var(--ease-out);
 
-  /* Dialog Overrides */
-  --mat-dialog-container-color: #ffffff;
-  --mat-dialog-container-max-width: 560px;
-  --mat-dialog-container-shape: 14px;
-  --mdc-dialog-container-color: #ffffff;
-  --mdc-dialog-subhead-color: var(--text-primary);
-  --mdc-dialog-supporting-text-color: var(--text-secondary);
+  &:hover {
+    background-color: rgba(244, 63, 94, 0.15);
+    box-shadow: 0 0 12px rgba(244, 63, 94, 0.3);
+  }
 
-  /* Tooltip Overrides */
-  --mat-tooltip-container-color: rgba(15, 23, 42, 0.94);
-  --mat-tooltip-text-color: #f8fafc;
-  --mdc-plain-tooltip-container-color: rgba(15, 23, 42, 0.94);
-  --mdc-plain-tooltip-supporting-text-color: #f8fafc;
-  --mdc-plain-tooltip-container-shape: 8px;
+  &:active {
+    transform: scale(0.97) !important;
+  }
 }

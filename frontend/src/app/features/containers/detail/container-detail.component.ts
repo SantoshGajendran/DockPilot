@@ -26,6 +26,14 @@ import { LogViewerComponent } from '../../../shared/components/log-viewer/log-vi
 import { ContainerTerminalComponent } from '../terminal/container-terminal.component';
 import { METRIC_RANGES, MetricRange } from '../../../core/constants/container.constants';
 import { DetailTabType, ContainerDetail } from '../../../core/models/container-detail.model';
+import { RadialGaugeComponent } from '../../../shared/components/radial-gauge/radial-gauge.component';
+import { MetricNumberComponent } from '../../../shared/components/metric-number/metric-number.component';
+import { GlassPanelComponent } from '../../../shared/components/glass-panel/glass-panel.component';
+import { StatusDotComponent } from '../../../shared/components/status-dot/status-dot.component';
+import { SkeletonShimmerComponent } from '../../../shared/components/skeleton-shimmer/skeleton-shimmer.component';
+import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state.component';
+import { IconComponent } from '../../../shared/components/icon/icon.component';
+import { MagneticHoverDirective } from '../../../shared/directives/magnetic-hover.directive';
 
 Chart.register(...registerables);
 
@@ -50,8 +58,15 @@ const TABS: DetailTabType[] = ['overview', 'metrics', 'logs', 'config', 'events'
     LogViewerComponent,
     EventsTimelineComponent,
     ContainerTerminalComponent,
+    RadialGaugeComponent,
+    MetricNumberComponent,
+    GlassPanelComponent,
+    StatusDotComponent,
+    SkeletonShimmerComponent,
+    EmptyStateComponent,
+    IconComponent,
+    MagneticHoverDirective
   ],
-
   providers: [ContainerDetailStore],
   templateUrl: './container-detail.component.html',
   styleUrls: ['./container-detail.component.scss'],
@@ -199,10 +214,10 @@ export class ContainerDetailComponent implements OnInit, OnDestroy {
         {
           data: points.map((p) => p.cpu_percent),
           label: 'CPU %',
-          borderColor: '#3b82f6',
-          backgroundColor: 'rgba(59, 130, 246, 0.1)',
+          borderColor: '#D4AF37',
+          backgroundColor: 'rgba(212, 175, 55, 0.1)',
           fill: true,
-          tension: 0.3,
+          tension: 0.35,
         },
       ],
     };
@@ -214,29 +229,19 @@ export class ContainerDetailComponent implements OnInit, OnDestroy {
       const d = new Date(p.timestamp);
       return `${d.getHours()}:${d.getMinutes().toString().padStart(2, '0')}`;
     });
-    const datasets: any[] = [
-      {
-        data: points.map((p) => Math.round(p.memory_bytes / (1024 * 1024))),
-        label: 'Used (MB)',
-        borderColor: '#8b5cf6',
-        backgroundColor: 'rgba(139, 92, 246, 0.1)',
-        fill: true,
-        tension: 0.3,
-      },
-    ];
-
-    if (points.length > 0 && points[0].memory_limit > 0) {
-      datasets.push({
-        data: points.map((p) => Math.round(p.memory_limit / (1024 * 1024))),
-        label: 'Limit (MB)',
-        borderColor: '#ef4444',
-        borderDash: [5, 5],
-        fill: false,
-        pointRadius: 0,
-      });
-    }
-
-    return { labels, datasets };
+    return {
+      labels,
+      datasets: [
+        {
+          data: points.map((p) => p.memory_bytes / 1048576),
+          label: 'Memory (MB)',
+          borderColor: '#8B5CF6',
+          backgroundColor: 'rgba(139, 92, 246, 0.1)',
+          fill: true,
+          tension: 0.35,
+        },
+      ],
+    };
   });
 
   readonly netChartData = computed<ChartConfiguration<'line'>['data']>(() => {
@@ -249,16 +254,16 @@ export class ContainerDetailComponent implements OnInit, OnDestroy {
       labels,
       datasets: [
         {
-          data: points.map((p) => Math.round(p.net_rx_bytes / 1024)),
-          label: 'Rx (KB)',
-          borderColor: '#10b981',
-          fill: false,
+          data: points.map((p) => p.net_rx_bytes / 1024),
+          label: 'Net Rx (KB)',
+          borderColor: '#34D399',
+          tension: 0.35,
         },
         {
-          data: points.map((p) => Math.round(p.net_tx_bytes / 1024)),
-          label: 'Tx (KB)',
-          borderColor: '#6366f1',
-          fill: false,
+          data: points.map((p) => p.net_tx_bytes / 1024),
+          label: 'Net Tx (KB)',
+          borderColor: '#38BDF8',
+          tension: 0.35,
         },
       ],
     };
@@ -274,16 +279,16 @@ export class ContainerDetailComponent implements OnInit, OnDestroy {
       labels,
       datasets: [
         {
-          data: points.map((p) => Math.round(p.block_read_bytes / 1024)),
-          label: 'Read (KB)',
-          borderColor: '#f59e0b',
-          fill: false,
+          data: points.map((p) => p.block_read_bytes / 1024),
+          label: 'Block Read (KB)',
+          borderColor: '#F59E0B',
+          tension: 0.35,
         },
         {
-          data: points.map((p) => Math.round(p.block_write_bytes / 1024)),
-          label: 'Write (KB)',
-          borderColor: '#ec4899',
-          fill: false,
+          data: points.map((p) => p.block_write_bytes / 1024),
+          label: 'Block Write (KB)',
+          borderColor: '#F43F5E',
+          tension: 0.35,
         },
       ],
     };
@@ -293,7 +298,6 @@ export class ContainerDetailComponent implements OnInit, OnDestroy {
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
       this.store.loadContainer(id);
-      this.loadContainerEvents(id);
     }
 
     this.querySub = this.route.queryParams.subscribe((params) => {
@@ -334,6 +338,10 @@ export class ContainerDetailComponent implements OnInit, OnDestroy {
     if (range) {
       this.store.setMetricsRange(range);
     }
+  }
+
+  navigateToContainers(): void {
+    this.router.navigate(['/containers']);
   }
 
   reload(): void {

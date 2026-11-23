@@ -1,281 +1,269 @@
-<div class="dashboard-container">
-  <!-- Banners / Alerts -->
+<div class="dashboard-container" [class.booting]="isBooting()">
+  <!-- Skippable Boot Sequence Overlay -->
+  @if (isBooting()) {
+    <div class="boot-sequence-overlay" (click)="skipBootSequence()" role="button" aria-label="Skip boot sequence">
+      <div class="boot-terminal-line">
+        <span class="boot-prompt">&gt;</span>
+        <span class="boot-text">INITIALIZING FLIGHT DECK TELEMETRY... ALL SYSTEMS ONLINE</span>
+      </div>
+      <div class="boot-scanner-bar"></div>
+      <span class="boot-skip-hint micro-label">PRESS ANYWHERE TO SKIP</span>
+    </div>
+  }
+
+  <!-- System Notification Banners -->
   <div class="banners-section" *ngIf="store.isStale() || ((store.data()?.active_alerts_count ?? 0) > 0)">
     <div class="banner banner-stale" *ngIf="store.isStale()">
-      <mat-icon>sync_problem</mat-icon>
+      <dp-icon name="alert-triangle" [size]="16" class="banner-icon"></dp-icon>
       <span class="banner-text">Live updates paused. Reconnecting to telemetry stream...</span>
     </div>
 
     <div class="banner banner-alert" *ngIf="(store.data()?.active_alerts_count ?? 0) > 0">
-      <mat-icon>warning</mat-icon>
+      <dp-icon name="alert-triangle" [size]="16" class="banner-icon"></dp-icon>
       <span class="banner-text">{{ store.data()?.active_alerts_count }} active alerts require attention</span>
     </div>
   </div>
 
-  <!-- Row 1: Host Metrics Cards -->
-  <div class="metrics-grid" *ngIf="store.data()?.host as host">
-    <!-- CPU Card -->
-    <mat-card
-      class="metric-card interactive-card"
-      (click)="navigateToHost()"
-      (keydown.enter)="navigateToHost()"
-      tabindex="0"
-      role="button"
-      matTooltip="Inspect Host CPU ↗">
-      <mat-card-header>
-        <mat-icon mat-card-avatar class="card-icon cpu-icon">memory</mat-icon>
-        <mat-card-title>Host CPU</mat-card-title>
-        <mat-card-subtitle>Load: {{ formatLoadAvg(host.load_avg) }}</mat-card-subtitle>
-      </mat-card-header>
-      <mat-card-content>
-        <div class="metric-value">{{ host.cpu_percent | number:'1.1-1' }}%</div>
-        <mat-progress-bar
-          mode="determinate"
-          [value]="host.cpu_percent"
-          [class.progress-warn]="host.cpu_percent > thresholds.cpu.warn && host.cpu_percent <= thresholds.cpu.danger"
-          [class.progress-danger]="host.cpu_percent > thresholds.cpu.danger">
-        </mat-progress-bar>
-      </mat-card-content>
-    </mat-card>
+  @if (store.isLoading() && !store.data()) {
+    <div class="dashboard-skeleton-grid">
+      <dp-skeleton-shimmer variant="card" [lines]="6" height="420px"></dp-skeleton-shimmer>
+      <div class="bento-row">
+        <dp-skeleton-shimmer variant="card" [lines]="4" height="240px"></dp-skeleton-shimmer>
+        <dp-skeleton-shimmer variant="card" [lines]="4" height="240px"></dp-skeleton-shimmer>
+      </div>
+    </div>
+  } @else {
+    <!-- Empty Container State if no containers exist -->
+    @if (!store.hasContainers()) {
+      <dp-glass-panel [padding]="'32px'" class="empty-deck-panel">
+        <dp-empty-state
+          icon="ship"
+          title="No containers running"
+          message="No active containers detected on this host. Launch a container or compose project to populate flight deck telemetry."
+          actionLabel="Launch Container"
+          (action)="navigateToContainers()"
+        ></dp-empty-state>
+      </dp-glass-panel>
+    }
 
-    <!-- Memory Card -->
-    <mat-card
-      class="metric-card interactive-card"
-      (click)="navigateToHost()"
-      (keydown.enter)="navigateToHost()"
-      tabindex="0"
-      role="button"
-      matTooltip="Inspect Host Memory ↗">
-      <mat-card-header>
-        <mat-icon mat-card-avatar class="card-icon mem-icon">storage</mat-icon>
-        <mat-card-title>Host Memory</mat-card-title>
-        <mat-card-subtitle>{{ formatBytes(host.memory_used_bytes) }} / {{ formatBytes(host.memory_total_bytes) }}</mat-card-subtitle>
-      </mat-card-header>
-      <mat-card-content>
-        <div class="metric-value">{{ host.memory_percent | number:'1.1-1' }}%</div>
-        <mat-progress-bar
-          mode="determinate"
-          [value]="host.memory_percent"
-          [class.progress-warn]="host.memory_percent > thresholds.memory.warn && host.memory_percent <= thresholds.memory.danger"
-          [class.progress-danger]="host.memory_percent > thresholds.memory.danger">
-        </mat-progress-bar>
-      </mat-card-content>
-    </mat-card>
+    <!-- Hero Section: Orbital Visualization -->
+    @if (store.data()?.host; as host) {
+      <section class="orbital-hero-section">
+        <dp-glass-panel [padding]="'0'" [borderSweep]="true" class="orbital-hero-panel">
+          <dp-orbital-visualization
+            [hostCpu]="host.cpu_percent"
+            [hostMemory]="host.memory_percent"
+            [nodes]="orbitalNodes()"
+            (nodeSelect)="navigateToContainer($event)"
+          ></dp-orbital-visualization>
+        </dp-glass-panel>
+      </section>
 
-    <!-- Disk Card -->
-    <mat-card
-      class="metric-card interactive-card"
-      (click)="navigateToHost()"
-      (keydown.enter)="navigateToHost()"
-      tabindex="0"
-      role="button"
-      matTooltip="Inspect Host Disk ↗">
-      <mat-card-header>
-        <mat-icon mat-card-avatar class="card-icon disk-icon">dns</mat-icon>
-        <mat-card-title>Host Disk</mat-card-title>
-        <mat-card-subtitle>{{ formatBytes(host.disk_used_bytes) }} / {{ formatBytes(host.disk_total_bytes) }}</mat-card-subtitle>
-      </mat-card-header>
-      <mat-card-content>
-        <div class="metric-value">{{ host.disk_percent | number:'1.1-1' }}%</div>
-        <mat-progress-bar
-          mode="determinate"
-          [value]="host.disk_percent"
-          [class.progress-warn]="host.disk_percent > thresholds.disk.warn && host.disk_percent <= thresholds.disk.danger"
-          [class.progress-danger]="host.disk_percent > thresholds.disk.danger">
-        </mat-progress-bar>
-      </mat-card-content>
-    </mat-card>
+      <!-- Bento Grid Layout: Unequal Geometries -->
+      <section class="bento-grid">
+        <!-- Tile 1: Host Telemetry Core Cluster (Wide 8-Col) -->
+        <dp-glass-panel [padding]="'20px'" class="bento-tile tile-host-metrics">
+          <div class="tile-header">
+            <div class="tile-title-group">
+              <dp-icon name="server" [size]="16" class="tile-icon"></dp-icon>
+              <h2 class="tile-title">HOST CORE TELEMETRY</h2>
+            </div>
+            <button class="btn-secondary inspect-btn" (click)="navigateToHost()">
+              <span>INSPECT HOST</span>
+              <dp-icon name="arrow-right" [size]="14"></dp-icon>
+            </button>
+          </div>
 
-    <!-- Uptime Card -->
-    <mat-card
-      class="metric-card interactive-card"
-      (click)="navigateToContainers()"
-      (keydown.enter)="navigateToContainers()"
-      tabindex="0"
-      role="button"
-      matTooltip="View Docker workloads ↗">
-      <mat-card-header>
-        <mat-icon mat-card-avatar class="card-icon uptime-icon">schedule</mat-icon>
-        <mat-card-title>Server Uptime</mat-card-title>
-        <mat-card-subtitle>
-          <span class="status-indicator" [class.connected]="store.data()?.docker_connected"></span>
-          Docker {{ store.data()?.docker_connected ? 'Connected' : 'Disconnected' }}
-        </mat-card-subtitle>
-      </mat-card-header>
-      <mat-card-content>
-        <div class="metric-value uptime-text">{{ formatUptime(host.uptime_seconds) }}</div>
-        <div class="metric-footnote">Updated: {{ store.data()?.timestamp | date:'mediumTime' }}</div>
-      </mat-card-content>
-    </mat-card>
-  </div>
+          <div class="metrics-quad-grid">
+            <!-- CPU Card -->
+            <div class="quad-metric-card" (click)="navigateToHost()" tabindex="0" role="button">
+              <div class="metric-top">
+                <span class="micro-label">Host CPU</span>
+                <span class="metric-sublabel micro-label">Load: {{ formatLoadAvg(host.load_avg) }}</span>
+              </div>
+              <div class="metric-body">
+                <dp-radial-gauge [value]="host.cpu_percent" [size]="84" [strokeWidth]="6"></dp-radial-gauge>
+                <div class="metric-digits">
+                  <dp-metric-number [value]="host.cpu_percent" unit="%" [precision]="1" [warningThreshold]="thresholds.cpu.warn" [criticalThreshold]="thresholds.cpu.danger"></dp-metric-number>
+                  <span class="metric-raw tabular-nums">{{ host.cpu_percent | number:'1.1-1' }}%</span>
+                </div>
+              </div>
+            </div>
 
-  <!-- Row 2: Containers & Top Consumers Grid -->
-  <div class="charts-grid">
-    <!-- Container Status Donut Card -->
-    <mat-card class="chart-card containers-card">
-      <mat-card-header>
-        <mat-card-title>Containers</mat-card-title>
-        <mat-card-subtitle>State distribution</mat-card-subtitle>
-      </mat-card-header>
-      <mat-card-content>
-        <div *ngIf="!store.hasContainers()" class="empty-state">
-          <mat-icon class="empty-icon">inventory_2</mat-icon>
-          <p class="empty-text">No containers running</p>
-          <span class="empty-hint">Deploy or start a container to view telemetry</span>
-        </div>
+            <!-- Memory Card -->
+            <div class="quad-metric-card" (click)="navigateToHost()" tabindex="0" role="button">
+              <div class="metric-top">
+                <span class="micro-label">Host Memory</span>
+                <span class="metric-sublabel micro-label">{{ formatBytes(host.memory_used_bytes) }} / {{ formatBytes(host.memory_total_bytes) }}</span>
+              </div>
+              <div class="metric-body">
+                <dp-radial-gauge [value]="host.memory_percent" [size]="84" [strokeWidth]="6"></dp-radial-gauge>
+                <div class="metric-digits">
+                  <dp-metric-number [value]="host.memory_percent" unit="%" [precision]="1" [warningThreshold]="thresholds.memory.warn" [criticalThreshold]="thresholds.memory.danger"></dp-metric-number>
+                  <span class="metric-raw tabular-nums">{{ host.memory_percent | number:'1.1-1' }}%</span>
+                </div>
+              </div>
+            </div>
 
-        <div *ngIf="store.hasContainers()" class="donut-wrapper">
-          <div class="chart-container donut-container">
+            <!-- Disk Card -->
+            <div class="quad-metric-card" (click)="navigateToHost()" tabindex="0" role="button">
+              <div class="metric-top">
+                <span class="micro-label">STORAGE VOLUMES</span>
+                <span class="metric-sublabel micro-label">{{ formatBytes(host.disk_used_bytes) }} / {{ formatBytes(host.disk_total_bytes) }}</span>
+              </div>
+              <div class="metric-body">
+                <dp-radial-gauge [value]="host.disk_percent" [size]="84" [strokeWidth]="6"></dp-radial-gauge>
+                <div class="metric-digits">
+                  <dp-metric-number [value]="host.disk_percent" unit="%" [precision]="1" [warningThreshold]="thresholds.disk.warn" [criticalThreshold]="thresholds.disk.danger"></dp-metric-number>
+                  <span class="metric-raw tabular-nums">{{ host.disk_percent | number:'1.1-1' }}%</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Server Uptime -->
+            <div class="quad-metric-card" (click)="navigateToContainers()" tabindex="0" role="button">
+              <div class="metric-top">
+                <span class="micro-label">SYSTEM UPTIME</span>
+                <span class="metric-sublabel micro-label">Docker Workloads</span>
+              </div>
+              <div class="metric-body uptime-body">
+                <dp-icon name="clock" [size]="36" class="uptime-clock-icon"></dp-icon>
+                <div class="uptime-digits">
+                  <span class="uptime-val tabular-nums">{{ formatUptime(host.uptime_seconds) }}</span>
+                  <span class="micro-label">ACTIVE CONTINUOUS</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </dp-glass-panel>
+
+        <!-- Tile 2: Container State Donut Breakdown (4-Col) -->
+        <dp-glass-panel [padding]="'20px'" class="bento-tile tile-container-donut">
+          <div class="tile-header">
+            <div class="tile-title-group">
+              <dp-icon name="ship" [size]="16" class="tile-icon"></dp-icon>
+              <h2 class="tile-title">CRAFT INVENTORY</h2>
+            </div>
+            <button class="btn-secondary inspect-btn" (click)="navigateToContainers()">
+              <span>VIEW ALL</span>
+              <dp-icon name="arrow-right" [size]="14"></dp-icon>
+            </button>
+          </div>
+
+          <div class="donut-chart-wrapper">
             <canvas
               baseChart
               [data]="store.containerStateChartData()"
               [options]="donutChartOptions"
-              [type]="'doughnut'">
+              type="doughnut">
             </canvas>
-            <div
-              class="donut-center-total"
-              (click)="navigateToContainers()"
-              (keydown.enter)="navigateToContainers()"
-              tabindex="0"
-              role="button"
-              matTooltip="View all containers ({{ store.data()?.containers?.total ?? 0 }}) ↗">
-              <span class="total-number">{{ store.data()?.containers?.total ?? 0 }}</span>
-              <span class="total-label">Total</span>
+            <div class="donut-center-metric">
+              <span class="donut-count tabular-nums">{{ store.data()?.containers?.total ?? 0 }}</span>
+              <span class="micro-label">TOTAL CRAFT</span>
             </div>
           </div>
 
-          <div class="state-chips" *ngIf="store.data()?.containers as c">
-            <span
-              class="state-chip"
-              [style.--chip-color]="stateColors.running"
-              (click)="navigateToContainers('running')"
-              (keydown.enter)="navigateToContainers('running')"
-              tabindex="0"
-              role="button"
-              matTooltip="Filter: Running ({{ c.running }}) ↗">
-              <span class="dot"></span>
-              <span class="name">{{ stateLabels.running }}:</span>
-              <strong>{{ c.running }}</strong>
+          <!-- State Legend Chips -->
+          <div class="donut-legend-row" *ngIf="store.data()?.containers as c">
+            <span class="legend-pill" (click)="navigateToContainers('running')" role="button" tabindex="0">
+              <dp-status-dot status="running"></dp-status-dot>
+              <span class="micro-label">RUNNING</span>
+              <span class="pill-count tabular-nums">{{ c.running }}</span>
             </span>
-            <span
-              class="state-chip"
-              [style.--chip-color]="stateColors.exited"
-              (click)="navigateToContainers('exited')"
-              (keydown.enter)="navigateToContainers('exited')"
-              tabindex="0"
-              role="button"
-              matTooltip="Filter: Exited ({{ c.exited }}) ↗">
-              <span class="dot"></span>
-              <span class="name">{{ stateLabels.exited }}:</span>
-              <strong>{{ c.exited }}</strong>
+            <span class="legend-pill" (click)="navigateToContainers('stopped')" role="button" tabindex="0">
+              <dp-status-dot status="stopped"></dp-status-dot>
+              <span class="micro-label">EXITED</span>
+              <span class="pill-count tabular-nums">{{ c.exited }}</span>
             </span>
-            <span
-              class="state-chip"
-              [style.--chip-color]="stateColors.restarting"
-              (click)="navigateToContainers('restarting')"
-              (keydown.enter)="navigateToContainers('restarting')"
-              tabindex="0"
-              role="button"
-              matTooltip="Filter: Restarting ({{ c.restarting }}) ↗">
-              <span class="dot"></span>
-              <span class="name">{{ stateLabels.restarting }}:</span>
-              <strong>{{ c.restarting }}</strong>
-            </span>
-            <span
-              class="state-chip"
-              [style.--chip-color]="stateColors.unhealthy"
-              (click)="navigateToContainers('unhealthy')"
-              (keydown.enter)="navigateToContainers('unhealthy')"
-              tabindex="0"
-              role="button"
-              matTooltip="Filter: Unhealthy ({{ c.unhealthy }}) ↗">
-              <span class="dot"></span>
-              <span class="name">{{ stateLabels.unhealthy }}:</span>
-              <strong>{{ c.unhealthy }}</strong>
-            </span>
-            <span
-              class="state-chip"
-              [style.--chip-color]="stateColors.paused"
-              (click)="navigateToContainers('paused')"
-              (keydown.enter)="navigateToContainers('paused')"
-              tabindex="0"
-              role="button"
-              matTooltip="Filter: Paused ({{ c.paused }}) ↗">
-              <span class="dot"></span>
-              <span class="name">{{ stateLabels.paused }}:</span>
-              <strong>{{ c.paused }}</strong>
+            <span class="legend-pill" (click)="navigateToContainers('restarting')" role="button" tabindex="0">
+              <dp-status-dot status="restarting"></dp-status-dot>
+              <span class="micro-label">RESTARTING</span>
+              <span class="pill-count tabular-nums">{{ c.restarting }}</span>
             </span>
           </div>
-        </div>
-      </mat-card-content>
-    </mat-card>
+        </dp-glass-panel>
 
-    <!-- Top Consumers Card -->
-    <mat-card class="chart-card consumers-card">
-      <mat-card-header>
-        <mat-card-title>Top Consumers</mat-card-title>
-        <mat-card-subtitle>Top resource utilization</mat-card-subtitle>
-      </mat-card-header>
-      <mat-card-content>
-        <div *ngIf="!store.hasContainers()" class="empty-state">
-          <mat-icon class="empty-icon">speed</mat-icon>
-          <p class="empty-text">No containers running</p>
-        </div>
-
-        <mat-tab-group
-          *ngIf="store.hasContainers()"
-          animationDuration="150ms"
-          class="consumers-tabs"
-          (selectedIndexChange)="onConsumerTabChange($event)">
-          <!-- CPU Tab -->
-          <mat-tab label="CPU %">
-            <div class="tab-chart-container" *ngIf="(store.data()?.top_cpu?.length ?? 0) > 0">
-              <canvas
-                baseChart
-                [data]="store.topCpuChartData()"
-                [options]="barChartOptions"
-                [type]="'bar'">
-              </canvas>
+        <!-- Tile 3: Top Consumers Chart (7-Col) -->
+        <dp-glass-panel [padding]="'20px'" class="bento-tile tile-top-consumers">
+          <div class="tile-header">
+            <div class="tile-title-group">
+              <dp-icon name="bar-chart-2" [size]="16" class="tile-icon"></dp-icon>
+              <h2 class="tile-title">TOP CONSUMERS</h2>
             </div>
-            <div class="empty-tab" *ngIf="(store.data()?.top_cpu?.length ?? 0) === 0">
-              <span>No active CPU consumption reported</span>
+            <div class="consumer-toggle-group">
+              <button
+                class="toggle-btn"
+                [class.active]="activeConsumerTab === 'cpu'"
+                (click)="onConsumerTabChange(0)">
+                CPU LOAD
+              </button>
+              <button
+                class="toggle-btn"
+                [class.active]="activeConsumerTab === 'memory'"
+                (click)="onConsumerTabChange(1)">
+                MEMORY
+              </button>
             </div>
-          </mat-tab>
+          </div>
 
-          <!-- Memory Tab -->
-          <mat-tab label="RAM %">
-            <div class="tab-chart-container" *ngIf="(store.data()?.top_memory?.length ?? 0) > 0">
-              <canvas
-                baseChart
-                [data]="store.topMemoryChartData()"
-                [options]="barChartOptions"
-                [type]="'bar'">
-              </canvas>
+          <div class="bar-chart-wrapper">
+            <canvas
+              baseChart
+              [data]="activeConsumerTab === 'cpu' ? store.topCpuChartData() : store.topMemoryChartData()"
+              [options]="barChartOptions"
+              type="bar">
+            </canvas>
+          </div>
+        </dp-glass-panel>
+
+        <!-- Tile 4: Real-time Telemetry I/O Sparklines (5-Col) -->
+        <dp-glass-panel [padding]="'20px'" class="bento-tile tile-io-sparklines">
+          <div class="tile-header">
+            <div class="tile-title-group">
+              <dp-icon name="activity" [size]="16" class="tile-icon"></dp-icon>
+              <h2 class="tile-title">I/O TELEMETRY STREAMS</h2>
             </div>
-            <div class="empty-tab" *ngIf="(store.data()?.top_memory?.length ?? 0) === 0">
-              <span>No active RAM consumption reported</span>
+            <span class="live-tag micro-label">
+              <span class="live-pulse"></span>
+              2S SSE
+            </span>
+          </div>
+
+          <div class="sparklines-stack">
+            <div class="sparkline-block">
+              <div class="sparkline-info">
+                <span class="micro-label">NETWORK I/O THROUGHPUT</span>
+                <span class="io-val tabular-nums">482.4 KB/S</span>
+              </div>
+              <dp-sparkline [data]="networkSparkline()" [height]="54" strokeColor="var(--gold)"></dp-sparkline>
             </div>
-          </mat-tab>
-        </mat-tab-group>
-      </mat-card-content>
-    </mat-card>
-  </div>
 
-  <!-- Row 3: Recent Events Activity Feed -->
-  <mat-card class="events-card">
-    <mat-card-header>
-      <mat-icon mat-card-avatar class="card-icon events-icon">history</mat-icon>
-      <mat-card-title>Recent Docker Events</mat-card-title>
-      <mat-card-subtitle>Activity log from Docker engine</mat-card-subtitle>
-    </mat-card-header>
-    <mat-card-content>
-      <div *ngIf="(store.data()?.recent_events?.length ?? 0) === 0" class="empty-events">
-        <p>No recent events recorded</p>
-      </div>
+            <div class="sparkline-block">
+              <div class="sparkline-info">
+                <span class="micro-label">BLOCK DISK I/O RATE</span>
+                <span class="io-val tabular-nums">1.28 MB/S</span>
+              </div>
+              <dp-sparkline [data]="diskIoSparkline()" [height]="54" strokeColor="var(--status-running)"></dp-sparkline>
+            </div>
+          </div>
+        </dp-glass-panel>
 
-      <div class="timeline-embed" *ngIf="timelineEvents().length > 0">
-        <dp-events-timeline [events]="timelineEvents()" [compact]="true"></dp-events-timeline>
-      </div>
-    </mat-card-content>
-  </mat-card>
+        <!-- Tile 5: Recent Events Timeline (12-Col Full-Width) -->
+        <dp-glass-panel [padding]="'20px'" class="bento-tile tile-events-full">
+          <div class="tile-header">
+            <div class="tile-title-group">
+              <dp-icon name="clock" [size]="16" class="tile-icon"></dp-icon>
+              <h2 class="tile-title">OPERATIONAL LOG & TELEMETRY EVENTS</h2>
+            </div>
+            <button class="btn-secondary inspect-btn" (click)="navigateToContainers()">
+              <span>VIEW LOG STREAM</span>
+              <dp-icon name="arrow-right" [size]="14"></dp-icon>
+            </button>
+          </div>
+
+          <dp-events-timeline [events]="timelineEvents()"></dp-events-timeline>
+        </dp-glass-panel>
+      </section>
+    }
+  }
 </div>

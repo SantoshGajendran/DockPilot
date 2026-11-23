@@ -1,14 +1,17 @@
 <div class="logs-explorer-container">
   <!-- Container Picker Panel -->
-  <div class="containers-panel">
+  <dp-glass-panel [padding]="'16px'" class="containers-glass-panel">
     <div class="panel-header">
-      <h3>Containers ({{ store.selectedCount() }}/{{ store.containers().length }})</h3>
-      <button mat-button color="primary" (click)="store.toggleAll()">
-        {{ store.allSelected() ? 'Deselect All' : 'Select All' }}
+      <div class="panel-title-row">
+        <dp-icon name="box" [size]="16"></dp-icon>
+        <span class="panel-heading font-mono">TARGET FLEET ({{ store.selectedCount() }}/{{ store.containers().length }})</span>
+      </div>
+      <button class="btn-text-gold font-mono" (click)="store.toggleAll()">
+        {{ store.allSelected() ? 'DESELECT ALL' : 'SELECT ALL' }}
       </button>
     </div>
 
-    <div class="containers-list">
+    <div class="containers-list font-mono">
       @for (c of store.containers(); track c.id) {
         <div class="container-item" (click)="store.toggleContainer(c.id)">
           <mat-checkbox
@@ -23,25 +26,25 @@
         </div>
       }
     </div>
-  </div>
+  </dp-glass-panel>
 
   <!-- Main Log Explorer Panel -->
   <div class="main-log-panel">
     @if (store.isCapped()) {
-      <div class="capped-banner">
-        <mat-icon style="font-size: 18px; width: 18px; height: 18px;">warning</mat-icon>
-        <span>Search limit reached: scan was capped at configured maximum byte scan threshold.</span>
+      <div class="capped-banner font-mono">
+        <dp-icon name="alert-triangle" [size]="16"></dp-icon>
+        <span>SCAN CAP HIT: BYTE SEARCH THRESHOLD REACHED ON RETRIEVAL</span>
       </div>
     }
 
     <!-- Search & Filter Card -->
-    <div class="search-filter-card">
+    <dp-glass-panel [padding]="'14px 18px'" class="search-filter-card">
       <div class="search-inputs">
         <div class="search-box">
-          <mat-icon>search</mat-icon>
+          <dp-icon name="search" [size]="16"></dp-icon>
           <input
             type="text"
-            placeholder="Search logs (regex or text)..."
+            placeholder="Search logs with regex or tokens..."
             [value]="store.searchQuery()"
             (input)="onSearchInput($event)"
             (keyup.enter)="store.fetchLogs()"
@@ -49,32 +52,38 @@
         </div>
 
         <button
-          mat-icon-button
-          [color]="store.isRegex() ? 'primary' : ''"
-          matTooltip="Toggle regex mode"
+          class="regex-toggle-btn font-mono"
+          [class.active]="store.isRegex()"
+          matTooltip="Toggle regex engine mode"
           (click)="store.toggleRegex()"
         >
-          <mat-icon>regular_expression</mat-icon>
+          .* REGEX
         </button>
 
-        <button mat-flat-button color="primary" (click)="store.fetchLogs()">
-          Search
+        <button class="btn-primary btn-sm font-mono" (click)="store.fetchLogs()">
+          EXECUTE SCAN
         </button>
       </div>
 
-      <div class="filters-group">
+      <div class="filters-group font-mono">
         <!-- Time Range -->
-        <mat-chip-listbox [value]="store.timeRange()" (change)="store.setTimeRange($event.value)">
+        <div class="range-toggles">
           @for (r of ['15m', '1h', '6h', '24h']; track r) {
-            <mat-chip-option [value]="r">{{ r }}</mat-chip-option>
+            <button
+              class="range-pill"
+              [class.active]="store.timeRange() === r"
+              (click)="store.setTimeRange(r)"
+            >
+              {{ r }}
+            </button>
           }
-        </mat-chip-listbox>
+        </div>
 
         <!-- Stream Filter -->
         <mat-form-field appearance="outline" class="field-small" subscriptSizing="dynamic">
-          <mat-label>Stream</mat-label>
+          <mat-label>STREAM</mat-label>
           <mat-select [value]="store.streamFilter()" (selectionChange)="store.setStreamFilter($event.value)">
-            <mat-option value="all">All</mat-option>
+            <mat-option value="all">ALL STREAMS</mat-option>
             <mat-option value="stdout">stdout</mat-option>
             <mat-option value="stderr">stderr</mat-option>
           </mat-select>
@@ -82,17 +91,17 @@
 
         <!-- Level Filter -->
         <mat-form-field appearance="outline" class="field-small" subscriptSizing="dynamic">
-          <mat-label>Level</mat-label>
+          <mat-label>SEVERITY</mat-label>
           <mat-select [value]="store.levelFilter()" (selectionChange)="store.setLevelFilter($event.value)">
-            <mat-option value="ALL">All Levels</mat-option>
-            <mat-option value="ERROR">ERROR</mat-option>
-            <mat-option value="WARN">WARN</mat-option>
+            <mat-option value="ALL">ALL LEVELS</mat-option>
+            <mat-option value="ERROR">ERROR / FATAL</mat-option>
+            <mat-option value="WARN">WARNING</mat-option>
             <mat-option value="INFO">INFO</mat-option>
             <mat-option value="DEBUG">DEBUG</mat-option>
           </mat-select>
         </mat-form-field>
       </div>
-    </div>
+    </dp-glass-panel>
 
     <!-- Reusable Virtual Scrolled Log Viewer -->
     <div class="viewer-wrapper">

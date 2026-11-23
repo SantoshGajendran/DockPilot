@@ -1,10 +1,20 @@
 import { Routes } from '@angular/router';
+import { isDevMode } from '@angular/core';
 import { ShellComponent } from './layout/shell.component';
 import { authGuard } from './core/guards/auth.guard';
 import { roleGuard } from './core/guards/role.guard';
 import { pendingChangesGuard } from './core/guards/pending-changes.guard';
 
 export const routes: Routes = [
+  {
+    path: 'dev/components',
+    canMatch: [() => isDevMode()],
+    loadComponent: () =>
+      import('./features/dev/components-gallery.component').then(
+        (m) => m.ComponentsGalleryComponent
+      ),
+    data: { title: 'Flight Deck Component Gallery' },
+  },
   {
     path: 'login',
     loadComponent: () =>

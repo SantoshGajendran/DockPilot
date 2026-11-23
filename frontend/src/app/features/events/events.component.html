@@ -1,56 +1,60 @@
 <div class="events-page">
   <!-- Page Header -->
-  <div class="page-header">
+  <dp-glass-panel [padding]="'18px 24px'" class="page-header">
     <div class="title-section">
       <div class="icon-bubble">
-        <mat-icon>timeline</mat-icon>
+        <dp-icon name="activity" [size]="24"></dp-icon>
       </div>
       <div>
+        <div class="stream-status-row font-mono">
+          <span class="pulse-dot" [class.live]="store.isLive()"></span>
+          <span class="status-label">{{ store.isLive() ? 'TELEMETRY BUS ACTIVE' : 'STREAM MUTED' }}</span>
+        </div>
         <h2>Events Timeline</h2>
-        <p class="subtitle">Live and historical container lifecycle transitions and incidents</p>
+        <p class="subtitle font-mono">Live and historical container lifecycle transitions and incidents</p>
       </div>
     </div>
 
     <div class="header-actions">
       <button
-        mat-stroked-button
-        [color]="store.isLive() ? 'accent' : ''"
+        class="action-btn font-mono"
+        [class.active]="store.isLive()"
         (click)="store.toggleLive()"
         [matTooltip]="store.isLive() ? 'Pause live SSE stream' : 'Resume live SSE stream'"
       >
-        <mat-icon>{{ store.isLive() ? 'sensors' : 'sensors_off' }}</mat-icon>
-        {{ store.isLive() ? 'Live (SSE)' : 'Paused' }}
+        <dp-icon [name]="store.isLive() ? 'radio' : 'pause'" [size]="14"></dp-icon>
+        <span>{{ store.isLive() ? 'LIVE (SSE)' : 'PAUSED' }}</span>
       </button>
 
-      <button mat-stroked-button (click)="store.loadEvents()" [disabled]="store.isLoading()">
-        <mat-icon>refresh</mat-icon>
-        Refresh
+      <button class="action-btn font-mono" (click)="store.loadEvents()" [disabled]="store.isLoading()">
+        <dp-icon name="refresh-cw" [size]="14"></dp-icon>
+        <span>REFRESH</span>
       </button>
     </div>
-  </div>
+  </dp-glass-panel>
 
   <!-- Filters Card -->
-  <div class="filter-card">
-    <div class="filter-inputs">
+  <dp-glass-panel [padding]="'14px 20px'" class="filter-card">
+    <div class="filter-inputs font-mono">
       <!-- Container Name Filter -->
-      <mat-form-field appearance="outline" subscriptSizing="dynamic" class="search-field">
-        <mat-icon matPrefix>search</mat-icon>
+      <div class="search-input-box">
+        <dp-icon name="search" [size]="14"></dp-icon>
         <input
-          matInput
+          type="text"
           [(ngModel)]="filterContainerName"
           (keyup.enter)="applyFilters()"
-          placeholder="Search events by container name..."
+          placeholder="Filter by container name..."
         />
         @if (filterContainerName) {
-          <button matSuffix mat-icon-button aria-label="Clear" (click)="filterContainerName = ''; applyFilters()">
-            <mat-icon>close</mat-icon>
+          <button class="btn-clear" (click)="filterContainerName = ''; applyFilters()">
+            <dp-icon name="x" [size]="12"></dp-icon>
           </button>
         }
-      </mat-form-field>
+      </div>
 
       <!-- Action Select -->
       <mat-form-field appearance="outline" subscriptSizing="dynamic" class="select-field">
-        <mat-label>Event Action</mat-label>
+        <mat-label>ACTION</mat-label>
         <mat-select [(ngModel)]="filterAction" (selectionChange)="applyFilters()">
           <mat-option *ngFor="let opt of actionOptions" [value]="opt.value">
             {{ opt.label }}
@@ -61,62 +65,55 @@
       <!-- Incidents Only Toggle -->
       <div class="toggle-section">
         <mat-slide-toggle [(ngModel)]="filterIncidentsOnly" (change)="applyFilters()" color="warn">
-          Incidents Only (OOM, Loop, Crash)
+          INCIDENTS ONLY (OOM, LOOP, CRASH)
         </mat-slide-toggle>
       </div>
 
       <!-- Action buttons -->
       <div class="filter-buttons">
-        <button mat-flat-button color="primary" (click)="applyFilters()">
-          Filter
+        <button class="btn-primary btn-sm" (click)="applyFilters()">
+          FILTER
         </button>
-        <button mat-button (click)="clearFilters()">
-          Clear
+        <button class="btn-secondary btn-sm" (click)="clearFilters()">
+          CLEAR
         </button>
       </div>
     </div>
-  </div>
+  </dp-glass-panel>
 
   <!-- Loading State -->
   <div *ngIf="store.isLoading()" class="loading-state">
-    <mat-spinner diameter="40"></mat-spinner>
-    <p>Loading timeline events...</p>
+    <mat-spinner diameter="36"></mat-spinner>
+    <p class="font-mono text-muted text-xs">SYNCHRONIZING TEMPORAL EVENT LOGS...</p>
   </div>
 
   <!-- Error State -->
-  <div *ngIf="store.error()" class="error-banner">
-    <mat-icon>error_outline</mat-icon>
+  <div *ngIf="store.error()" class="error-banner font-mono">
+    <dp-icon name="alert-triangle" [size]="18"></dp-icon>
     <span>{{ store.error() }}</span>
-    <button mat-button color="warn" (click)="store.loadEvents()">Retry</button>
+    <button class="btn-secondary btn-sm" (click)="store.loadEvents()">RETRY</button>
   </div>
 
   <!-- Empty State -->
   <div *ngIf="!store.isLoading() && store.events().length === 0 && !store.error()" class="empty-state">
     <mat-icon class="empty-icon">event_busy</mat-icon>
-    <h3>No Events Found</h3>
-    <p>No container lifecycle events matched the selected filter criteria.</p>
+    <h3 class="font-mono">No Events Found</h3>
+    <p class="font-mono text-muted text-xs">TIMELINE CLEAR // ZERO SYSTEM ANOMALIES RECORDED</p>
   </div>
 
   <!-- Events Timeline Card -->
-  <div class="timeline-container" *ngIf="!store.isLoading() && store.events().length > 0">
-    <div class="timeline-card">
-      <dp-events-timeline [events]="store.events()"></dp-events-timeline>
+  <dp-glass-panel [padding]="'20px 24px'" *ngIf="!store.isLoading() && store.events().length > 0">
+    <dp-events-timeline [events]="store.events()"></dp-events-timeline>
 
-      <!-- Pagination / Load More -->
-      <div class="pagination-footer">
-        <span class="count-text">Showing {{ store.events().length }} of {{ store.total() }} events</span>
-        <button
-          *ngIf="store.hasMore()"
-          mat-stroked-button
-          color="primary"
-          (click)="store.loadMore()"
-          [disabled]="store.isLoadingMore()"
-        >
-          <mat-spinner *ngIf="store.isLoadingMore()" diameter="18" class="spinner-inline"></mat-spinner>
-          <mat-icon *ngIf="!store.isLoadingMore()">expand_more</mat-icon>
-          Load More Events
-        </button>
-      </div>
+    <!-- Pagination / Load More Footer -->
+    <div class="pagination-footer font-mono" *ngIf="store.hasMore()">
+      <button
+        class="btn-secondary btn-sm"
+        (click)="store.loadMore()"
+        [disabled]="store.isLoading()"
+      >
+        LOAD PREVIOUS EVENTS (PAGE {{ store.events().length }} / {{ store.total() }})
+      </button>
     </div>
-  </div>
+  </dp-glass-panel>
 </div>

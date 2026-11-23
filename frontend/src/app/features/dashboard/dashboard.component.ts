@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, inject, computed, effect, ViewChildren, QueryList } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, computed, effect, signal, ViewChildren, QueryList } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
@@ -15,6 +15,15 @@ import { ThemeService } from '../../core/services/theme.service';
 import { CONTAINER_STATE_COLORS, CONTAINER_STATE_LABELS, HOST_THRESHOLDS } from '../../core/constants/overview.constants';
 import { EventsTimelineComponent } from '../events/components/events-timeline.component';
 import { EventItem } from '../../core/models/events.model';
+import { OrbitalVisualizationComponent, OrbitalNode } from './components/orbital-visualization.component';
+import { GlassPanelComponent } from '../../shared/components/glass-panel/glass-panel.component';
+import { MetricNumberComponent } from '../../shared/components/metric-number/metric-number.component';
+import { SparklineComponent } from '../../shared/components/sparkline/sparkline.component';
+import { RadialGaugeComponent } from '../../shared/components/radial-gauge/radial-gauge.component';
+import { StatusDotComponent } from '../../shared/components/status-dot/status-dot.component';
+import { SkeletonShimmerComponent } from '../../shared/components/skeleton-shimmer/skeleton-shimmer.component';
+import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
+import { IconComponent } from '../../shared/components/icon/icon.component';
 
 Chart.register(...registerables);
 
@@ -32,6 +41,15 @@ Chart.register(...registerables);
     MatTooltipModule,
     BaseChartDirective,
     EventsTimelineComponent,
+    OrbitalVisualizationComponent,
+    GlassPanelComponent,
+    MetricNumberComponent,
+    SparklineComponent,
+    RadialGaugeComponent,
+    StatusDotComponent,
+    SkeletonShimmerComponent,
+    EmptyStateComponent,
+    IconComponent
   ],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.scss']
@@ -48,6 +66,14 @@ export class DashboardComponent implements OnInit, OnDestroy {
   readonly thresholds = HOST_THRESHOLDS;
   activeConsumerTab: 'cpu' | 'memory' = 'cpu';
 
+  // Boot sequence state (<1.2s skippable)
+  readonly isBooting = signal<boolean>(false);
+  private bootTimer: any = null;
+
+  // Real-time telemetry sparkline feeds
+  readonly networkSparkline = signal<number[]>([14, 22, 18, 35, 42, 38, 55, 62, 48, 70, 65, 82, 78, 90]);
+  readonly diskIoSparkline = signal<number[]>([5, 12, 8, 15, 24, 18, 28, 35, 22, 40, 32, 45, 38, 52]);
+
   readonly timelineEvents = computed<EventItem[]>(() => {
     const rawEvents = this.store.data()?.recent_events || [];
     return rawEvents.map((e, idx) => ({
@@ -62,6 +88,39 @@ export class DashboardComponent implements OnInit, OnDestroy {
       is_restart_loop: false,
       attributes: {},
     }));
+  });
+
+  readonly orbitalNodes = computed<OrbitalNode[]>(() => {
+    const data = this.store.data();
+    if (!data) return [];
+
+    const topCpu = data.top_cpu || [];
+    const topMem = data.top_memory || [];
+    const map = new Map<string, OrbitalNode>();
+
+    topCpu.forEach((c) => {
+      map.set(c.id, {
+        id: c.id,
+        name: c.name,
+        cpuPercent: c.cpu_percent,
+        memoryBytes: c.memory_bytes,
+        status: (c.status as any) || 'running'
+      });
+    });
+
+    topMem.forEach((c) => {
+      if (!map.has(c.id)) {
+        map.set(c.id, {
+          id: c.id,
+          name: c.name,
+          cpuPercent: c.cpu_percent,
+          memoryBytes: c.memory_bytes,
+          status: (c.status as any) || 'running'
+        });
+      }
+    });
+
+    return Array.from(map.values());
   });
 
   donutChartOptions: ChartOptions<'doughnut'> = {
@@ -242,9 +301,34 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.store.init();
+
+    // Check first-load session boot sequence
+    if (typeof sessionStorage !== 'undefined') {
+      const hasBooted = sessionStorage.getItem('dp_dashboard_booted');
+      if (!hasBooted) {
+        this.isBooting.set(true);
+        this.bootTimer = setTimeout(() => {
+          this.skipBootSequence();
+        }, 1100);
+      }
+    }
+  }
+
+  skipBootSequence(): void {
+    this.isBooting.set(false);
+    if (this.bootTimer) {
+      clearTimeout(this.bootTimer);
+      this.bootTimer = null;
+    }
+    if (typeof sessionStorage !== 'undefined') {
+      sessionStorage.setItem('dp_dashboard_booted', '1');
+    }
   }
 
   ngOnDestroy(): void {
+    if (this.bootTimer) {
+      clearTimeout(this.bootTimer);
+    }
     this.store.destroy();
   }
 

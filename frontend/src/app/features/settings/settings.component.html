@@ -394,6 +394,23 @@
                 </div>
                 <mat-slide-toggle formControlName="registration_enabled" color="primary"></mat-slide-toggle>
               </div>
+
+              <mat-divider></mat-divider>
+
+              <div class="toggle-item quiet-mode-item">
+                <div class="toggle-info">
+                  <div class="field-header">
+                    <strong>Quiet Mode (Atmospheric Mute)</strong>
+                    <span class="badge-hot client-badge">Client Pref</span>
+                  </div>
+                  <p class="field-help">Suppresses ambient background particle canvas, pointer tilt, and parallax physics for enhanced focus and reduced motion.</p>
+                </div>
+                <mat-slide-toggle
+                  [checked]="atmosphereService.quietMode()"
+                  (change)="atmosphereService.setQuietMode($event.checked)"
+                  color="primary"
+                ></mat-slide-toggle>
+              </div>
             </mat-card-content>
           </mat-card>
         </div>
@@ -492,4 +509,28 @@
       </mat-tab>
     </mat-tab-group>
   </div>
+
+  <!-- Sticky Save Bar for Unsaved Changes -->
+  <aside class="sticky-save-bar font-mono" *ngIf="store.isDirty() && canAdmin()">
+    <div class="save-bar-content">
+      <div class="save-bar-text">
+        <mat-icon class="save-bar-icon">edit_note</mat-icon>
+        <span>CAUTION: FORM CONTAINS UNSAVED CONFIGURATION MODIFICATIONS</span>
+      </div>
+      <div class="save-bar-actions">
+        <button mat-stroked-button (click)="resetForm()" [disabled]="store.isSaving()">
+          DISCARD
+        </button>
+        <button
+          mat-flat-button
+          color="primary"
+          (click)="save()"
+          [disabled]="settingsForm.invalid || store.isSaving()"
+        >
+          <mat-spinner *ngIf="store.isSaving()" diameter="16" class="inline-spinner"></mat-spinner>
+          <span>COMMIT CHANGES</span>
+        </button>
+      </div>
+    </div>
+  </aside>
 </div>

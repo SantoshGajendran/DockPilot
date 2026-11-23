@@ -1,137 +1,230 @@
 <div class="compose-page">
-  <div class="page-header">
+  <!-- Page Header -->
+  <dp-glass-panel [padding]="'18px 24px'" class="page-header">
     <div class="title-section">
       <div class="icon-bubble">
-        <mat-icon>layers</mat-icon>
+        <dp-icon name="layers" [size]="24"></dp-icon>
       </div>
       <div>
+        <div class="status-indicator-row font-mono">
+          <span class="status-pulse-dot"></span>
+          <span class="status-heading">COMPOSE ORCHESTRATOR ACTIVE</span>
+        </div>
         <h2>Compose Projects</h2>
-        <p class="subtitle">Multi-container stack orchestration and lifecycle control</p>
+        <p class="subtitle font-mono">Multi-container stack orchestration and lifecycle control</p>
       </div>
     </div>
-    <button mat-stroked-button (click)="store.loadProjects()" [disabled]="store.isLoading()">
-      <mat-icon>refresh</mat-icon>
-      Refresh
+    <button class="btn-secondary font-mono" (click)="store.loadProjects()" [disabled]="store.isLoading()">
+      <dp-icon name="refresh-cw" [size]="14"></dp-icon>
+      <span>REFRESH</span>
     </button>
-  </div>
+  </dp-glass-panel>
 
   <!-- Loading State -->
   <div *ngIf="store.isLoading()" class="loading-state">
     <mat-spinner diameter="40"></mat-spinner>
-    <p>Loading compose stacks...</p>
+    <p class="font-mono text-muted text-xs">QUERYING COMPOSE STACK MATRIX...</p>
   </div>
 
   <!-- Error State -->
-  <div *ngIf="store.error()" class="error-banner">
-    <mat-icon>error_outline</mat-icon>
+  <div *ngIf="store.error()" class="error-banner font-mono">
+    <dp-icon name="alert-triangle" [size]="18"></dp-icon>
     <span>{{ store.error() }}</span>
-    <button mat-button color="warn" (click)="store.loadProjects()">Retry</button>
+    <button class="btn-secondary btn-sm" (click)="store.loadProjects()">RETRY</button>
   </div>
 
   <!-- Empty State -->
   <div *ngIf="!store.isLoading() && store.projects().length === 0 && !store.error()" class="empty-state">
     <mat-icon class="empty-icon">layers_clear</mat-icon>
-    <h3>No Compose Projects Found</h3>
-    <p>No active containers were found with the <code>com.docker.compose.project</code> label.</p>
+    <h3 class="font-mono">No Compose Projects Found</h3>
+    <p class="font-mono text-muted text-xs">NO ACTIVE CONTAINERS FOUND WITH COM.DOCKER.COMPOSE.PROJECT LABEL</p>
   </div>
 
   <!-- Projects List -->
   <div class="projects-list" *ngIf="!store.isLoading() && store.projects().length > 0">
-    <div class="project-card" *ngFor="let p of store.projects()">
+    <dp-glass-panel
+      [padding]="'20px 24px'"
+      class="project-card"
+      *ngFor="let p of store.projects()"
+    >
       <div class="card-top-row">
         <div class="project-title-area">
           <h3>{{ p.name }}</h3>
           <span class="status-badge" [ngClass]="p.status">
             {{ p.status | uppercase }}
           </span>
-          <span class="service-count-chip">
+          <span class="service-count-chip font-mono">
             {{ p.running_count }}/{{ p.containers_count }} Running
           </span>
+
+          <!-- Mini Service Status Strip -->
+          <div class="mini-service-strip" matTooltip="Service health distribution">
+            <span
+              *ngFor="let s of p.services"
+              class="service-dot"
+              [style.background]="getServiceStateColor(s.state)"
+              [matTooltip]="s.service_name + ': ' + s.state"
+            ></span>
+          </div>
         </div>
 
         <!-- Action Buttons -->
         <div class="actions-area">
           <button
             *ngFor="let act of actions"
-            mat-button
-            [color]="act.color"
-            class="action-btn"
+            class="action-btn font-mono"
+            [class.act-down]="act.action === 'down'"
+            [class.act-restart]="act.action === 'restart'"
             [disabled]="!isOperatorOrAdmin()"
             [matTooltip]="!isOperatorOrAdmin() ? 'Requires operator role' : (act.label + ' stack')"
             (click)="triggerAction(p, act.action)"
           >
             <mat-icon>{{ act.icon }}</mat-icon>
-            {{ act.label }}
+            <span>{{ act.label }}</span>
           </button>
         </div>
       </div>
 
       <!-- Config Path & Audit Row -->
-      <div class="meta-row">
+      <div class="meta-row font-mono">
         <div class="path-section" *ngIf="p.config_files && p.config_files.length > 0; else workingDirBlock">
-          <mat-icon class="meta-icon">description</mat-icon>
+          <dp-icon name="file-text" [size]="14"></dp-icon>
           <span class="path-text">{{ p.config_files.join(', ') }}</span>
-          <button mat-icon-button class="copy-btn" (click)="copyPath(p.config_files.join(', '))" matTooltip="Copy path">
-            <mat-icon>content_copy</mat-icon>
+          <button class="copy-btn" (click)="copyPath(p.config_files.join(', '))" matTooltip="Copy path">
+            <dp-icon name="copy" [size]="12"></dp-icon>
           </button>
         </div>
         <ng-template #workingDirBlock>
           <div class="path-section" *ngIf="p.working_dir">
-            <mat-icon class="meta-icon">folder</mat-icon>
+            <dp-icon name="folder" [size]="14"></dp-icon>
             <span class="path-text">{{ p.working_dir }}</span>
-            <button mat-icon-button class="copy-btn" (click)="copyPath(p.working_dir!)" matTooltip="Copy path">
-              <mat-icon>content_copy</mat-icon>
+            <button class="copy-btn" (click)="copyPath(p.working_dir!)" matTooltip="Copy path">
+              <dp-icon name="copy" [size]="12"></dp-icon>
             </button>
           </div>
         </ng-template>
 
         <div class="audit-section" *ngIf="p.last_action as lastAct; else noAudit">
-          <mat-icon class="meta-icon">history</mat-icon>
-          <span>Last action: <strong>{{ lastAct.action }}</strong> ({{ lastAct.status }}) by {{ lastAct.username || 'system' }}</span>
+          <dp-icon name="clock" [size]="14"></dp-icon>
+          <span>LAST ACTION: <strong>{{ lastAct.action | uppercase }}</strong> ({{ lastAct.status | uppercase }}) BY {{ lastAct.username || 'system' }}</span>
         </div>
         <ng-template #noAudit>
           <div class="audit-section text-secondary">
-            <mat-icon class="meta-icon">history</mat-icon>
-            <span>No previous actions recorded</span>
+            <dp-icon name="clock" [size]="14"></dp-icon>
+            <span>NO PREVIOUS ACTIONS RECORDED</span>
           </div>
         </ng-template>
       </div>
 
-      <!-- Expand Services Toggle -->
-      <div class="expand-row">
-        <button mat-button class="expand-btn" (click)="store.toggleExpand(p.name)">
+      <!-- Expand Services Toggle & View Switcher -->
+      <div class="expand-row font-mono">
+        <button class="expand-btn" (click)="store.toggleExpand(p.name)">
           <mat-icon>{{ store.isExpanded(p.name) ? 'expand_less' : 'expand_more' }}</mat-icon>
           <span>{{ store.isExpanded(p.name) ? 'Hide Services' : 'Show Services (' + p.services.length + ')' }}</span>
         </button>
+
+        @if (store.isExpanded(p.name)) {
+          <div class="view-mode-toggles">
+            <button
+              class="view-pill"
+              [class.active]="getViewMode(p.name) === 'table'"
+              (click)="setViewMode(p.name, 'table')"
+            >
+              TABLE VIEW
+            </button>
+            <button
+              class="view-pill"
+              [class.active]="getViewMode(p.name) === 'topology'"
+              (click)="setViewMode(p.name, 'topology')"
+            >
+              TOPOLOGY GRAPH
+            </button>
+          </div>
+        }
       </div>
 
-      <!-- Services Table (when expanded) -->
+      <!-- Services Content (when expanded) -->
       <div class="services-container" *ngIf="store.isExpanded(p.name)">
-        <table class="services-table">
-          <thead>
-            <tr>
-              <th>Service</th>
-              <th>Container Name</th>
-              <th>Image</th>
-              <th>State</th>
-              <th>Health</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let s of p.services">
-              <td><strong>{{ s.service_name }}</strong></td>
-              <td><code>{{ s.container_name }}</code></td>
-              <td class="text-secondary">{{ s.image }}</td>
-              <td>
-                <span class="state-chip" [ngClass]="s.state">{{ s.state }}</span>
-              </td>
-              <td>
-                <span class="health-chip" [ngClass]="s.health">{{ s.health }}</span>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+        <!-- Table View -->
+        @if (getViewMode(p.name) === 'table') {
+          <table class="services-table font-mono">
+            <thead>
+              <tr>
+                <th>SERVICE</th>
+                <th>CONTAINER NAME</th>
+                <th>IMAGE</th>
+                <th>STATE</th>
+                <th>HEALTH</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let s of p.services">
+                <td><strong>{{ s.service_name }}</strong></td>
+                <td><code>{{ s.container_name }}</code></td>
+                <td class="text-secondary">{{ s.image }}</td>
+                <td>
+                  <span class="state-chip" [ngClass]="s.state">{{ s.state }}</span>
+                </td>
+                <td>
+                  <span class="health-chip" [ngClass]="s.health">{{ s.health }}</span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        } @else {
+          <!-- Topology Graph View -->
+          <div class="topology-canvas-enclosure font-mono">
+            <div class="topology-header">
+              <span class="topology-title">
+                <dp-icon name="git-branch" [size]="14"></dp-icon>
+                <span>SERVICE TOPOLOGY MATRIX ({{ p.services.length }} NODES)</span>
+              </span>
+              <span class="network-notice text-secondary text-xs">
+                NETWORK BINDINGS: DEFAULT COMPOSE BRIDGE
+              </span>
+            </div>
+
+            <div class="topology-svg-container">
+              <svg viewBox="0 0 800 240" class="topology-svg">
+                <!-- Center Hub: Project Core -->
+                <circle cx="400" cy="120" r="32" class="project-hub-outer" />
+                <circle cx="400" cy="120" r="28" class="project-hub-inner" />
+                <text x="400" y="124" text-anchor="middle" class="hub-text">{{ p.name | slice:0:10 }}</text>
+
+                <!-- Service Nodes & Connectors -->
+                @for (s of p.services; track s.service_name; let idx = $index; let total = $count) {
+                  <!-- Calculate Node Position in Arc/Line -->
+                  <!-- Connector Line -->
+                  <line
+                    x1="400"
+                    y1="120"
+                    [attr.x2]="total === 1 ? 400 : 80 + (idx * (640 / (total - 1 || 1)))"
+                    [attr.y2]="idx % 2 === 0 ? 45 : 195"
+                    class="topology-connector"
+                    [style.stroke]="getServiceStateColor(s.state)"
+                  />
+
+                  <!-- Node Circle -->
+                  <g [attr.transform]="'translate(' + (total === 1 ? 400 : 80 + (idx * (640 / (total - 1 || 1)))) + ',' + (idx % 2 === 0 ? 45 : 195) + ')'">
+                    <circle cx="0" cy="0" r="22" class="service-node-bg" />
+                    <circle
+                      cx="0"
+                      cy="0"
+                      r="18"
+                      class="service-node-ring"
+                      [style.stroke]="getServiceStateColor(s.state)"
+                    />
+                    <text x="0" y="4" text-anchor="middle" class="service-name-text">{{ s.service_name | slice:0:7 }}</text>
+                    <text x="0" y="32" text-anchor="middle" class="service-state-text" [style.fill]="getServiceStateColor(s.state)">
+                      {{ s.state | uppercase }}
+                    </text>
+                  </g>
+                }
+              </svg>
+            </div>
+          </div>
+        }
       </div>
-    </div>
+    </dp-glass-panel>
   </div>
 </div>

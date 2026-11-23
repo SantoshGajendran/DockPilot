@@ -1,40 +1,67 @@
-.alerts-container {
+:host {
+  display: block;
   padding: 24px;
   max-width: 1400px;
   margin: 0 auto;
+}
+
+.alerts-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
 .page-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 
-  .page-title {
-    font-size: 1.75rem;
-    font-weight: 600;
-    margin: 0;
+  .header-left {
+    .page-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 24px;
+      font-weight: 700;
+      color: #F8FAFC;
+      margin: 0;
+    }
+
+    .page-subtitle {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: #64748B;
+      margin: 4px 0 0;
+    }
   }
 
-  .page-subtitle {
-    margin: 4px 0 0;
-    color: var(--mat-text-secondary, rgba(255, 255, 255, 0.7));
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
   }
 }
 
 .tab-icon {
   margin-right: 8px;
   vertical-align: middle;
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
 }
 
 .active-badge {
-  background: #f44336;
-  color: #fff;
+  background: #F43F5E;
+  color: #FFFFFF;
   border-radius: 10px;
-  padding: 2px 8px;
-  font-size: 0.75rem;
+  padding: 1px 7px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
   font-weight: 700;
   margin-left: 8px;
+  box-shadow: 0 0 8px rgba(244, 63, 94, 0.5);
 }
 
 .tab-content {
@@ -44,19 +71,25 @@
 .filters-bar {
   display: flex;
   align-items: center;
-  gap: 24px;
-  margin-bottom: 16px;
+  gap: 20px;
+  margin-bottom: 20px;
   flex-wrap: wrap;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 8px;
+  padding: 10px 16px;
 
   .filter-group {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
 
     .filter-label {
-      font-size: 0.85rem;
-      font-weight: 500;
-      color: rgba(255, 255, 255, 0.7);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      color: #94A3B8;
     }
   }
 }
@@ -68,92 +101,154 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 60px 20px;
+  padding: 64px 20px;
   text-align: center;
-  gap: 12px;
+  gap: 14px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px dashed rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
 
   mat-icon {
-    font-size: 48px;
-    width: 48px;
-    height: 48px;
-    color: rgba(255, 255, 255, 0.4);
+    font-size: 42px;
+    width: 42px;
+    height: 42px;
+    color: #475569;
   }
 
   h3 {
     margin: 0;
-    font-size: 1.25rem;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 18px;
+    color: #E2E8F0;
   }
 
   p {
     margin: 0;
-    color: rgba(255, 255, 255, 0.6);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: #64748B;
   }
 }
 
+/* Flight Deck Table with Severity Edge Lighting */
 .events-table,
 .rules-table {
   width: 100%;
   border-radius: 8px;
   overflow: hidden;
+  background: #0B0D14;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+
+  th.mat-mdc-header-cell {
+    background: #060609;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    color: #64748B;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    padding: 12px 14px;
+  }
+
+  td.mat-mdc-cell {
+    padding: 12px 14px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    color: #CBD5E1;
+    font-size: 12px;
+  }
+
+  tr.mat-mdc-row {
+    position: relative;
+    border-left: 3px solid transparent;
+    transition: all 0.2s ease;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    /* Edge Lighting for Firing Alerts */
+    &.firing {
+      background: rgba(244, 63, 94, 0.04);
+
+      &.sev-critical {
+        border-left: 3px solid #F43F5E;
+        box-shadow: inset 6px 0 16px -6px rgba(244, 63, 94, 0.4);
+      }
+
+      &.sev-warning {
+        border-left: 3px solid #F59E0B;
+        box-shadow: inset 6px 0 16px -6px rgba(245, 158, 11, 0.35);
+      }
+    }
+  }
 }
 
 .status-pill {
-  padding: 3px 8px;
+  display: inline-block;
+  padding: 2px 8px;
   border-radius: 4px;
-  font-size: 0.75rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
   font-weight: 700;
-  letter-spacing: 0.5px;
-  background: rgba(255, 255, 255, 0.1);
+  letter-spacing: 0.06em;
 
   &.firing {
-    background: rgba(244, 67, 54, 0.2);
-    color: #f44336;
-    border: 1px solid rgba(244, 67, 54, 0.4);
+    background: rgba(244, 63, 94, 0.2);
+    color: #F43F5E;
+    border: 1px solid rgba(244, 63, 94, 0.5);
+    box-shadow: 0 0 8px rgba(244, 63, 94, 0.3);
   }
 
   &.resolved {
-    background: rgba(76, 175, 80, 0.2);
-    color: #4caf50;
-    border: 1px solid rgba(76, 175, 80, 0.4);
+    background: rgba(16, 185, 129, 0.15);
+    color: #10B981;
+    border: 1px solid rgba(16, 185, 129, 0.35);
   }
 }
 
 .severity-tag {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 5px;
   padding: 2px 8px;
-  border-radius: 12px;
-  font-size: 0.8rem;
-  font-weight: 600;
+  border-radius: 4px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10.5px;
+  font-weight: 700;
 
   .sev-icon {
-    font-size: 16px;
-    width: 16px;
-    height: 16px;
+    font-size: 14px;
+    width: 14px;
+    height: 14px;
   }
 
   &.sev-critical {
-    background: rgba(244, 67, 54, 0.15);
-    color: #ef5350;
+    background: rgba(244, 63, 94, 0.15);
+    color: #F43F5E;
+    border: 1px solid rgba(244, 63, 94, 0.3);
   }
 
   &.sev-warning {
-    background: rgba(255, 152, 0, 0.15);
-    color: #ffa726;
+    background: rgba(245, 158, 11, 0.15);
+    color: #F59E0B;
+    border: 1px solid rgba(245, 158, 11, 0.3);
   }
 
   &.sev-info {
-    background: rgba(33, 150, 243, 0.15);
-    color: #42a5f5;
+    background: rgba(139, 92, 246, 0.15);
+    color: #A78BFA;
+    border: 1px solid rgba(139, 92, 246, 0.3);
   }
 }
 
 .scope-pill {
-  font-size: 0.75rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
   padding: 2px 6px;
   border-radius: 4px;
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #CBD5E1;
 }
 
 .type-cell {
@@ -162,10 +257,10 @@
   gap: 8px;
 
   .type-icon {
-    font-size: 18px;
-    width: 18px;
-    height: 18px;
-    color: rgba(255, 255, 255, 0.7);
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+    color: var(--gold, #D4AF37);
   }
 }
 
@@ -174,37 +269,70 @@
   flex-direction: column;
   gap: 2px;
 
+  strong {
+    font-weight: 600;
+    color: #F8FAFC;
+  }
+
   .rule-desc {
-    font-size: 0.8rem;
-    color: rgba(255, 255, 255, 0.6);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: #64748B;
   }
 }
 
 .msg-col {
-  max-width: 300px;
+  max-width: 320px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
 }
 
 .row-actions {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
 }
 
 .acked-label {
   display: inline-flex;
   align-items: center;
-  gap: 2px;
-  font-size: 0.8rem;
-  color: #81c784;
+  gap: 4px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: #10B981;
   margin-right: 8px;
 
   .acked-icon {
-    font-size: 16px;
-    width: 16px;
-    height: 16px;
+    font-size: 14px;
+    width: 14px;
+    height: 14px;
   }
 }
 
-.text-muted {
-  color: rgba(255, 255, 255, 0.4);
+/* Custom Animated Flight Deck Slide-Toggles */
+::ng-deep .mat-mdc-slide-toggle {
+  .mdc-switch__track {
+    background: rgba(255, 255, 255, 0.08) !important;
+    border-radius: 12px !important;
+    height: 18px !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  }
+
+  .mdc-switch__handle {
+    background: #64748B !important;
+    box-shadow: 0 0 6px rgba(0, 0, 0, 0.6) !important;
+    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  }
+
+  &.mat-checked .mdc-switch__track {
+    background: rgba(212, 175, 55, 0.25) !important;
+    border-color: rgba(212, 175, 55, 0.6) !important;
+  }
+
+  &.mat-checked .mdc-switch__handle {
+    background: var(--gold, #D4AF37) !important;
+    box-shadow: 0 0 10px rgba(212, 175, 55, 0.5) !important;
+  }
+
+  .mdc-switch__ripple { display: none !important; }
 }

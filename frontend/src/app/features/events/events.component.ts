@@ -14,6 +14,8 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { EventsStore } from './events.store';
 import { EventsTimelineComponent } from './components/events-timeline.component';
 import { EVENT_ACTION_FILTER_OPTIONS } from '../../core/constants/events.constants';
+import { GlassPanelComponent } from '../../shared/components/glass-panel/glass-panel.component';
+import { IconComponent } from '../../shared/components/icon/icon.component';
 
 @Component({
   selector: 'dp-events',
@@ -31,6 +33,8 @@ import { EVENT_ACTION_FILTER_OPTIONS } from '../../core/constants/events.constan
     MatProgressSpinnerModule,
     MatTooltipModule,
     EventsTimelineComponent,
+    GlassPanelComponent,
+    IconComponent,
   ],
   providers: [EventsStore],
   templateUrl: './events.component.html',

@@ -103,4 +103,19 @@ describe('LoginComponent', () => {
     expect(component.errorMessage()).toBe('Invalid username or password');
     expect(component.isLoading()).toBe(false);
   });
+
+  it('should switch between credentials and totp stage', () => {
+    component.loginForm.patchValue({ username: 'admin', password: 'password123' });
+    component.showTotpStage();
+    expect(component.currentStage()).toBe('totp');
+
+    component.backToCredentials();
+    expect(component.currentStage()).toBe('credentials');
+  });
+
+  it('should render cinematic parallax grid and brand mark', () => {
+    const el = fixture.nativeElement;
+    expect(el.querySelector('.parallax-grid')).toBeTruthy();
+    expect(el.querySelector('.brand-mark-ignition')).toBeTruthy();
+  });
 });

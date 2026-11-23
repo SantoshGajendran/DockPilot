@@ -45,6 +45,18 @@
                 <span>{{ user.totp_enabled ? 'Active & Protected' : 'Disabled' }}</span>
               </span>
             </div>
+
+            <div class="overview-item quiet-mode-row">
+              <div class="item-meta">
+                <span class="label">Quiet Mode</span>
+                <span class="subtext">Suppress ambient background particles and pointer parallax</span>
+              </div>
+              <mat-slide-toggle
+                [checked]="atmosphereService.quietMode()"
+                (change)="atmosphereService.setQuietMode($event.checked)"
+                color="primary"
+              ></mat-slide-toggle>
+            </div>
           </div>
         </mat-card-content>
       </mat-card>

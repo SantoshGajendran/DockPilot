@@ -1,42 +1,111 @@
 <mat-sidenav-container class="shell-container">
-  <mat-sidenav mode="side" opened [class.collapsed]="isCollapsed()" class="shell-sidenav">
+  <mat-sidenav mode="side" opened [class.collapsed]="isCollapsed()" class="shell-sidenav glass-panel">
     <div class="sidebar-header">
-      <span class="app-title" *ngIf="!isCollapsed()">DockPilot</span>
-      <button mat-icon-button (click)="toggleSidebar()" aria-label="Toggle sidebar">
-        <mat-icon>{{ isCollapsed() ? 'chevron_right' : 'chevron_left' }}</mat-icon>
+      <div class="brand-group" *ngIf="!isCollapsed()">
+        <span class="brand-mark">⬡</span>
+        <span class="app-title">DockPilot</span>
+      </div>
+      <button mat-icon-button (click)="toggleSidebar()" class="collapse-btn" aria-label="Toggle sidebar">
+        <dp-icon [name]="isCollapsed() ? 'chevron-right' : 'chevron-left'" [size]="16"></dp-icon>
       </button>
     </div>
-    <mat-nav-list>
-      <ng-container *ngFor="let item of navItems">
-        <a mat-list-item *ngIf="canAccess(item)" [routerLink]="item.path" routerLinkActive="active-link">
-          <mat-icon matListItemIcon>{{ item.icon }}</mat-icon>
-          <span matListItemTitle *ngIf="!isCollapsed()">{{ item.label }}</span>
-        </a>
-      </ng-container>
-    </mat-nav-list>
+
+    <div class="sidebar-scroll">
+      <nav class="nav-sections">
+        <div class="nav-group" *ngFor="let section of navSections">
+          <div class="group-header micro-label" *ngIf="!isCollapsed()">
+            {{ section.label }}
+          </div>
+          <div class="group-items">
+            <ng-container *ngFor="let item of getItemsForGroup(section.group)">
+              <a
+                *ngIf="canAccess(item)"
+                [routerLink]="item.path"
+                routerLinkActive="active-link"
+                class="nav-item"
+                [matTooltip]="isCollapsed() ? item.label : ''"
+                matTooltipPosition="right"
+              >
+                <span class="active-indicator"></span>
+                <dp-icon [name]="item.strokeIcon || item.icon" [size]="18" class="nav-icon"></dp-icon>
+                <span class="nav-label" *ngIf="!isCollapsed()">{{ item.label }}</span>
+                <span class="nav-shortcut micro-label" *ngIf="!isCollapsed() && item.shortcut">
+                  {{ item.shortcut }}
+                </span>
+              </a>
+            </ng-container>
+          </div>
+        </div>
+      </nav>
+    </div>
   </mat-sidenav>
 
   <mat-sidenav-content class="shell-content">
-    <mat-toolbar class="shell-toolbar">
-      <span class="toolbar-title">DockPilot</span>
+    <mat-toolbar class="shell-toolbar glass-panel">
+      <!-- Breadcrumbs -->
+      <div class="breadcrumb-container">
+        <span class="breadcrumb-text">{{ currentBreadcrumb() }}</span>
+      </div>
+
+      <!-- Global Search Command Palette Trigger -->
+      <button
+        type="button"
+        class="cmd-trigger-btn"
+        (click)="openCommandPalette()"
+        aria-label="Open command palette"
+      >
+        <dp-icon name="search" [size]="15" class="cmd-search-icon"></dp-icon>
+        <span class="cmd-trigger-label">Search fleet or protocols...</span>
+        <kbd class="cmd-kbd">Ctrl K</kbd>
+      </button>
+
       <span class="spacer"></span>
+
+      <!-- Live Connection Indicator -->
+      <div class="connection-cluster">
+        <span
+          class="pulse-dot"
+          [class.connected]="sseService.connectionState() === 'connected'"
+          [class.reconnecting]="sseService.connectionState() === 'reconnecting'"
+          [class.disconnected]="sseService.connectionState() === 'disconnected'"
+        ></span>
+        <mat-chip-set class="status-chip-set">
+          <mat-chip [ngClass]="'status-' + sseService.connectionState()">
+            {{ sseService.connectionState() }}
+          </mat-chip>
+        </mat-chip-set>
+      </div>
+
+      <!-- Alerts Bell -->
       <button
         mat-icon-button
         routerLink="/alerts"
-        matTooltip="Alerts"
+        matTooltip="Active Alerts & Warnings"
         class="alerts-bell-btn"
         aria-label="View alerts"
       >
-        <mat-icon
-          [matBadge]="activeAlertsCount()"
-          [matBadgeHidden]="activeAlertsCount() === 0"
-          matBadgeColor="warn"
-          matBadgeSize="small"
+        <dp-icon name="bell" [size]="18"></dp-icon>
+        <span
+          class="alert-badge-count"
+          *ngIf="activeAlertsCount() > 0"
+          [attr.data-count]="activeAlertsCount()"
         >
-          notifications
-        </mat-icon>
+          {{ activeAlertsCount() }}
+        </span>
       </button>
 
+      <!-- Keyboard Shortcuts Trigger -->
+      <button
+        mat-icon-button
+        (click)="openShortcuts()"
+        matTooltip="Keyboard Shortcuts (?)"
+        class="shortcuts-btn"
+        aria-label="View keyboard shortcuts"
+      >
+        <span class="shortcuts-question">?</span>
+      </button>
+
+      <!-- Theme Selector Menu Button -->
       <button
         mat-icon-button
         [matMenuTriggerFor]="themeMenu"
@@ -65,11 +134,7 @@
         </button>
       </mat-menu>
 
-      <mat-chip-set>
-        <mat-chip [ngClass]="'status-' + sseService.connectionState()">
-          {{ sseService.connectionState() }}
-        </mat-chip>
-      </mat-chip-set>
+      <!-- User Profile Link -->
       <a
         mat-button
         routerLink="/profile"
@@ -77,13 +142,19 @@
         class="user-info-btn"
         *ngIf="authService.currentUser() as user"
       >
-        <mat-icon class="profile-icon">account_circle</mat-icon>
+        <dp-icon name="account" [size]="16" class="profile-icon"></dp-icon>
         <span class="user-name">{{ user.username }}</span>
         <span class="user-role">({{ user.role }})</span>
       </a>
     </mat-toolbar>
+
+    <!-- Main Content Body -->
     <main class="main-body">
       <router-outlet></router-outlet>
     </main>
   </mat-sidenav-content>
 </mat-sidenav-container>
+
+<!-- Shell Modal Overlays -->
+<dp-command-palette #commandPalette></dp-command-palette>
+<dp-shortcuts-overlay #shortcutsOverlay></dp-shortcuts-overlay>

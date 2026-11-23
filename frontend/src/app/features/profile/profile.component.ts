@@ -10,11 +10,13 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDividerModule } from '@angular/material/divider';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import QRCode from 'qrcode';
 
 import { ProfileStore } from './profile.store';
 import { AuthService } from '../../core/services/auth.service';
 import { ToastService } from '../../core/services/toast.service';
+import { AtmosphereService } from '../../core/services/atmosphere.service';
 import { getRoleMeta, RoleMeta } from '../../core/constants/user-mgmt.constants';
 
 @Component({
@@ -32,6 +34,7 @@ import { getRoleMeta, RoleMeta } from '../../core/constants/user-mgmt.constants'
     MatTooltipModule,
     MatProgressSpinnerModule,
     MatDividerModule,
+    MatSlideToggleModule,
   ],
   providers: [ProfileStore],
   templateUrl: './profile.component.html',
@@ -40,6 +43,7 @@ import { getRoleMeta, RoleMeta } from '../../core/constants/user-mgmt.constants'
 export class ProfileComponent implements OnInit {
   readonly store = inject(ProfileStore);
   readonly authService = inject(AuthService);
+  readonly atmosphereService = inject(AtmosphereService);
   private readonly fb = inject(FormBuilder);
   private readonly toast = inject(ToastService);
 

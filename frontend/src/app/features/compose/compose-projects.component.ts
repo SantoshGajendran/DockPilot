@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
@@ -12,8 +12,10 @@ import { ComposeStore } from './compose.store';
 import { AuthService } from '../../core/services/auth.service';
 import { ToastService } from '../../core/services/toast.service';
 import { COMPOSE_ACTIONS, COMPOSE_STATUS_COLORS } from '../../core/constants/compose.constants';
-import { ComposeAction, ComposeProject } from '../../core/models/compose.model';
+import { ComposeAction, ComposeProject, ComposeServiceItem } from '../../core/models/compose.model';
 import { JobOutputDialogComponent } from './dialogs/job-output-dialog.component';
+import { GlassPanelComponent } from '../../shared/components/glass-panel/glass-panel.component';
+import { IconComponent } from '../../shared/components/icon/icon.component';
 
 @Component({
   selector: 'dp-compose-projects',
@@ -27,6 +29,8 @@ import { JobOutputDialogComponent } from './dialogs/job-output-dialog.component'
     MatTooltipModule,
     MatProgressSpinnerModule,
     MatDialogModule,
+    GlassPanelComponent,
+    IconComponent,
   ],
   providers: [ComposeStore],
   templateUrl: './compose-projects.component.html',
@@ -41,6 +45,9 @@ export class ComposeProjectsComponent implements OnInit {
   readonly actions = COMPOSE_ACTIONS;
   readonly statusColors = COMPOSE_STATUS_COLORS;
 
+  // View mode toggle per project: 'table' | 'topology'
+  readonly projectViewModes = signal<Record<string, 'table' | 'topology'>>({});
+
   ngOnInit(): void {
     this.store.loadProjects();
   }
@@ -48,6 +55,25 @@ export class ComposeProjectsComponent implements OnInit {
   isOperatorOrAdmin(): boolean {
     const role = this.authService.userRole();
     return role === 'operator' || role === 'admin';
+  }
+
+  getViewMode(projectName: string): 'table' | 'topology' {
+    return this.projectViewModes()[projectName] || 'table';
+  }
+
+  setViewMode(projectName: string, mode: 'table' | 'topology'): void {
+    this.projectViewModes.update((prev) => ({
+      ...prev,
+      [projectName]: mode,
+    }));
+  }
+
+  getServiceStateColor(state: string): string {
+    const s = state?.toLowerCase() || '';
+    if (s === 'running') return '#34D399';
+    if (s === 'restarting' || s === 'paused') return '#F59E0B';
+    if (s === 'exited' || s === 'dead') return '#F43F5E';
+    return '#64748B';
   }
 
   copyPath(path: string): void {

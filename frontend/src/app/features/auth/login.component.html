@@ -1,78 +1,149 @@
-<div class="login-container">
-  <mat-card class="login-card">
-    <mat-card-header class="login-header">
-      <div class="brand-container">
-        <mat-icon class="brand-icon">directions_boat</mat-icon>
-        <mat-card-title class="brand-title">DockPilot</mat-card-title>
-      </div>
-      <mat-card-subtitle class="brand-subtitle">Sign in to manage your Docker containers</mat-card-subtitle>
-    </mat-card-header>
+<div class="login-viewport" [class.success-collapse]="isSuccess()">
+  <!-- Parallax grid layer -->
+  <div class="parallax-grid" aria-hidden="true"></div>
 
-    <mat-card-content>
+  @if (isOffline()) {
+    <div class="offline-banner" role="status">
+      <dp-icon name="alert-triangle" [size]="16"></dp-icon>
+      <span>OFFLINE DETECTED // AUTHENTICATION SERVER UNREACHABLE</span>
+    </div>
+  }
+
+  <div class="login-wrapper">
+    <!-- Brand Mark with Gold Ignition -->
+    <header class="brand-header">
+      <div class="brand-mark-ignition">
+        <dp-icon name="ship" [size]="40" class="brand-icon"></dp-icon>
+      </div>
+      <h1 class="brand-title">DockPilot</h1>
+      <p class="brand-subtitle">FLIGHT DECK ACCESS // OPERATOR CREDENTIALS</p>
+    </header>
+
+    <!-- Glass Login Card -->
+    <dp-glass-panel [padding]="'32px'" [borderSweep]="true" class="login-card-panel">
       @if (errorMessage()) {
         <div class="error-banner" role="alert">
-          <mat-icon class="error-icon">error_outline</mat-icon>
+          <dp-icon name="alert-triangle" [size]="16" class="error-icon"></dp-icon>
           <span class="error-text">{{ errorMessage() }}</span>
         </div>
       }
 
+      @if (isLoading()) {
+        <div class="auth-loading-overlay">
+          <dp-skeleton-shimmer variant="card" [lines]="3"></dp-skeleton-shimmer>
+          <span class="micro-label auth-verifying-text">VERIFYING OPERATOR CERTIFICATE...</span>
+        </div>
+      }
+
       <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
-        <mat-form-field appearance="outline" class="form-field">
-          <mat-label>Username</mat-label>
-          <input
-            matInput
-            formControlName="username"
-            autocomplete="username"
-            placeholder="Enter your username"
-            required
-          />
-          <mat-icon matPrefix>person</mat-icon>
-          @if (loginForm.get('username')?.hasError('required') && loginForm.get('username')?.touched) {
-            <mat-error>Username is required</mat-error>
-          }
-        </mat-form-field>
+        <!-- Stage 1: Credentials Panel -->
+        <div class="form-stage credentials-stage" [class.hidden-stage]="currentStage() === 'totp'">
+          <div class="input-field-group">
+            <label for="username" class="field-label micro-label">OPERATOR IDENTIFIER</label>
+            <div class="input-shell">
+              <dp-icon name="user" [size]="16" class="field-icon"></dp-icon>
+              <input
+                id="username"
+                type="text"
+                formControlName="username"
+                autocomplete="username"
+                placeholder="operator.name"
+                class="obsidian-input"
+                required
+              />
+              <span class="focus-underline" aria-hidden="true"></span>
+            </div>
+            @if (loginForm.get('username')?.hasError('required') && loginForm.get('username')?.touched) {
+              <span class="field-error-text">Identifier required</span>
+            }
+          </div>
 
-        <mat-form-field appearance="outline" class="form-field">
-          <mat-label>Password</mat-label>
-          <input
-            matInput
-            [type]="hidePassword() ? 'password' : 'text'"
-            formControlName="password"
-            autocomplete="current-password"
-            placeholder="Enter your password"
-            required
-          />
-          <mat-icon matPrefix>lock</mat-icon>
+          <div class="input-field-group">
+            <label for="password" class="field-label micro-label">ACCESS KEY / PASSPHRASE</label>
+            <div class="input-shell">
+              <dp-icon name="lock" [size]="16" class="field-icon"></dp-icon>
+              <input
+                id="password"
+                [type]="hidePassword() ? 'password' : 'text'"
+                formControlName="password"
+                autocomplete="current-password"
+                placeholder="••••••••••••"
+                class="obsidian-input"
+                required
+              />
+              <button
+                type="button"
+                class="visibility-toggle"
+                (click)="togglePasswordVisibility()"
+                [attr.aria-label]="hidePassword() ? 'Reveal password' : 'Hide password'"
+              >
+                <dp-icon [name]="hidePassword() ? 'eye' : 'eye-off'" [size]="16"></dp-icon>
+              </button>
+              <span class="focus-underline" aria-hidden="true"></span>
+            </div>
+            @if (loginForm.get('password')?.hasError('required') && loginForm.get('password')?.touched) {
+              <span class="field-error-text">Passphrase required</span>
+            }
+          </div>
+
+          <div class="stage-footer">
+            <button
+              type="submit"
+              class="btn-primary auth-submit-btn"
+              dpMagneticHover
+              [disabled]="loginForm.invalid || isLoading()"
+            >
+              <span>INITIALIZE SESSION</span>
+              <dp-icon name="arrow-right" [size]="16"></dp-icon>
+            </button>
+            <button
+              type="button"
+              class="btn-secondary totp-toggle-btn"
+              (click)="showTotpStage()"
+            >
+              <dp-icon name="shield" [size]="14"></dp-icon>
+              <span>USE 2FA / TOTP TOKEN</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Stage 2: TOTP Panel (Slides In) -->
+        <div class="form-stage totp-stage" [class.active-stage]="currentStage() === 'totp'">
+          <div class="stage-header">
+            <button type="button" class="back-link" (click)="backToCredentials()">
+              <dp-icon name="chevron-left" [size]="14"></dp-icon>
+              <span>BACK TO CREDENTIALS</span>
+            </button>
+            <span class="stage-title">TWO-FACTOR VERIFICATION</span>
+          </div>
+
+          <div class="input-field-group">
+            <label for="totpCode" class="field-label micro-label">6-DIGIT TOTP SECURITY CODE</label>
+            <div class="input-shell">
+              <dp-icon name="shield" [size]="16" class="field-icon"></dp-icon>
+              <input
+                id="totpCode"
+                type="text"
+                formControlName="totpCode"
+                placeholder="000000"
+                maxlength="6"
+                class="obsidian-input tabular-nums"
+              />
+              <span class="focus-underline" aria-hidden="true"></span>
+            </div>
+          </div>
+
           <button
-            mat-icon-button
-            matSuffix
-            type="button"
-            (click)="togglePasswordVisibility()"
-            [attr.aria-label]="hidePassword() ? 'Show password' : 'Hide password'"
-            [attr.aria-pressed]="!hidePassword()"
+            type="submit"
+            class="btn-primary auth-submit-btn"
+            dpMagneticHover
+            [disabled]="loginForm.invalid || isLoading()"
           >
-            <mat-icon>{{ hidePassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
+            <span>CONFIRM & ENTER FLIGHT DECK</span>
+            <dp-icon name="check" [size]="16"></dp-icon>
           </button>
-          @if (loginForm.get('password')?.hasError('required') && loginForm.get('password')?.touched) {
-            <mat-error>Password is required</mat-error>
-          }
-        </mat-form-field>
-
-        <button
-          mat-flat-button
-          color="primary"
-          type="submit"
-          class="submit-button"
-          [disabled]="loginForm.invalid || isLoading()"
-        >
-          @if (isLoading()) {
-            <mat-spinner diameter="20" class="spinner"></mat-spinner>
-            <span>Signing in...</span>
-          } @else {
-            <span>Sign In</span>
-          }
-        </button>
+        </div>
       </form>
-    </mat-card-content>
-  </mat-card>
+    </dp-glass-panel>
+  </div>
 </div>
