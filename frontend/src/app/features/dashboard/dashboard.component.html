@@ -15,7 +15,13 @@
   <!-- Row 1: Host Metrics Cards -->
   <div class="metrics-grid" *ngIf="store.data()?.host as host">
     <!-- CPU Card -->
-    <mat-card class="metric-card">
+    <mat-card
+      class="metric-card interactive-card"
+      (click)="navigateToHost()"
+      (keydown.enter)="navigateToHost()"
+      tabindex="0"
+      role="button"
+      matTooltip="Click to inspect Host CPU telemetry">
       <mat-card-header>
         <mat-icon mat-card-avatar class="card-icon cpu-icon">memory</mat-icon>
         <mat-card-title>Host CPU</mat-card-title>
@@ -33,7 +39,13 @@
     </mat-card>
 
     <!-- Memory Card -->
-    <mat-card class="metric-card">
+    <mat-card
+      class="metric-card interactive-card"
+      (click)="navigateToHost()"
+      (keydown.enter)="navigateToHost()"
+      tabindex="0"
+      role="button"
+      matTooltip="Click to inspect Host Memory telemetry">
       <mat-card-header>
         <mat-icon mat-card-avatar class="card-icon mem-icon">storage</mat-icon>
         <mat-card-title>Host Memory</mat-card-title>
@@ -51,7 +63,13 @@
     </mat-card>
 
     <!-- Disk Card -->
-    <mat-card class="metric-card">
+    <mat-card
+      class="metric-card interactive-card"
+      (click)="navigateToHost()"
+      (keydown.enter)="navigateToHost()"
+      tabindex="0"
+      role="button"
+      matTooltip="Click to inspect Host Disk telemetry">
       <mat-card-header>
         <mat-icon mat-card-avatar class="card-icon disk-icon">dns</mat-icon>
         <mat-card-title>Host Disk</mat-card-title>
@@ -69,7 +87,13 @@
     </mat-card>
 
     <!-- Uptime Card -->
-    <mat-card class="metric-card">
+    <mat-card
+      class="metric-card interactive-card"
+      (click)="navigateToContainers()"
+      (keydown.enter)="navigateToContainers()"
+      tabindex="0"
+      role="button"
+      matTooltip="Click to view Docker containers fleet">
       <mat-card-header>
         <mat-icon mat-card-avatar class="card-icon uptime-icon">schedule</mat-icon>
         <mat-card-title>Server Uptime</mat-card-title>
@@ -108,34 +132,75 @@
               [options]="donutChartOptions"
               [type]="'doughnut'">
             </canvas>
-            <div class="donut-center-total">
+            <div
+              class="donut-center-total"
+              (click)="navigateToContainers()"
+              (keydown.enter)="navigateToContainers()"
+              tabindex="0"
+              role="button"
+              matTooltip="View all containers">
               <span class="total-number">{{ store.data()?.containers?.total ?? 0 }}</span>
               <span class="total-label">Total</span>
             </div>
           </div>
 
           <div class="state-chips" *ngIf="store.data()?.containers as c">
-            <span class="state-chip" [style.--chip-color]="stateColors.running">
+            <span
+              class="state-chip"
+              [style.--chip-color]="stateColors.running"
+              (click)="navigateToContainers('running')"
+              (keydown.enter)="navigateToContainers('running')"
+              tabindex="0"
+              role="button"
+              matTooltip="Filter containers: Running">
               <span class="dot"></span>
               <span class="name">{{ stateLabels.running }}:</span>
               <strong>{{ c.running }}</strong>
             </span>
-            <span class="state-chip" [style.--chip-color]="stateColors.exited">
+            <span
+              class="state-chip"
+              [style.--chip-color]="stateColors.exited"
+              (click)="navigateToContainers('exited')"
+              (keydown.enter)="navigateToContainers('exited')"
+              tabindex="0"
+              role="button"
+              matTooltip="Filter containers: Exited">
               <span class="dot"></span>
               <span class="name">{{ stateLabels.exited }}:</span>
               <strong>{{ c.exited }}</strong>
             </span>
-            <span class="state-chip" [style.--chip-color]="stateColors.restarting">
+            <span
+              class="state-chip"
+              [style.--chip-color]="stateColors.restarting"
+              (click)="navigateToContainers('restarting')"
+              (keydown.enter)="navigateToContainers('restarting')"
+              tabindex="0"
+              role="button"
+              matTooltip="Filter containers: Restarting">
               <span class="dot"></span>
               <span class="name">{{ stateLabels.restarting }}:</span>
               <strong>{{ c.restarting }}</strong>
             </span>
-            <span class="state-chip" [style.--chip-color]="stateColors.unhealthy">
+            <span
+              class="state-chip"
+              [style.--chip-color]="stateColors.unhealthy"
+              (click)="navigateToContainers('unhealthy')"
+              (keydown.enter)="navigateToContainers('unhealthy')"
+              tabindex="0"
+              role="button"
+              matTooltip="Filter containers: Unhealthy">
               <span class="dot"></span>
               <span class="name">{{ stateLabels.unhealthy }}:</span>
               <strong>{{ c.unhealthy }}</strong>
             </span>
-            <span class="state-chip" [style.--chip-color]="stateColors.paused">
+            <span
+              class="state-chip"
+              [style.--chip-color]="stateColors.paused"
+              (click)="navigateToContainers('paused')"
+              (keydown.enter)="navigateToContainers('paused')"
+              tabindex="0"
+              role="button"
+              matTooltip="Filter containers: Paused">
               <span class="dot"></span>
               <span class="name">{{ stateLabels.paused }}:</span>
               <strong>{{ c.paused }}</strong>
@@ -157,7 +222,11 @@
           <p class="empty-text">No containers running</p>
         </div>
 
-        <mat-tab-group *ngIf="store.hasContainers()" animationDuration="0ms" class="consumers-tabs">
+        <mat-tab-group
+          *ngIf="store.hasContainers()"
+          animationDuration="150ms"
+          class="consumers-tabs"
+          (selectedIndexChange)="onConsumerTabChange($event)">
           <!-- CPU Tab -->
           <mat-tab label="CPU %">
             <div class="tab-chart-container" *ngIf="(store.data()?.top_cpu?.length ?? 0) > 0">

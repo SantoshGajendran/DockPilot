@@ -85,6 +85,14 @@
   --mat-select-panel-background-color: var(--bg-surface-solid);
   --mat-select-enabled-trigger-text-color: var(--text-primary);
   --mat-menu-container-color: var(--bg-surface-solid);
+
+  /* Dialog Overrides */
+  --mat-dialog-container-color: var(--bg-surface-solid);
+  --mat-dialog-container-max-width: 560px;
+  --mat-dialog-container-shape: 14px;
+  --mdc-dialog-container-color: var(--bg-surface-solid);
+  --mdc-dialog-subhead-color: var(--text-primary);
+  --mdc-dialog-supporting-text-color: var(--text-secondary);
 }
 
 .light-theme {
@@ -171,4 +179,12 @@
   --mat-select-panel-background-color: #ffffff;
   --mat-select-enabled-trigger-text-color: var(--text-primary);
   --mat-menu-container-color: #ffffff;
+
+  /* Dialog Overrides */
+  --mat-dialog-container-color: #ffffff;
+  --mat-dialog-container-max-width: 560px;
+  --mat-dialog-container-shape: 14px;
+  --mdc-dialog-container-color: #ffffff;
+  --mdc-dialog-subhead-color: var(--text-primary);
+  --mdc-dialog-supporting-text-color: var(--text-secondary);
 }

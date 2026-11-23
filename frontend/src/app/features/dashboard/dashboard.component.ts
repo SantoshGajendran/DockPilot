@@ -1,5 +1,6 @@
 import { Component, OnInit, OnDestroy, inject, computed, effect, ViewChildren, QueryList } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatIconModule } from '@angular/material/icon';
@@ -38,12 +39,14 @@ Chart.register(...registerables);
 export class DashboardComponent implements OnInit, OnDestroy {
   readonly store = inject(DashboardStore);
   readonly themeService = inject(ThemeService);
+  private readonly router = inject(Router);
 
   @ViewChildren(BaseChartDirective) charts?: QueryList<BaseChartDirective>;
 
   readonly stateColors = CONTAINER_STATE_COLORS;
   readonly stateLabels = CONTAINER_STATE_LABELS;
   readonly thresholds = HOST_THRESHOLDS;
+  activeConsumerTab: 'cpu' | 'memory' = 'cpu';
 
   readonly timelineEvents = computed<EventItem[]>(() => {
     const rawEvents = this.store.data()?.recent_events || [];
@@ -65,6 +68,23 @@ export class DashboardComponent implements OnInit, OnDestroy {
     responsive: true,
     maintainAspectRatio: false,
     cutout: '72%',
+    animation: {
+      duration: 350,
+      easing: 'easeOutQuart'
+    },
+    onHover: (event, chartElement) => {
+      const target = event?.native?.target as HTMLElement;
+      if (target) target.style.cursor = chartElement?.length ? 'pointer' : 'default';
+    },
+    onClick: (_event, elements) => {
+      if (elements && elements.length > 0) {
+        const states = ['running', 'exited', 'restarting', 'unhealthy', 'paused'];
+        const state = states[elements[0].index];
+        if (state) {
+          this.navigateToContainers(state);
+        }
+      }
+    },
     plugins: {
       legend: {
         display: false,
@@ -87,6 +107,26 @@ export class DashboardComponent implements OnInit, OnDestroy {
     responsive: true,
     maintainAspectRatio: false,
     indexAxis: 'y',
+    animation: {
+      duration: 350,
+      easing: 'easeOutQuart'
+    },
+    onHover: (event, chartElement) => {
+      const target = event?.native?.target as HTMLElement;
+      if (target) target.style.cursor = chartElement?.length ? 'pointer' : 'default';
+    },
+    onClick: (_event, elements) => {
+      if (elements && elements.length > 0) {
+        const index = elements[0].index;
+        const items = this.activeConsumerTab === 'cpu'
+          ? this.store.data()?.top_cpu
+          : this.store.data()?.top_memory;
+        const target = items?.[index];
+        if (target?.id) {
+          this.navigateToContainer(target.id);
+        }
+      }
+    },
     plugins: {
       legend: {
         display: false
@@ -97,7 +137,10 @@ export class DashboardComponent implements OnInit, OnDestroy {
         titleColor: '#f8fafc',
         bodyColor: '#94a3b8',
         borderColor: 'rgba(255, 255, 255, 0.1)',
-        borderWidth: 1
+        borderWidth: 1,
+        callbacks: {
+          afterBody: () => 'Click to inspect container details'
+        }
       }
     },
     scales: {
@@ -226,6 +269,28 @@ export class DashboardComponent implements OnInit, OnDestroy {
     if (minutes > 0 || parts.length === 0) parts.push(`${minutes}m`);
 
     return parts.join(' ');
+  }
+
+  navigateToHost(): void {
+    this.router.navigate(['/host']);
+  }
+
+  navigateToContainers(state?: string): void {
+    if (state) {
+      this.router.navigate(['/containers'], { queryParams: { state } });
+    } else {
+      this.router.navigate(['/containers']);
+    }
+  }
+
+  navigateToContainer(id: string): void {
+    if (id) {
+      this.router.navigate(['/containers', id]);
+    }
+  }
+
+  onConsumerTabChange(index: number): void {
+    this.activeConsumerTab = index === 0 ? 'cpu' : 'memory';
   }
 
   formatLoadAvg(load: number[] | undefined): string {
