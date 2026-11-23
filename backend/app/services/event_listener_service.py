@@ -125,7 +125,10 @@ class EventListenerService:
         # Unique event identifier for deduplication
         raw_event_key = f"{container_id}_{action}_{time_nano or time_sec or int(event_dt.timestamp() * 1e6)}"
         event_id = hashlib.sha256(raw_event_key.encode("utf-8")).hexdigest()
-        clean_action = action[:64]
+        clean_action = str(action or "")[:64]
+        clean_container_id = str(container_id or "")[:64]
+        clean_container_name = str(container_name or "")[:128]
+        clean_image = str(image)[:256] if image else None
 
         # Exit code extraction
         exit_code: Optional[int] = None
@@ -171,9 +174,9 @@ class EventListenerService:
                 event_id=event_id,
                 timestamp=event_dt,
                 action=clean_action,
-                container_id=container_id,
-                container_name=container_name,
-                image=image,
+                container_id=clean_container_id,
+                container_name=clean_container_name,
+                image=clean_image,
                 exit_code=exit_code,
                 is_oom=is_oom,
                 is_unexpected_exit=is_unexpected_exit,
