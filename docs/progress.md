@@ -343,6 +343,36 @@
   - Integrated Terminal tab on container detail page (`/containers/:id?tab=terminal`), only visible to administrators (`canAdmin()`).
   - 231 frontend unit tests passing across 50 suites (`npm test`); production `ng build` passing with 0 errors and 0 warnings.
 
+## Prompt 13: Audit Log
+- **Status:** Complete
+- **Backend:**
+  - Configurable audit settings in `config/audit.yaml` and `backend/app/core/config.py`:
+    - `audit_page_size_default: 50`
+    - `audit_page_size_max: 200`
+    - `audit_export_max_rows: 5000`
+    - `audit_retention_days: 90`
+  - Append-only architecture: Strictly read-only API with zero `POST`, `PUT`, `PATCH`, or `DELETE` endpoints exposed (405 Method Not Allowed).
+  - Role-based security: Strictly restricted to administrators (`Role.ADMIN`); 401 Unauthorized for unauthenticated, 403 Forbidden for viewer/operator.
+  - Streaming CSV export via `GET /api/v1/audit/export` and alias `GET /audit/export` using chunked asynchronous generator with bounded maximum rows and dynamic header `Content-Disposition`.
+  - Comprehensive filtering and pagination on `GET /api/v1/audit` and alias `GET /audit`: actor (`user`), `action`, `target_type`, `target_id`, `result` (`success`, `failure`, `pending`), `since`, `until`, `sort_order` (`asc`/`desc`), `page`, and `page_size`.
+  - Detail endpoint `GET /api/v1/audit/{id}` returning full audit record including formatted JSON payload and error traces.
+  - 168 backend unit tests passing across all suites (`pytest -q`).
+- **Frontend:**
+  - Models in `frontend/src/app/core/models/audit.model.ts` and typed constants in `frontend/src/app/core/constants/audit.constants.ts`.
+  - Service in `frontend/src/app/core/services/audit.service.ts` with unit tests in `audit.service.spec.ts`.
+  - Signal-based store in `frontend/src/app/features/audit/audit.store.ts` with unit tests in `audit.store.spec.ts`.
+  - Standalone lazy-loaded route `/audit` (`AuditComponent` in `frontend/src/app/features/audit/`):
+    - Filter toolbar (actor search, action category dropdown, target type selector, result filter, date presets dropdown).
+    - Relative vs Absolute UTC timestamp display toggle (`5m ago` vs `2026-11-23 10:00:00 UTC`).
+    - Color-coded result badges (green for success, red for failure, amber for pending).
+    - Interactive slide-out detail drawer displaying full record metadata, execution failure alert trace, and syntax-highlighted JSON payload with one-click copy button.
+    - One-click CSV export button with loading spinner state.
+    - Material table with pagination controls.
+    - Unit tests in `audit.component.spec.ts`.
+  - Navigation link in sidebar restricted to administrators (`minRole: 'admin'`) and route guarded by `roleGuard`.
+  - 252 frontend unit tests passing across 53 suites (`npm test`); production `ng build` passing with 0 errors and 0 warnings.
+
+
 
 
 

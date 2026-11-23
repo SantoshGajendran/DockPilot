@@ -7,10 +7,12 @@
       </button>
     </div>
     <mat-nav-list>
-      <a mat-list-item *ngFor="let item of navItems" [routerLink]="item.path" routerLinkActive="active-link">
-        <mat-icon matListItemIcon>{{ item.icon }}</mat-icon>
-        <span matListItemTitle *ngIf="!isCollapsed()">{{ item.label }}</span>
-      </a>
+      <ng-container *ngFor="let item of navItems">
+        <a mat-list-item *ngIf="canAccess(item)" [routerLink]="item.path" routerLinkActive="active-link">
+          <mat-icon matListItemIcon>{{ item.icon }}</mat-icon>
+          <span matListItemTitle *ngIf="!isCollapsed()">{{ item.label }}</span>
+        </a>
+      </ng-container>
     </mat-nav-list>
   </mat-sidenav>
 

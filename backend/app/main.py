@@ -104,6 +104,9 @@ def create_app() -> FastAPI:
     # Support both /api/v1/containers/{id}/exec and /containers/{id}/exec
     from app.api.v1.terminal import router as terminal_router
     app.include_router(terminal_router, prefix="/containers", include_in_schema=False)
+    # Support both /api/v1/audit and /audit
+    from app.api.v1.audit import router as audit_router
+    app.include_router(audit_router, prefix="/audit", include_in_schema=False)
     return app
 
 

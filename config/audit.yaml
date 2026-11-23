@@ -1,0 +1,4 @@
+audit_page_size_default: 50
+audit_page_size_max: 200
+audit_export_max_rows: 5000
+audit_retention_days: 90

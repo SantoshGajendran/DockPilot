@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { ShellComponent } from './layout/shell.component';
 import { authGuard } from './core/guards/auth.guard';
+import { roleGuard } from './core/guards/role.guard';
 
 export const routes: Routes = [
   {
@@ -98,6 +99,15 @@ export const routes: Routes = [
             (m) => m.ResourcesComponent
           ),
         data: { title: 'Docker Resources' },
+      },
+      {
+        path: 'audit',
+        canActivate: [roleGuard],
+        loadComponent: () =>
+          import('./features/audit/audit.component').then(
+            (m) => m.AuditComponent
+          ),
+        data: { title: 'Audit Log', role: 'admin' },
       },
 
 

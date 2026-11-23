@@ -1,0 +1,332 @@
+<div class="audit-container">
+  <!-- Header Bar -->
+  <div class="header-bar">
+    <div class="header-titles">
+      <h1 class="page-title">Audit Log</h1>
+      <p class="page-subtitle">Trustworthy, append-only record of administrative and control operations</p>
+    </div>
+
+    <div class="header-actions">
+      <!-- Time Toggle -->
+      <button
+        mat-stroked-button
+        (click)="store.toggleTimeFormat()"
+        [matTooltip]="store.relativeTime() ? 'Switch to Absolute UTC Time' : 'Switch to Relative Time'"
+      >
+        <mat-icon>{{ store.relativeTime() ? 'schedule' : 'calendar_today' }}</mat-icon>
+        {{ store.relativeTime() ? 'Relative Time' : 'Absolute UTC' }}
+      </button>
+
+      <!-- CSV Export Button -->
+      <button
+        mat-flat-button
+        color="primary"
+        (click)="store.exportCsv()"
+        [disabled]="store.isExporting() || store.items().length === 0"
+        matTooltip="Export filtered logs to CSV"
+      >
+        <mat-icon *ngIf="!store.isExporting()">file_download</mat-icon>
+        <mat-spinner *ngIf="store.isExporting()" diameter="18" class="inline-spinner"></mat-spinner>
+        <span>Export CSV</span>
+      </button>
+
+      <!-- Refresh Button -->
+      <button
+        mat-icon-button
+        (click)="store.loadAuditLogs()"
+        [disabled]="store.isLoading()"
+        matTooltip="Refresh logs"
+      >
+        <mat-icon [class.spinning]="store.isLoading()">refresh</mat-icon>
+      </button>
+    </div>
+  </div>
+
+  <!-- Filter Card -->
+  <mat-card class="filter-card">
+    <mat-card-content class="filter-row">
+      <!-- User Input -->
+      <mat-form-field appearance="outline" density="compact" class="filter-field">
+        <mat-label>User / Actor</mat-label>
+        <input
+          matInput
+          [(ngModel)]="filterUser"
+          placeholder="Filter by actor"
+          (keyup.enter)="applyFilters()"
+        />
+        <button *ngIf="filterUser" matSuffix mat-icon-button aria-label="Clear" (click)="filterUser = ''; applyFilters()">
+          <mat-icon>close</mat-icon>
+        </button>
+      </mat-form-field>
+
+      <!-- Action Select -->
+      <mat-form-field appearance="outline" density="compact" class="filter-field">
+        <mat-label>Action</mat-label>
+        <mat-select [(ngModel)]="filterAction" (selectionChange)="applyFilters()">
+          <mat-option *ngFor="let opt of actionOptions" [value]="opt.value">
+            {{ opt.label }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <!-- Target Type Select -->
+      <mat-form-field appearance="outline" density="compact" class="filter-field">
+        <mat-label>Target Type</mat-label>
+        <mat-select [(ngModel)]="filterTargetType" (selectionChange)="applyFilters()">
+          <mat-option *ngFor="let opt of targetTypeOptions" [value]="opt.value">
+            {{ opt.label }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <!-- Target ID Input -->
+      <mat-form-field appearance="outline" density="compact" class="filter-field">
+        <mat-label>Target ID</mat-label>
+        <input
+          matInput
+          [(ngModel)]="filterTargetId"
+          placeholder="e.g. cont_web"
+          (keyup.enter)="applyFilters()"
+        />
+        <button *ngIf="filterTargetId" matSuffix mat-icon-button aria-label="Clear" (click)="filterTargetId = ''; applyFilters()">
+          <mat-icon>close</mat-icon>
+        </button>
+      </mat-form-field>
+
+      <!-- Result Select -->
+      <mat-form-field appearance="outline" density="compact" class="filter-field">
+        <mat-label>Result</mat-label>
+        <mat-select [(ngModel)]="filterResult" (selectionChange)="applyFilters()">
+          <mat-option value="">All Results</mat-option>
+          <mat-option value="success">Success</mat-option>
+          <mat-option value="failure">Failure</mat-option>
+          <mat-option value="pending">Pending</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <!-- Date Preset Select -->
+      <mat-form-field appearance="outline" density="compact" class="filter-field">
+        <mat-label>Time Window</mat-label>
+        <mat-select [value]="selectedDatePreset" (selectionChange)="onDatePresetChange($event.value)">
+          <mat-option *ngFor="let opt of datePresetOptions" [value]="opt.value">
+            {{ opt.label }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <!-- Filter Buttons -->
+      <div class="filter-buttons">
+        <button mat-flat-button color="primary" (click)="applyFilters()">
+          Filter
+        </button>
+        <button mat-button (click)="resetFilters()">
+          Reset
+        </button>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Error Alert -->
+  <div *ngIf="store.error()" class="error-banner">
+    <mat-icon color="warn">error</mat-icon>
+    <span>{{ store.error() }}</span>
+    <button mat-button color="warn" (click)="store.loadAuditLogs()">Retry</button>
+  </div>
+
+  <!-- Loading Spinner -->
+  <div *ngIf="store.isLoading()" class="loading-container">
+    <mat-spinner diameter="40"></mat-spinner>
+    <p>Loading audit logs...</p>
+  </div>
+
+  <!-- Audit Table Card -->
+  <mat-card *ngIf="!store.isLoading()" class="table-card">
+    <div class="table-container">
+      <table mat-table [dataSource]="store.items()" class="audit-table">
+        <!-- Timestamp Column -->
+        <ng-container matColumnDef="timestamp">
+          <th mat-header-cell *matHeaderCellDef>Timestamp</th>
+          <td mat-cell *matCellDef="let log" class="timestamp-cell">
+            <span class="timestamp-val">{{ formatTimestamp(log.timestamp, store.relativeTime()) }}</span>
+          </td>
+        </ng-container>
+
+        <!-- User / Actor Column -->
+        <ng-container matColumnDef="username">
+          <th mat-header-cell *matHeaderCellDef>Actor</th>
+          <td mat-cell *matCellDef="let log">
+            <div class="actor-cell">
+              <mat-icon class="actor-icon">person</mat-icon>
+              <span class="actor-name">{{ log.username }}</span>
+            </div>
+          </td>
+        </ng-container>
+
+        <!-- Action Column -->
+        <ng-container matColumnDef="action">
+          <th mat-header-cell *matHeaderCellDef>Action</th>
+          <td mat-cell *matCellDef="let log">
+            <span class="action-chip">{{ log.action }}</span>
+          </td>
+        </ng-container>
+
+        <!-- Target Column -->
+        <ng-container matColumnDef="target">
+          <th mat-header-cell *matHeaderCellDef>Target</th>
+          <td mat-cell *matCellDef="let log">
+            <span class="target-type">{{ log.target_type }}</span>
+            <span *ngIf="log.target_id" class="target-id">: {{ log.target_id }}</span>
+          </td>
+        </ng-container>
+
+        <!-- Result Column -->
+        <ng-container matColumnDef="result">
+          <th mat-header-cell *matHeaderCellDef>Result</th>
+          <td mat-cell *matCellDef="let log">
+            <span class="result-badge" [ngClass]="getResultMeta(log.result).colorClass">
+              <mat-icon class="badge-icon">{{ getResultMeta(log.result).icon }}</mat-icon>
+              <span>{{ getResultMeta(log.result).label }}</span>
+            </span>
+          </td>
+        </ng-container>
+
+        <!-- Client IP Column -->
+        <ng-container matColumnDef="ip_address">
+          <th mat-header-cell *matHeaderCellDef>Client IP</th>
+          <td mat-cell *matCellDef="let log" class="ip-cell">
+            {{ log.ip_address || '—' }}
+          </td>
+        </ng-container>
+
+        <!-- Actions Column -->
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef class="actions-col"></th>
+          <td mat-cell *matCellDef="let log" class="actions-col">
+            <button
+              mat-icon-button
+              (click)="openDrawer(log); $event.stopPropagation()"
+              matTooltip="View full audit record"
+              aria-label="View record"
+            >
+              <mat-icon>visibility</mat-icon>
+            </button>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr
+          mat-row
+          *matRowDef="let row; columns: displayedColumns"
+          class="clickable-row"
+          (click)="openDrawer(row)"
+        ></tr>
+      </table>
+
+      <!-- Empty State -->
+      <div *ngIf="store.items().length === 0" class="empty-state">
+        <mat-icon class="empty-icon">history</mat-icon>
+        <h3>No audit logs found</h3>
+        <p>No activity records match your current filter criteria.</p>
+        <button mat-stroked-button color="primary" (click)="resetFilters()">
+          Clear Filters
+        </button>
+      </div>
+    </div>
+
+    <!-- Paginator -->
+    <mat-paginator
+      [length]="store.total()"
+      [pageSize]="store.pageSize()"
+      [pageIndex]="store.page() - 1"
+      [pageSizeOptions]="[20, 50, 100]"
+      (page)="onPageChange($event)"
+      showFirstLastButtons
+    ></mat-paginator>
+  </mat-card>
+
+  <!-- Detail Drawer Overlay -->
+  <div
+    class="drawer-overlay"
+    *ngIf="store.selectedItem()"
+    (click)="closeDrawer()"
+  ></div>
+
+  <!-- Detail Drawer Side Sheet -->
+  <aside class="detail-drawer" *ngIf="store.selectedItem() as item">
+    <div class="drawer-header">
+      <div class="drawer-title-group">
+        <h2 class="drawer-title">Audit Record Details</h2>
+        <span class="result-badge" [ngClass]="getResultMeta(item.result).colorClass">
+          <mat-icon class="badge-icon">{{ getResultMeta(item.result).icon }}</mat-icon>
+          <span>{{ getResultMeta(item.result).label }}</span>
+        </span>
+      </div>
+      <button mat-icon-button (click)="closeDrawer()" aria-label="Close drawer">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+
+    <div class="drawer-body">
+      <!-- Error Message Banner (if failure) -->
+      <div *ngIf="item.error_message" class="error-trace-banner">
+        <div class="trace-header">
+          <mat-icon color="warn">error</mat-icon>
+          <strong>Execution Failure Trace</strong>
+        </div>
+        <p class="trace-message">{{ item.error_message }}</p>
+      </div>
+
+      <!-- Metadata List -->
+      <div class="meta-section">
+        <h3 class="section-title">Overview</h3>
+        <div class="meta-grid">
+          <div class="meta-item">
+            <span class="meta-label">ID</span>
+            <span class="meta-value font-mono">{{ item.id }}</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">Timestamp</span>
+            <span class="meta-value font-mono">{{ item.timestamp }}</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">Actor</span>
+            <span class="meta-value">{{ item.username }} <small *ngIf="item.user_id">({{ item.user_id }})</small></span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">Action</span>
+            <span class="meta-value font-mono action-text">{{ item.action }}</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">Target</span>
+            <span class="meta-value font-mono">{{ item.target_type }} <span *ngIf="item.target_id">({{ item.target_id }})</span></span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">Client IP</span>
+            <span class="meta-value font-mono">{{ item.ip_address || '—' }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Payload Section -->
+      <div class="payload-section">
+        <div class="payload-header">
+          <h3 class="section-title">Request Payload</h3>
+          <button
+            mat-button
+            (click)="copyPayload(item.payload)"
+            *ngIf="item.payload"
+            aria-label="Copy payload"
+          >
+            <mat-icon>content_copy</mat-icon>
+            <span>Copy JSON</span>
+          </button>
+        </div>
+        <pre class="json-viewer"><code>{{ formatPayload(item.payload) }}</code></pre>
+      </div>
+    </div>
+
+    <div class="drawer-footer">
+      <button mat-stroked-button (click)="closeDrawer()">Close</button>
+    </div>
+  </aside>
+</div>

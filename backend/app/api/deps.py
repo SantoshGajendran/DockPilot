@@ -58,6 +58,13 @@ def get_resource_service(
     return ResourceService(docker_gateway=docker_gateway)
 
 
+def get_audit_service(
+    db: AsyncSession = Depends(get_db_session),
+) -> "AuditService":
+    from app.services.audit_service import AuditService
+    return AuditService(db=db)
+
+
 
 def get_overview_collector(
     request: Request,

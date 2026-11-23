@@ -22,6 +22,7 @@ from app.services.host_service import HostService
 from app.services.job_service import JobManager, get_job_manager
 from app.services.compose_service import ComposeService
 from app.services.terminal_service import TerminalService
+from app.services.audit_service import AuditService
 
 __all__ = [
     "authenticate_user",
@@ -45,6 +46,7 @@ __all__ = [
     "get_job_manager",
     "ComposeService",
     "TerminalService",
+    "AuditService",
 ]
 
 

@@ -79,6 +79,11 @@ from app.schemas.terminal import (
     TerminalSessionResponse,
     TerminalSessionsListResponse,
 )
+from app.schemas.audit import (
+    AuditLogResponse,
+    AuditLogsListResponse,
+    AuditLogFilterParams,
+)
 
 __all__ = [
     "LoginRequest",
@@ -103,6 +108,9 @@ __all__ = [
     "TerminalStatusResponse",
     "TerminalSessionResponse",
     "TerminalSessionsListResponse",
+    "AuditLogResponse",
+    "AuditLogsListResponse",
+    "AuditLogFilterParams",
 ]
 
 

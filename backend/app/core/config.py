@@ -89,6 +89,10 @@ class Settings(BaseSettings):
     terminal_transcript_retention_days: int = 30
     terminal_default_shell: str = "/bin/sh"
     terminal_allowed_shells: List[str] = ["/bin/sh", "/bin/bash", "sh", "bash"]
+    audit_page_size_default: int = 50
+    audit_page_size_max: int = 200
+    audit_export_max_rows: int = 5000
+    audit_retention_days: int = 90
 
 
 @lru_cache
@@ -116,6 +120,14 @@ def get_settings() -> Settings:
         with open(terminal_path, "r", encoding="utf-8") as f:
             term_data = yaml.safe_load(f) or {}
             data.update(term_data)
+
+    audit_path = config_path.parent / "audit.yaml"
+    if not audit_path.exists():
+        audit_path = Path("config/audit.yaml")
+    if audit_path.exists():
+        with open(audit_path, "r", encoding="utf-8") as f:
+            audit_data = yaml.safe_load(f) or {}
+            data.update(audit_data)
 
     import os
     for k in list(data.keys()):

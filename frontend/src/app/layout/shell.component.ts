@@ -66,4 +66,9 @@ export class ShellComponent implements OnInit, OnDestroy {
   toggleSidebar(): void {
     this.isCollapsed.update((state) => !state);
   }
+
+  canAccess(item: NavItem): boolean {
+    if (!item.minRole) return true;
+    return this.authService.hasRole(item.minRole);
+  }
 }
