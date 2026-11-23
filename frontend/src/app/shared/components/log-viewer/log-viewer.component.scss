@@ -45,20 +45,12 @@
   }
 
   .search-input-box {
-    display: flex;
-    align-items: center;
-    background: #0f172a;
-    border: 1px solid #334155;
-    border-radius: 4px;
-    padding: 2px 8px;
+    height: 32px;
+    padding: 0 8px;
 
     input {
-      background: transparent;
-      border: none;
-      outline: none;
-      color: #e2e8f0;
-      font-size: 0.8rem;
       width: 140px;
+      font-size: 0.8125rem;
     }
   }
 

@@ -33,19 +33,19 @@
   <div class="filter-card">
     <div class="filter-inputs">
       <!-- Container Name Filter -->
-      <mat-form-field appearance="outline" density="compact" class="search-field">
+      <mat-form-field appearance="outline" subscriptSizing="dynamic" class="search-field">
         <mat-label>Filter by Container</mat-label>
+        <mat-icon matPrefix>search</mat-icon>
         <input
           matInput
           [(ngModel)]="filterContainerName"
           (keyup.enter)="applyFilters()"
           placeholder="e.g. web, redis, api"
         />
-        <mat-icon matSuffix>search</mat-icon>
       </mat-form-field>
 
       <!-- Action Select -->
-      <mat-form-field appearance="outline" density="compact" class="select-field">
+      <mat-form-field appearance="outline" subscriptSizing="dynamic" class="select-field">
         <mat-label>Event Action</mat-label>
         <mat-select [(ngModel)]="filterAction" (selectionChange)="applyFilters()">
           <mat-option *ngFor="let opt of actionOptions" [value]="opt.value">

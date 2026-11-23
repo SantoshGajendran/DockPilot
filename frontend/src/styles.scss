@@ -15,6 +15,149 @@ html, body {
   box-sizing: border-box;
 }
 
+/* Text selection & Scrollbars */
+::selection {
+  background: rgba(59, 130, 246, 0.28);
+  color: var(--text-primary);
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-subtle);
+  border-radius: 9999px;
+  &:hover {
+    background: var(--border-highlight);
+  }
+}
+
+/* Global Typography & Text Spacing */
+h1, h2, h3, h4, h5, h6 {
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  margin-top: 0;
+  text-wrap: balance;
+}
+
+p, span, label {
+  text-wrap: pretty;
+}
+
+.page-title {
+  font-size: var(--text-xl);
+  font-weight: 600;
+  letter-spacing: -0.025em;
+  line-height: 1.25;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.page-subtitle {
+  font-size: var(--text-base);
+  color: var(--text-secondary);
+  letter-spacing: -0.01em;
+  margin: 4px 0 0 0;
+  font-weight: 400;
+  line-height: 1.4;
+}
+
+/* Angular Material Form Field Global Craft */
+.mat-mdc-form-field {
+  font-family: var(--font-sans);
+
+  .mat-mdc-text-field-wrapper {
+    background-color: var(--bg-surface-elevated);
+    border-radius: 8px;
+    transition: background-color 150ms ease, box-shadow 150ms ease;
+  }
+
+  .mat-mdc-form-field-subscript-wrapper:empty {
+    display: none;
+  }
+
+  .mat-mdc-form-field-icon-prefix,
+  .mat-icon[matPrefix] {
+    color: var(--text-muted);
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+    line-height: 18px;
+    margin-right: 8px;
+    transition: color 150ms ease;
+  }
+
+  &.mat-focused .mat-icon[matPrefix] {
+    color: var(--primary-color);
+  }
+
+  .mat-mdc-input-element {
+    font-size: var(--text-base);
+    letter-spacing: -0.01em;
+    color: var(--text-primary);
+    caret-color: var(--primary-color);
+  }
+}
+
+/* Unified Custom Search Boxes */
+.search-box,
+.search-input-box {
+  display: flex;
+  align-items: center;
+  height: 38px;
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  padding: 0 12px;
+  box-sizing: border-box;
+  transition: border-color 150ms ease, box-shadow 150ms ease, background-color 150ms ease;
+
+  &:hover {
+    border-color: var(--border-highlight);
+  }
+
+  &:focus-within {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+  }
+
+  mat-icon {
+    color: var(--text-muted) !important;
+    font-size: 18px !important;
+    width: 18px !important;
+    height: 18px !important;
+    line-height: 18px !important;
+    margin-right: 8px !important;
+    transition: color 150ms ease;
+    flex-shrink: 0;
+  }
+
+  &:focus-within mat-icon {
+    color: var(--primary-color) !important;
+  }
+
+  input {
+    border: none !important;
+    background: transparent !important;
+    outline: none !important;
+    font-family: var(--font-sans);
+    font-size: var(--text-base);
+    color: var(--text-primary) !important;
+    caret-color: var(--primary-color);
+    flex: 1;
+    min-width: 0;
+    padding: 0;
+
+    &::placeholder {
+      color: var(--text-muted) !important;
+    }
+  }
+}
+
 /* Tactile button press feedback */
 button.mat-mdc-button,
 button.mat-mdc-unelevated-button,

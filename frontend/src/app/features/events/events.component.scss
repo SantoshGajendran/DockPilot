@@ -26,14 +26,15 @@
 
   h2 {
     margin: 0;
-    font-size: 1.5rem;
+    font-size: var(--text-xl);
     font-weight: 600;
+    color: var(--text-primary);
   }
 
   .subtitle {
     margin: 4px 0 0;
-    font-size: 0.875rem;
-    color: #64748b;
+    font-size: var(--text-sm);
+    color: var(--text-secondary);
   }
 }
 
@@ -41,8 +42,8 @@
   width: 44px;
   height: 44px;
   border-radius: 10px;
-  background: #e0e7ff;
-  color: #4f46e5;
+  background: rgba(59, 130, 246, 0.15);
+  color: var(--primary-color);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -55,8 +56,8 @@
 }
 
 .filter-card {
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
   border-radius: 8px;
   padding: 16px;
 }
@@ -66,10 +67,6 @@
   align-items: center;
   flex-wrap: wrap;
   gap: 16px;
-
-  mat-form-field {
-    margin-bottom: -1.25em;
-  }
 
   .search-field {
     min-width: 240px;
@@ -100,29 +97,30 @@
   justify-content: center;
   padding: 64px 24px;
   gap: 16px;
-  color: #64748b;
+  color: var(--text-muted);
   text-align: center;
-  background: #ffffff;
+  background: var(--bg-surface);
   border-radius: 8px;
-  border: 1px dashed #cbd5e1;
+  border: 1px dashed var(--border-subtle);
 
   .empty-icon {
     font-size: 48px;
     width: 48px;
     height: 48px;
-    color: #94a3b8;
+    color: var(--text-muted);
   }
 
   h3 {
     margin: 0;
-    font-size: 1.15rem;
+    font-size: var(--text-lg);
     font-weight: 600;
-    color: #334155;
+    color: var(--text-primary);
   }
 
   p {
     margin: 0;
-    font-size: 0.875rem;
+    font-size: var(--text-sm);
+    color: var(--text-secondary);
   }
 }
 
@@ -130,12 +128,12 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  background: #fef2f2;
-  color: #ef4444;
-  border: 1px solid #fecaca;
+  background: rgba(239, 68, 68, 0.12);
+  color: var(--status-danger);
+  border: 1px solid rgba(239, 68, 68, 0.25);
   padding: 14px 18px;
   border-radius: 8px;
-  font-size: 0.875rem;
+  font-size: var(--text-sm);
 }
 
 .timeline-container {
@@ -144,9 +142,9 @@
 }
 
 .timeline-card {
-  background: #ffffff;
+  background: var(--bg-surface);
   border-radius: 8px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--border-subtle);
   padding: 24px;
   display: flex;
   flex-direction: column;
@@ -157,10 +155,10 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border-top: 1px solid #f1f5f9;
+  border-top: 1px solid var(--border-subtle);
   padding-top: 16px;
-  font-size: 0.825rem;
-  color: #64748b;
+  font-size: var(--text-xs);
+  color: var(--text-muted);
 }
 
 .spinner-inline {

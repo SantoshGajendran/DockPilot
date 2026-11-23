@@ -46,7 +46,7 @@
   <mat-card class="filter-card">
     <mat-card-content class="filter-row">
       <!-- User Input -->
-      <mat-form-field appearance="outline" density="compact" class="filter-field">
+      <mat-form-field appearance="outline" subscriptSizing="dynamic" class="filter-field">
         <mat-label>User / Actor</mat-label>
         <input
           matInput
@@ -60,7 +60,7 @@
       </mat-form-field>
 
       <!-- Action Select -->
-      <mat-form-field appearance="outline" density="compact" class="filter-field">
+      <mat-form-field appearance="outline" subscriptSizing="dynamic" class="filter-field">
         <mat-label>Action</mat-label>
         <mat-select [(ngModel)]="filterAction" (selectionChange)="applyFilters()">
           <mat-option *ngFor="let opt of actionOptions" [value]="opt.value">
@@ -70,7 +70,7 @@
       </mat-form-field>
 
       <!-- Target Type Select -->
-      <mat-form-field appearance="outline" density="compact" class="filter-field">
+      <mat-form-field appearance="outline" subscriptSizing="dynamic" class="filter-field">
         <mat-label>Target Type</mat-label>
         <mat-select [(ngModel)]="filterTargetType" (selectionChange)="applyFilters()">
           <mat-option *ngFor="let opt of targetTypeOptions" [value]="opt.value">
@@ -80,7 +80,7 @@
       </mat-form-field>
 
       <!-- Target ID Input -->
-      <mat-form-field appearance="outline" density="compact" class="filter-field">
+      <mat-form-field appearance="outline" subscriptSizing="dynamic" class="filter-field">
         <mat-label>Target ID</mat-label>
         <input
           matInput
@@ -94,7 +94,7 @@
       </mat-form-field>
 
       <!-- Result Select -->
-      <mat-form-field appearance="outline" density="compact" class="filter-field">
+      <mat-form-field appearance="outline" subscriptSizing="dynamic" class="filter-field">
         <mat-label>Result</mat-label>
         <mat-select [(ngModel)]="filterResult" (selectionChange)="applyFilters()">
           <mat-option value="">All Results</mat-option>
@@ -105,7 +105,7 @@
       </mat-form-field>
 
       <!-- Date Preset Select -->
-      <mat-form-field appearance="outline" density="compact" class="filter-field">
+      <mat-form-field appearance="outline" subscriptSizing="dynamic" class="filter-field">
         <mat-label>Time Window</mat-label>
         <mat-select [value]="selectedDatePreset" (selectionChange)="onDatePresetChange($event.value)">
           <mat-option *ngFor="let opt of datePresetOptions" [value]="opt.value">

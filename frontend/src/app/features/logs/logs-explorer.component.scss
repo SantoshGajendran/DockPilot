@@ -110,21 +110,7 @@
       min-width: 240px;
 
       .search-box {
-        display: flex;
-        align-items: center;
-        background: #f8fafc;
-        border: 1px solid #cbd5e1;
-        border-radius: 6px;
-        padding: 4px 10px;
         flex: 1;
-
-        input {
-          border: none;
-          background: transparent;
-          outline: none;
-          font-size: 0.875rem;
-          flex: 1;
-        }
       }
     }
 
