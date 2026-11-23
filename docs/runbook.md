@@ -138,3 +138,46 @@ If backend reports `Docker gateway collection failed` or `403 Forbidden`:
    ```bash
    docker compose restart socket-proxy
    ```
+
+---
+
+## 5. Intranet Hosting (`http://saazvat/dockpilot`)
+
+When another service (such as `teamlink-frontend`) occupies host port 80, DockPilot can be served under `http://saazvat/dockpilot` by reverse-proxying from the port 80 service to DockPilot on port 4200.
+
+### Step 1: Start DockPilot
+DockPilot frontend binds to `0.0.0.0:4200:80`:
+```bash
+docker compose up -d
+```
+
+### Step 2: Configure Existing Port 80 Reverse Proxy (`teamlink-frontend`)
+Add the following location block into `teamlink-frontend`'s Nginx configuration (e.g. `/etc/nginx/conf.d/default.conf` or equivalent):
+
+```nginx
+location /dockpilot/ {
+    proxy_pass http://172.17.0.1:4200/dockpilot/;
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection $http_connection;
+    proxy_buffering off;
+    proxy_cache off;
+    proxy_read_timeout 24h;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+}
+```
+
+### Step 3: Test and Reload Port 80 Nginx
+```bash
+docker exec -it teamlink-frontend nginx -t
+docker exec -it teamlink-frontend nginx -s reload
+```
+
+Clients across the intranet can now access DockPilot directly at:
+```
+http://saazvat/dockpilot
+```
+
