@@ -65,6 +65,13 @@ def get_audit_service(
     return AuditService(db=db)
 
 
+def get_users_service(
+    db: AsyncSession = Depends(get_db_session),
+) -> "UsersService":
+    from app.services.users_service import UsersService
+    return UsersService(db=db)
+
+
 
 def get_overview_collector(
     request: Request,

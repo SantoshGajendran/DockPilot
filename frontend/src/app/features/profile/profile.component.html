@@ -1,0 +1,248 @@
+<div class="profile-container">
+  <!-- Header Bar -->
+  <div class="header-bar">
+    <div class="header-titles">
+      <h1 class="page-title">User Profile</h1>
+      <p class="page-subtitle">Manage personal account security, authentication credentials, and active sessions</p>
+    </div>
+  </div>
+
+  <div class="profile-grid">
+    <!-- Column 1: Overview & Change Password -->
+    <div class="profile-column">
+      <!-- Account Overview Card -->
+      <mat-card class="section-card">
+        <mat-card-header>
+          <mat-icon mat-card-avatar color="primary">account_circle</mat-icon>
+          <mat-card-title>Account Overview</mat-card-title>
+          <mat-card-subtitle>Current user details and assigned permissions</mat-card-subtitle>
+        </mat-card-header>
+
+        <mat-card-content *ngIf="authService.currentUser() as user">
+          <div class="overview-list">
+            <div class="overview-item">
+              <span class="label">Username</span>
+              <span class="val font-semibold">{{ user.username }}</span>
+            </div>
+
+            <div class="overview-item">
+              <span class="label">Role</span>
+              <span class="role-badge" [ngClass]="getRoleMeta(user.role).colorClass">
+                <mat-icon class="badge-icon">{{ getRoleMeta(user.role).icon }}</mat-icon>
+                <span>{{ getRoleMeta(user.role).label }}</span>
+              </span>
+            </div>
+
+            <div class="overview-item" *ngIf="user.email">
+              <span class="label">Email</span>
+              <span class="val">{{ user.email }}</span>
+            </div>
+
+            <div class="overview-item">
+              <span class="label">Two-Factor Authentication</span>
+              <span class="totp-badge" [class.totp-enabled]="user.totp_enabled">
+                <mat-icon class="badge-icon">{{ user.totp_enabled ? 'verified_user' : 'gpp_bad' }}</mat-icon>
+                <span>{{ user.totp_enabled ? 'Active & Protected' : 'Disabled' }}</span>
+              </span>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Change Password Card -->
+      <mat-card class="section-card">
+        <mat-card-header>
+          <mat-icon mat-card-avatar color="primary">lock</mat-icon>
+          <mat-card-title>Change Password</mat-card-title>
+          <mat-card-subtitle>Update your personal account password</mat-card-subtitle>
+        </mat-card-header>
+
+        <mat-card-content>
+          <form [formGroup]="passwordForm" (ngSubmit)="changePassword()" class="pwd-form">
+            <mat-form-field appearance="outline" class="w-full">
+              <mat-label>Current Password</mat-label>
+              <input matInput formControlName="current_password" type="password" />
+              <mat-error *ngIf="passwordForm.get('current_password')?.hasError('required')">
+                Current password is required
+              </mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="w-full">
+              <mat-label>New Password</mat-label>
+              <input matInput formControlName="new_password" type="password" />
+              <mat-error *ngIf="passwordForm.get('new_password')?.hasError('required')">
+                New password is required
+              </mat-error>
+              <mat-error *ngIf="passwordForm.get('new_password')?.hasError('minlength')">
+                Minimum 6 characters
+              </mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="w-full">
+              <mat-label>Confirm New Password</mat-label>
+              <input matInput formControlName="confirm_password" type="password" />
+              <mat-error *ngIf="passwordForm.get('confirm_password')?.hasError('required')">
+                Please confirm new password
+              </mat-error>
+            </mat-form-field>
+
+            <div class="form-actions">
+              <button
+                mat-flat-button
+                color="primary"
+                type="submit"
+                [disabled]="passwordForm.invalid || store.isChangingPassword()"
+              >
+                <mat-spinner *ngIf="store.isChangingPassword()" diameter="18" class="inline-spinner"></mat-spinner>
+                <span>Update Password</span>
+              </button>
+            </div>
+          </form>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <!-- Column 2: 2FA & Active Sessions -->
+    <div class="profile-column">
+      <!-- Two-Factor Authentication Card -->
+      <mat-card class="section-card">
+        <mat-card-header>
+          <mat-icon mat-card-avatar color="primary">security</mat-icon>
+          <mat-card-title>Two-Factor Authentication (2FA)</mat-card-title>
+          <mat-card-subtitle>Standard RFC 6238 time-based authenticator (Google Authenticator, Authy, Apple)</mat-card-subtitle>
+        </mat-card-header>
+
+        <mat-card-content *ngIf="authService.currentUser() as user">
+          <!-- 2FA Active View -->
+          <div *ngIf="user.totp_enabled" class="totp-active-view">
+            <div class="totp-active-banner">
+              <mat-icon class="shield-icon">verified_user</mat-icon>
+              <div>
+                <strong>2FA is enabled and protecting your account.</strong>
+                <p>A verification code from your authenticator app is required each time you sign in.</p>
+              </div>
+            </div>
+
+            <button mat-stroked-button color="warn" (click)="confirmDisableTotp()">
+              Disable 2FA
+            </button>
+          </div>
+
+          <!-- 2FA Disabled View (Setup Not Started) -->
+          <div *ngIf="!user.totp_enabled && !store.totpEnrolData()" class="totp-inactive-view">
+            <p class="desc">
+              Add an extra layer of security to your account. When enabled, signing in requires both your password and a 6-digit verification code generated by your authenticator app.
+            </p>
+            <button
+              mat-flat-button
+              color="primary"
+              (click)="startTotp()"
+              [disabled]="store.isEnrollingTotp()"
+            >
+              <mat-spinner *ngIf="store.isEnrollingTotp()" diameter="18" class="inline-spinner"></mat-spinner>
+              <span>Set Up 2FA</span>
+            </button>
+          </div>
+
+          <!-- 2FA Enrolment Wizard -->
+          <div *ngIf="!user.totp_enabled && store.totpEnrolData() as enrolData" class="totp-enrol-wizard">
+            <h3 class="step-title">1. Scan QR Code in Authenticator</h3>
+            <p class="desc">Scan this code using Google Authenticator, 1Password, Bitwarden, or Apple Passwords:</p>
+
+            <div class="qr-container">
+              <img *ngIf="qrCodeDataUrl()" [src]="qrCodeDataUrl()" alt="TOTP QR Code" class="qr-image" />
+              <mat-spinner *ngIf="!qrCodeDataUrl()" diameter="32"></mat-spinner>
+            </div>
+
+            <div class="secret-box">
+              <span class="secret-label">Can't scan QR? Use this key:</span>
+              <div class="secret-val-row">
+                <code class="secret-code">{{ enrolData.secret }}</code>
+                <button mat-icon-button (click)="copySecret(enrolData.secret)" matTooltip="Copy secret key">
+                  <mat-icon>content_copy</mat-icon>
+                </button>
+              </div>
+            </div>
+
+            <mat-divider class="my-4"></mat-divider>
+
+            <h3 class="step-title">2. Enter 6-Digit Verification Code</h3>
+            <div class="verify-row">
+              <mat-form-field appearance="outline" density="compact" class="code-field">
+                <mat-label>6-digit code</mat-label>
+                <input matInput [formControl]="totpCodeControl" maxlength="6" placeholder="123456" />
+              </mat-form-field>
+
+              <button
+                mat-flat-button
+                color="primary"
+                (click)="verifyTotp()"
+                [disabled]="totpCodeControl.invalid || store.isVerifyingTotp()"
+              >
+                <mat-spinner *ngIf="store.isVerifyingTotp()" diameter="18" class="inline-spinner"></mat-spinner>
+                <span>Activate 2FA</span>
+              </button>
+
+              <button mat-button (click)="store.cancelTotpEnrol()">
+                Cancel
+              </button>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Active Sessions Card -->
+      <mat-card class="section-card">
+        <mat-card-header>
+          <mat-icon mat-card-avatar color="primary">devices</mat-icon>
+          <div class="header-with-action">
+            <div>
+              <mat-card-title>Active Sessions</mat-card-title>
+              <mat-card-subtitle>Devices and browsers currently authenticated</mat-card-subtitle>
+            </div>
+            <button
+              mat-stroked-button
+              color="warn"
+              *ngIf="store.sessions().length > 1"
+              (click)="store.revokeAllSessions()"
+            >
+              Revoke All Others
+            </button>
+          </div>
+        </mat-card-header>
+
+        <mat-card-content>
+          <div *ngIf="store.isLoadingSessions()" class="sessions-loading">
+            <mat-spinner diameter="30"></mat-spinner>
+          </div>
+
+          <div *ngIf="!store.isLoadingSessions()" class="sessions-list">
+            <div *ngFor="let s of store.sessions()" class="session-item" [class.current]="s.is_current">
+              <div class="session-info">
+                <div class="session-title-row">
+                  <mat-icon class="device-icon">computer</mat-icon>
+                  <strong class="session-agent">{{ s.user_agent || 'Web Browser' }}</strong>
+                  <span *ngIf="s.is_current" class="current-badge">Current Session</span>
+                </div>
+                <div class="session-meta">
+                  <span>IP: {{ s.ip_address || '—' }}</span>
+                  <span>•</span>
+                  <span>Active {{ formatTimeAgo(s.last_seen_at) }}</span>
+                </div>
+              </div>
+
+              <button
+                *ngIf="!s.is_current"
+                mat-button
+                color="warn"
+                (click)="store.revokeSession(s.id)"
+              >
+                Revoke
+              </button>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+</div>

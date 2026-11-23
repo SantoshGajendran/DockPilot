@@ -84,6 +84,19 @@ from app.schemas.audit import (
     AuditLogsListResponse,
     AuditLogFilterParams,
 )
+from app.schemas.users import (
+    UserCreate,
+    UserUpdate,
+    UserResponse,
+    UsersListResponse,
+    AdminPasswordResetRequest,
+    ChangePasswordRequest,
+    TotpEnrolResponse,
+    TotpVerifyRequest,
+    TotpStatusResponse,
+    UserSessionResponse,
+    UserSessionsListResponse,
+)
 
 __all__ = [
     "LoginRequest",
@@ -111,6 +124,17 @@ __all__ = [
     "AuditLogResponse",
     "AuditLogsListResponse",
     "AuditLogFilterParams",
+    "UserCreate",
+    "UserUpdate",
+    "UserResponse",
+    "UsersListResponse",
+    "AdminPasswordResetRequest",
+    "ChangePasswordRequest",
+    "TotpEnrolResponse",
+    "TotpVerifyRequest",
+    "TotpStatusResponse",
+    "UserSessionResponse",
+    "UserSessionsListResponse",
 ]
 
 

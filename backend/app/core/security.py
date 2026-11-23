@@ -49,6 +49,18 @@ def create_refresh_token(user_id: uuid.UUID) -> str:
     }
     return jwt.encode(payload, settings.jwt_secret, algorithm="HS256")
 
+def create_2fa_temp_token(user_id: uuid.UUID) -> str:
+    settings = get_settings()
+    now = datetime.now(timezone.utc)
+    expire = now + timedelta(minutes=5)
+    payload = {
+        "sub": str(user_id),
+        "type": "2fa_temp",
+        "iat": now,
+        "exp": expire,
+    }
+    return jwt.encode(payload, settings.jwt_secret, algorithm="HS256")
+
 def create_delete_token(user_id: uuid.UUID, container_id: str, expire_seconds: int = 60) -> Tuple[str, datetime]:
     settings = get_settings()
     now = datetime.now(timezone.utc)

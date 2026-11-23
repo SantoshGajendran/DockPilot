@@ -10,6 +10,7 @@ from app.models.notification import (
     NotificationDeliveryLog,
 )
 from app.models.terminal import TerminalSession
+from app.models.session import UserSession
 
 __all__ = [
     "Base",
@@ -26,4 +27,5 @@ __all__ = [
     "NotificationRoute",
     "NotificationDeliveryLog",
     "TerminalSession",
+    "UserSession",
 ]

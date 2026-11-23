@@ -1,0 +1,5 @@
+users_page_size_default: 20
+users_page_size_max: 100
+totp_issuer: "DockPilot"
+totp_window: 1
+session_max_age_days: 7

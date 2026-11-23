@@ -109,6 +109,23 @@ export const routes: Routes = [
           ),
         data: { title: 'Audit Log', role: 'admin' },
       },
+      {
+        path: 'users',
+        canActivate: [roleGuard],
+        loadComponent: () =>
+          import('./features/users/users.component').then(
+            (m) => m.UsersComponent
+          ),
+        data: { title: 'Users & Roles', role: 'admin' },
+      },
+      {
+        path: 'profile',
+        loadComponent: () =>
+          import('./features/profile/profile.component').then(
+            (m) => m.ProfileComponent
+          ),
+        data: { title: 'User Profile' },
+      },
 
 
 

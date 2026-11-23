@@ -93,6 +93,11 @@ class Settings(BaseSettings):
     audit_page_size_max: int = 200
     audit_export_max_rows: int = 5000
     audit_retention_days: int = 90
+    users_page_size_default: int = 20
+    users_page_size_max: int = 100
+    totp_issuer: str = "DockPilot"
+    totp_window: int = 1
+    session_max_age_days: int = 7
 
 
 @lru_cache
@@ -128,6 +133,14 @@ def get_settings() -> Settings:
         with open(audit_path, "r", encoding="utf-8") as f:
             audit_data = yaml.safe_load(f) or {}
             data.update(audit_data)
+
+    users_path = config_path.parent / "users.yaml"
+    if not users_path.exists():
+        users_path = Path("config/users.yaml")
+    if users_path.exists():
+        with open(users_path, "r", encoding="utf-8") as f:
+            users_data = yaml.safe_load(f) or {}
+            data.update(users_data)
 
     import os
     for k in list(data.keys()):

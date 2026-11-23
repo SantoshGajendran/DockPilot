@@ -41,10 +41,17 @@
           {{ sseService.connectionState() }}
         </mat-chip>
       </mat-chip-set>
-      <div class="user-info" *ngIf="authService.currentUser() as user">
+      <a
+        mat-button
+        routerLink="/profile"
+        matTooltip="User Profile & Security"
+        class="user-info-btn"
+        *ngIf="authService.currentUser() as user"
+      >
+        <mat-icon class="profile-icon">account_circle</mat-icon>
         <span class="user-name">{{ user.username }}</span>
         <span class="user-role">({{ user.role }})</span>
-      </div>
+      </a>
     </mat-toolbar>
     <main class="main-body">
       <router-outlet></router-outlet>

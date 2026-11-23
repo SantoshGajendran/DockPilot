@@ -372,6 +372,46 @@
   - Navigation link in sidebar restricted to administrators (`minRole: 'admin'`) and route guarded by `roleGuard`.
   - 252 frontend unit tests passing across 53 suites (`npm test`); production `ng build` passing with 0 errors and 0 warnings.
 
+## Prompt 14: Users and Roles
+- **Status:** Complete
+- **Backend:**
+  - Configurable settings in `config/users.yaml` and `backend/app/core/config.py`:
+    - `users_page_size_default: 20`, `users_page_size_max: 100`, `totp_issuer: "DockPilot"`, `totp_window: 1`, `session_max_age_days: 7`.
+  - Database schema changes with Alembic migration `0008_users_roles_totp_sessions.py`:
+    - `User`: Added `force_password_change`, `totp_secret`, `totp_enabled`.
+    - `UserSession`: Added session model tracking `user_id`, `token_id`, `ip_address`, `user_agent`, `created_at`, `last_seen_at`, `is_revoked`.
+  - Zero-dependency RFC 6238 TOTP implementation in `backend/app/core/totp.py` with standard HMAC-SHA1 and `+/- 1` step window tolerance.
+  - User management service in `backend/app/services/users_service.py`:
+    - Admin-only CRUD operations (`viewer`, `operator`, `admin` roles).
+    - Last-admin protection: guards against deleting, demoting, or deactivating the last active administrator (400 Bad Request).
+    - Administrative password reset with `force_password_change` flag and audit logging (`user.password_reset`).
+  - Authentication and session service in `backend/app/services/auth_service.py`:
+    - Two-factor login flow with temporary verification tokens.
+    - User self-service TOTP enrolment, activation verification, and disablement.
+    - Active session tracking with client IP, User-Agent, and instant token revocation check on refresh.
+    - Self-service password change.
+  - Endpoints:
+    - User management: `GET /api/v1/users`, `POST /api/v1/users`, `GET /api/v1/users/{id}`, `PUT /api/v1/users/{id}`, `DELETE /api/v1/users/{id}`, `POST /api/v1/users/{id}/reset-password`.
+    - Auth & Profile: `POST /api/v1/auth/2fa/login`, `POST /api/v1/auth/2fa/enrol`, `POST /api/v1/auth/2fa/verify`, `POST /api/v1/auth/2fa/disable`, `POST /api/v1/auth/change-password`, `GET /api/v1/auth/sessions`, `POST /api/v1/auth/sessions/{id}/revoke`, `POST /api/v1/auth/sessions/revoke-all`.
+  - 175 backend unit tests passing across all suites (`pytest -q`).
+- **Frontend:**
+  - Installed `qrcode` and `@types/qrcode`.
+  - Models in `frontend/src/app/core/models/user-mgmt.model.ts` and constants in `frontend/src/app/core/constants/user-mgmt.constants.ts`.
+  - Services: `UsersService` and `ProfileService` with unit tests.
+  - Stores: `UsersStore` and `ProfileStore` with unit tests.
+  - Standalone route `/users` (`UsersComponent`):
+    - User table with username, role badge, email, active status, 2FA status, and creation date.
+    - Create/edit user modal (`UserDialogComponent`) with role selection and activation toggle.
+    - Reset password modal (`ResetPasswordDialogComponent`) with generated secure temporary password and forced password change toggle.
+    - Delete user confirmation with last-admin error banner.
+  - Standalone route `/profile` (`ProfileComponent`):
+    - Account overview card displaying role badge and security status.
+    - Change password form with current password validation and mismatch check.
+    - Two-factor authentication setup with rendered SVG/Canvas QR code (`otpauth://`), manual secret key copy, and 6-digit activation test.
+    - Active sessions card with current session indicator, device info, IP, last seen time, and per-session or revoke-all-others actions.
+  - Navigation: `/users` restricted to `admin` in sidebar and `roleGuard`; profile link in header toolbar.
+  - 285 frontend unit tests passing across 59 suites (`npm test`); production `ng build` passing with 0 errors and 0 warnings.
+
 
 
 

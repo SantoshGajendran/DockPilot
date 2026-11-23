@@ -90,12 +90,19 @@ mat-nav-list {
     flex: 1 1 auto;
   }
 
-  .user-info {
+  .user-info, .user-info-btn {
     margin-left: 16px;
     display: flex;
     align-items: center;
     gap: 6px;
     font-size: 0.875rem;
+
+    .profile-icon {
+      margin-right: 2px;
+      font-size: 1.25rem;
+      width: 1.25rem;
+      height: 1.25rem;
+    }
 
     .user-name {
       color: var(--text-primary);

@@ -7,4 +7,6 @@ export interface User {
   role: UserRole;
   isActive?: boolean;
   is_active?: boolean;
+  force_password_change?: boolean;
+  totp_enabled?: boolean;
 }
