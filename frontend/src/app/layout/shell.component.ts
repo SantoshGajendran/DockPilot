@@ -9,12 +9,14 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatBadgeModule } from '@angular/material/badge';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatMenuModule } from '@angular/material/menu';
 import { Subscription, interval } from 'rxjs';
 
 import { NAVIGATION_ITEMS, NavItem } from '../core/config/navigation.config';
 import { SseService } from '../core/services/sse.service';
 import { AuthService } from '../core/services/auth.service';
 import { AlertsService } from '../core/services/alerts.service';
+import { ThemeService } from '../core/services/theme.service';
 
 @Component({
   selector: 'dp-shell',
@@ -32,6 +34,7 @@ import { AlertsService } from '../core/services/alerts.service';
     MatChipsModule,
     MatBadgeModule,
     MatTooltipModule,
+    MatMenuModule,
   ],
   templateUrl: './shell.component.html',
   styleUrls: ['./shell.component.scss'],
@@ -42,6 +45,7 @@ export class ShellComponent implements OnInit, OnDestroy {
   readonly sseService = inject(SseService);
   readonly authService = inject(AuthService);
   readonly alertsService = inject(AlertsService, { optional: true });
+  readonly themeService = inject(ThemeService);
 
   readonly activeAlertsCount = signal<number>(0);
   private alertPollSub: Subscription | null = null;

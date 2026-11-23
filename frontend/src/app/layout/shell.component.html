@@ -36,6 +36,35 @@
           notifications
         </mat-icon>
       </button>
+
+      <button
+        mat-icon-button
+        [matMenuTriggerFor]="themeMenu"
+        matTooltip="Select Theme"
+        class="theme-toggle-btn"
+        aria-label="Theme mode selector"
+      >
+        <mat-icon>{{ themeService.mode() === 'system' ? 'brightness_auto' : (themeService.activeTheme() === 'dark' ? 'dark_mode' : 'light_mode') }}</mat-icon>
+      </button>
+
+      <mat-menu #themeMenu="matMenu" class="theme-menu-panel">
+        <button mat-menu-item (click)="themeService.setMode('system')">
+          <mat-icon>brightness_auto</mat-icon>
+          <span>System Default</span>
+          <mat-icon class="check-icon" *ngIf="themeService.mode() === 'system'">check</mat-icon>
+        </button>
+        <button mat-menu-item (click)="themeService.setMode('dark')">
+          <mat-icon>dark_mode</mat-icon>
+          <span>Dark Mode (Obsidian)</span>
+          <mat-icon class="check-icon" *ngIf="themeService.mode() === 'dark'">check</mat-icon>
+        </button>
+        <button mat-menu-item (click)="themeService.setMode('light')">
+          <mat-icon>light_mode</mat-icon>
+          <span>Light Mode (Paper)</span>
+          <mat-icon class="check-icon" *ngIf="themeService.mode() === 'light'">check</mat-icon>
+        </button>
+      </mat-menu>
+
       <mat-chip-set>
         <mat-chip [ngClass]="'status-' + sseService.connectionState()">
           {{ sseService.connectionState() }}

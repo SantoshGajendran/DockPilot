@@ -5,8 +5,9 @@
 
 .shell-sidenav {
   width: 240px;
-  background-color: var(--surface-color);
-  border-right: 1px solid var(--border-color);
+  background: var(--bg-surface);
+  backdrop-filter: blur(16px) saturate(180%);
+  border-right: 1px solid var(--border-subtle);
   transition: width 0.2s ease-in-out;
   overflow-x: hidden;
 
@@ -31,7 +32,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 0 16px;
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border-subtle);
 
   .app-title {
     font-weight: 700;
@@ -74,8 +75,10 @@ mat-nav-list {
 
 .shell-toolbar {
   height: 64px;
-  background-color: var(--surface-color);
-  border-bottom: 1px solid var(--border-color);
+  background: var(--bg-surface);
+  backdrop-filter: blur(16px) saturate(180%);
+  border-bottom: 1px solid var(--border-subtle);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
   padding: 0 24px;
   display: flex;
   align-items: center;
@@ -123,6 +126,15 @@ mat-nav-list {
       color: var(--text-primary);
     }
   }
+
+  .theme-toggle-btn {
+    margin-right: 8px;
+    color: var(--text-secondary);
+
+    &:hover {
+      color: var(--text-primary);
+    }
+  }
 }
 
 .main-body {
@@ -139,7 +151,7 @@ mat-chip {
 
   &.status-connected {
     --mdc-chip-elevated-container-color: rgba(34, 197, 94, 0.15);
-    --mdc-chip-label-text-color: var(--success-color);
+    --mdc-chip-label-text-color: var(--status-running);
   }
 
   &.status-connecting,
@@ -151,5 +163,49 @@ mat-chip {
   &.status-disconnected {
     --mdc-chip-elevated-container-color: rgba(239, 68, 68, 0.15);
     --mdc-chip-label-text-color: var(--danger-color);
+  }
+}
+
+.status-connected::before {
+  content: '';
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--status-running);
+  margin-right: 6px;
+  box-shadow: 0 0 8px var(--status-running-halo);
+  animation: pulse-halo 2s infinite ease-in-out;
+  vertical-align: middle;
+}
+
+@keyframes pulse-halo {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.9;
+  }
+  50% {
+    transform: scale(1.3);
+    opacity: 0.5;
+  }
+}
+
+.check-icon {
+  margin-left: auto;
+  margin-right: 0 !important;
+  font-size: 1.125rem;
+  width: 1.125rem;
+  height: 1.125rem;
+  color: var(--primary-color);
+}
+
+::ng-deep .theme-menu-panel {
+  .check-icon {
+    margin-left: auto;
+    margin-right: 0 !important;
+    font-size: 1.125rem;
+    width: 1.125rem;
+    height: 1.125rem;
+    color: var(--primary-color);
   }
 }
