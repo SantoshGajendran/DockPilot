@@ -42,12 +42,11 @@
   <div class="toolbar-card">
     <mat-form-field appearance="outline" subscriptSizing="dynamic" class="search-input">
       <mat-icon matPrefix>search</mat-icon>
-      <mat-label>Filter resources by name, tag, driver, or container...</mat-label>
       <input
         matInput
         [ngModel]="store.searchQuery()"
         (ngModelChange)="store.setSearchQuery($event)"
-        placeholder="Search..."
+        placeholder="Filter resources by name, tag, driver, or container..."
       />
       <button
         mat-icon-button

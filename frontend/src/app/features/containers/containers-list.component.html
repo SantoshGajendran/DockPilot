@@ -18,14 +18,18 @@
     <div class="filter-row">
       <!-- Search Input -->
       <mat-form-field appearance="outline" class="search-field" subscriptSizing="dynamic">
-        <mat-label>Search containers</mat-label>
         <mat-icon matPrefix>search</mat-icon>
         <input
           matInput
           [ngModel]="store.filters().q"
           (ngModelChange)="store.setFilter('q', $event)"
-          placeholder="Name, ID or image"
+          placeholder="Search containers by name, image, or ID..."
         />
+        @if (store.filters().q) {
+          <button matSuffix mat-icon-button aria-label="Clear" (click)="store.setFilter('q', '')">
+            <mat-icon>close</mat-icon>
+          </button>
+        }
       </mat-form-field>
 
       <!-- State Dropdown -->

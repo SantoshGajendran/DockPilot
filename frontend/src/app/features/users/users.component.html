@@ -23,11 +23,10 @@
     <mat-card-content class="search-row">
       <mat-form-field appearance="outline" subscriptSizing="dynamic" class="search-field">
         <mat-icon matPrefix>search</mat-icon>
-        <mat-label>Search users</mat-label>
         <input
           matInput
           [(ngModel)]="searchQuery"
-          placeholder="Filter by username or email..."
+          placeholder="Filter users by username or email..."
           (keyup.enter)="applySearch()"
         />
         <button *ngIf="searchQuery" matSuffix mat-icon-button (click)="clearSearch()">

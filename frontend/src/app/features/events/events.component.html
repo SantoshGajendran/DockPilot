@@ -34,14 +34,18 @@
     <div class="filter-inputs">
       <!-- Container Name Filter -->
       <mat-form-field appearance="outline" subscriptSizing="dynamic" class="search-field">
-        <mat-label>Filter by Container</mat-label>
         <mat-icon matPrefix>search</mat-icon>
         <input
           matInput
           [(ngModel)]="filterContainerName"
           (keyup.enter)="applyFilters()"
-          placeholder="e.g. web, redis, api"
+          placeholder="Search events by container name..."
         />
+        @if (filterContainerName) {
+          <button matSuffix mat-icon-button aria-label="Clear" (click)="filterContainerName = ''; applyFilters()">
+            <mat-icon>close</mat-icon>
+          </button>
+        }
       </mat-form-field>
 
       <!-- Action Select -->

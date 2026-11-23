@@ -88,6 +88,11 @@
   align-items: center;
   gap: 8px;
   margin-left: auto;
+
+  button {
+    height: 48px;
+    border-radius: 8px;
+  }
 }
 
 .loading-state, .empty-state {
