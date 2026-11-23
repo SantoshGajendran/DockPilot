@@ -72,6 +72,13 @@ def get_users_service(
     return UsersService(db=db)
 
 
+def get_settings_service(
+    db: AsyncSession = Depends(get_db_session),
+) -> "SettingsService":
+    from app.services.settings_service import SettingsService
+    return SettingsService(db=db)
+
+
 
 def get_overview_collector(
     request: Request,

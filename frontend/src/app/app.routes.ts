@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 import { ShellComponent } from './layout/shell.component';
 import { authGuard } from './core/guards/auth.guard';
 import { roleGuard } from './core/guards/role.guard';
+import { pendingChangesGuard } from './core/guards/pending-changes.guard';
 
 export const routes: Routes = [
   {
@@ -125,6 +126,15 @@ export const routes: Routes = [
             (m) => m.ProfileComponent
           ),
         data: { title: 'User Profile' },
+      },
+      {
+        path: 'settings',
+        canDeactivate: [pendingChangesGuard],
+        loadComponent: () =>
+          import('./features/settings/settings.component').then(
+            (m) => m.SettingsComponent
+          ),
+        data: { title: 'Settings' },
       },
 
 

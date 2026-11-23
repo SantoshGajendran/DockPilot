@@ -98,6 +98,12 @@ class Settings(BaseSettings):
     totp_issuer: str = "DockPilot"
     totp_window: int = 1
     session_max_age_days: int = 7
+    metrics_rollup_age_hours: int = 24
+    retention_cron_hour: int = 3
+    retention_cron_minute: int = 0
+    metrics_collection_enabled: bool = True
+    auto_prune_enabled: bool = False
+    registration_enabled: bool = False
 
 
 @lru_cache
@@ -141,6 +147,17 @@ def get_settings() -> Settings:
         with open(users_path, "r", encoding="utf-8") as f:
             users_data = yaml.safe_load(f) or {}
             data.update(users_data)
+
+    settings_file_path = config_path.parent / "settings.yaml"
+    if not settings_file_path.exists():
+        settings_file_path = Path("config/settings.yaml")
+    if settings_file_path.exists():
+        with open(settings_file_path, "r", encoding="utf-8") as f:
+            s_data = yaml.safe_load(f) or {}
+            if "retention_config" in s_data:
+                data.update(s_data["retention_config"])
+            if "feature_flags" in s_data:
+                data.update(s_data["feature_flags"])
 
     import os
     for k in list(data.keys()):

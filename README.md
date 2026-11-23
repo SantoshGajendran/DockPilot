@@ -453,6 +453,36 @@ cd frontend && npm run build
   - Navigation: `/users` restricted to `admin` in sidebar and `roleGuard`; profile link in header toolbar.
   - All frontend unit tests passing across all suites (`npm test`) with 0 warnings in production `ng build`.
 
+### Prompt 15: Settings
+- **Status:** Complete
+- **Backend Runtime Tuning & Retention Engine:**
+  - Configurable settings and validation bounds in `config/settings.yaml` and `backend/app/core/config.py`:
+    - Validation bounds: `collection_interval_seconds` (1-60s), `metrics_interval_seconds` (1-30s), `container_detail_stats_interval_seconds` (1-10s), `host_metrics_interval_seconds` (1-30s), `log_tail_default` (10-1000 lines), `retention_days` (1-365d), `events_retention_days` (1-365d), `audit_retention_days` (7-365d), `terminal_transcript_retention_days` (1-365d), `alert_eval_interval_seconds` (5-300s), `alert_default_cooldown_minutes` (1-1440m), `max_login_attempts` (3-20), `lockout_duration_minutes` (1-60m).
+    - Retention config: `metrics_rollup_age_hours` (24h).
+  - Database schema changes with Alembic migration `0009_settings_and_rollups.py`:
+    - `SystemSetting`: Runtime configuration overrides table (`key`, `value` JSON, `updated_at`, `updated_by`).
+    - `MetricRollupRecord`: Hourly downsampled metrics table (`id`, `container_id`, `bucket_time`, `cpu_percent_avg`, `cpu_percent_max`, `memory_bytes_avg`, `memory_bytes_max`, `sample_count`, `created_at`).
+  - Settings service in `backend/app/services/settings_service.py`:
+    - Dynamic runtime resolution: database overrides merged over YAML configuration defaults.
+    - Hot-patching: updates to runtime settings take effect immediately in memory without backend restart.
+    - Bounds validation and immutable audit logging (`settings.update`).
+    - Storage statistics: PostgreSQL database size and per-table row counts and disk footprints.
+    - Automated & on-demand retention engine: groups raw metrics older than 24h into hourly rollups, deletes raw rolled-up points, purges expired records across metrics, events, audit logs, and terminal sessions; writes audit log (`settings.retention_run`).
+  - Endpoints:
+    - `GET /api/v1/settings` & alias `GET /settings`
+    - `PUT /api/v1/settings` & alias `PUT /settings` (restricted to `admin`)
+    - `GET /api/v1/settings/storage` & alias `GET /settings/storage`
+    - `POST /api/v1/settings/retention/run` & alias `POST /settings/retention/run` (restricted to `admin`)
+  - All 181 backend tests (`pytest -q`) passing across all suites.
+- **Frontend Management UI:**
+  - Standalone route `/settings` (`SettingsComponent` in `frontend/src/app/features/settings/`):
+    - Tabbed grouped sections: Telemetry & Collection, Retention Policies, Security & Secret Masking, Alerting Defaults, Feature Flags, Storage & Purge Engine.
+    - "Hot Reloaded" green badges and field-level help descriptions.
+    - Unsaved changes indicator chip with Discard and Save Changes actions; protected by `pendingChangesGuard`.
+    - Read-only banner and disabled form inputs for non-administrators.
+    - Storage breakdown panel: database name, total disk footprint, table row counts, and interactive "Run Retention Now" button with confirmation.
+  - All 301 frontend tests across 63 suites (`npm test`) passing with 0 warnings in production `ng build`.
+
 
 
 

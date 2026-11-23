@@ -1,0 +1,495 @@
+<div class="settings-container">
+  <!-- Header Bar -->
+  <div class="header-bar">
+    <div class="header-titles">
+      <div class="title-row">
+        <h1 class="page-title">Settings & Configuration</h1>
+        <span *ngIf="store.isDirty()" class="dirty-badge">
+          <mat-icon class="badge-icon">edit</mat-icon>
+          Unsaved Changes
+        </span>
+      </div>
+      <p class="page-subtitle">Tune runtime telemetry, data retention, secret redaction, alerting, and feature flags</p>
+    </div>
+
+    <div class="header-actions" *ngIf="canAdmin()">
+      <button
+        mat-button
+        (click)="resetForm()"
+        [disabled]="!store.isDirty() || store.isSaving()"
+      >
+        Discard
+      </button>
+
+      <button
+        mat-flat-button
+        color="primary"
+        (click)="save()"
+        [disabled]="settingsForm.invalid || !store.isDirty() || store.isSaving()"
+      >
+        <mat-spinner *ngIf="store.isSaving()" diameter="18" class="inline-spinner"></mat-spinner>
+        <span>Save Changes</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Read-only Alert Banner for Non-Admin -->
+  <div *ngIf="!canAdmin()" class="readonly-banner">
+    <mat-icon class="info-icon">info</mat-icon>
+    <span>Viewing settings in read-only mode. Administrator permissions are required to modify configuration.</span>
+  </div>
+
+  <div *ngIf="store.isLoading()" class="loading-container">
+    <mat-spinner diameter="40"></mat-spinner>
+    <p>Loading application settings...</p>
+  </div>
+
+  <div *ngIf="!store.isLoading() && store.settings() as s">
+    <mat-tab-group animationDuration="200ms" class="settings-tab-group">
+      <!-- Tab 1: Telemetry & Collection -->
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <mat-icon class="tab-icon">speed</mat-icon>
+          <span>Telemetry</span>
+        </ng-template>
+
+        <div class="tab-body" [formGroup]="settingsForm">
+          <mat-card class="section-card">
+            <mat-card-header>
+              <mat-card-title>Telemetry & Polling Intervals</mat-card-title>
+              <mat-card-subtitle>Control how frequently background collectors and SSE streams poll Docker and host systems</mat-card-subtitle>
+            </mat-card-header>
+
+            <mat-card-content class="form-grid">
+              <div class="setting-field">
+                <div class="field-header">
+                  <label>Container Polling Interval</label>
+                  <span class="badge-hot">Hot Reloaded</span>
+                </div>
+                <mat-form-field appearance="outline" class="w-full">
+                  <input matInput formControlName="collection_interval_seconds" type="number" min="1" max="60" />
+                  <span matSuffix>seconds</span>
+                  <mat-error *ngIf="settingsForm.get('collection_interval_seconds')?.hasError('required')">Required</mat-error>
+                  <mat-error *ngIf="settingsForm.get('collection_interval_seconds')?.hasError('min') || settingsForm.get('collection_interval_seconds')?.hasError('max')">Must be 1-60s</mat-error>
+                </mat-form-field>
+                <p class="field-help">{{ getMeta('collection_interval_seconds')?.help_text }}</p>
+              </div>
+
+              <div class="setting-field">
+                <div class="field-header">
+                  <label>Metrics Snapshot Interval</label>
+                  <span class="badge-hot">Hot Reloaded</span>
+                </div>
+                <mat-form-field appearance="outline" class="w-full">
+                  <input matInput formControlName="metrics_interval_seconds" type="number" min="1" max="30" />
+                  <span matSuffix>seconds</span>
+                  <mat-error *ngIf="settingsForm.get('metrics_interval_seconds')?.hasError('required')">Required</mat-error>
+                  <mat-error *ngIf="settingsForm.get('metrics_interval_seconds')?.hasError('min') || settingsForm.get('metrics_interval_seconds')?.hasError('max')">Must be 1-30s</mat-error>
+                </mat-form-field>
+                <p class="field-help">{{ getMeta('metrics_interval_seconds')?.help_text }}</p>
+              </div>
+
+              <div class="setting-field">
+                <div class="field-header">
+                  <label>Live Detail Stats Interval</label>
+                  <span class="badge-hot">Hot Reloaded</span>
+                </div>
+                <mat-form-field appearance="outline" class="w-full">
+                  <input matInput formControlName="container_detail_stats_interval_seconds" type="number" min="1" max="10" />
+                  <span matSuffix>seconds</span>
+                  <mat-error *ngIf="settingsForm.get('container_detail_stats_interval_seconds')?.hasError('required')">Required</mat-error>
+                  <mat-error *ngIf="settingsForm.get('container_detail_stats_interval_seconds')?.hasError('min') || settingsForm.get('container_detail_stats_interval_seconds')?.hasError('max')">Must be 1-10s</mat-error>
+                </mat-form-field>
+                <p class="field-help">{{ getMeta('container_detail_stats_interval_seconds')?.help_text }}</p>
+              </div>
+
+              <div class="setting-field">
+                <div class="field-header">
+                  <label>Host Metrics Interval</label>
+                  <span class="badge-hot">Hot Reloaded</span>
+                </div>
+                <mat-form-field appearance="outline" class="w-full">
+                  <input matInput formControlName="host_metrics_interval_seconds" type="number" min="1" max="30" />
+                  <span matSuffix>seconds</span>
+                  <mat-error *ngIf="settingsForm.get('host_metrics_interval_seconds')?.hasError('required')">Required</mat-error>
+                  <mat-error *ngIf="settingsForm.get('host_metrics_interval_seconds')?.hasError('min') || settingsForm.get('host_metrics_interval_seconds')?.hasError('max')">Must be 1-30s</mat-error>
+                </mat-form-field>
+                <p class="field-help">{{ getMeta('host_metrics_interval_seconds')?.help_text }}</p>
+              </div>
+
+              <div class="setting-field">
+                <div class="field-header">
+                  <label>Default Log Tail Lines</label>
+                  <span class="badge-hot">Hot Reloaded</span>
+                </div>
+                <mat-form-field appearance="outline" class="w-full">
+                  <input matInput formControlName="log_tail_default" type="number" min="10" max="1000" />
+                  <span matSuffix>lines</span>
+                  <mat-error *ngIf="settingsForm.get('log_tail_default')?.hasError('required')">Required</mat-error>
+                  <mat-error *ngIf="settingsForm.get('log_tail_default')?.hasError('min') || settingsForm.get('log_tail_default')?.hasError('max')">Must be 10-1000 lines</mat-error>
+                </mat-form-field>
+                <p class="field-help">{{ getMeta('log_tail_default')?.help_text }}</p>
+              </div>
+            </mat-card-content>
+          </mat-card>
+        </div>
+      </mat-tab>
+
+      <!-- Tab 2: Retention Policies -->
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <mat-icon class="tab-icon">auto_delete</mat-icon>
+          <span>Retention</span>
+        </ng-template>
+
+        <div class="tab-body" [formGroup]="settingsForm">
+          <mat-card class="section-card">
+            <mat-card-header>
+              <mat-card-title>Data Retention & Downsampling Lifecycles</mat-card-title>
+              <mat-card-subtitle>Configure when raw time-series data is rolled up into hourly aggregates and when records are purged</mat-card-subtitle>
+            </mat-card-header>
+
+            <mat-card-content class="form-grid">
+              <div class="setting-field">
+                <div class="field-header">
+                  <label>Metrics Rollup Threshold</label>
+                  <span class="badge-hot">Hot Reloaded</span>
+                </div>
+                <mat-form-field appearance="outline" class="w-full">
+                  <input matInput formControlName="metrics_rollup_age_hours" type="number" min="1" max="168" />
+                  <span matSuffix>hours</span>
+                  <mat-error *ngIf="settingsForm.get('metrics_rollup_age_hours')?.hasError('required')">Required</mat-error>
+                  <mat-error *ngIf="settingsForm.get('metrics_rollup_age_hours')?.hasError('min') || settingsForm.get('metrics_rollup_age_hours')?.hasError('max')">Must be 1-168h</mat-error>
+                </mat-form-field>
+                <p class="field-help">{{ getMeta('metrics_rollup_age_hours')?.help_text }}</p>
+              </div>
+
+              <div class="setting-field">
+                <div class="field-header">
+                  <label>Metrics History Retention</label>
+                  <span class="badge-hot">Hot Reloaded</span>
+                </div>
+                <mat-form-field appearance="outline" class="w-full">
+                  <input matInput formControlName="retention_days" type="number" min="1" max="365" />
+                  <span matSuffix>days</span>
+                  <mat-error *ngIf="settingsForm.get('retention_days')?.hasError('required')">Required</mat-error>
+                  <mat-error *ngIf="settingsForm.get('retention_days')?.hasError('min') || settingsForm.get('retention_days')?.hasError('max')">Must be 1-365 days</mat-error>
+                </mat-form-field>
+                <p class="field-help">{{ getMeta('retention_days')?.help_text }}</p>
+              </div>
+
+              <div class="setting-field">
+                <div class="field-header">
+                  <label>Lifecycle Events Retention</label>
+                  <span class="badge-hot">Hot Reloaded</span>
+                </div>
+                <mat-form-field appearance="outline" class="w-full">
+                  <input matInput formControlName="events_retention_days" type="number" min="1" max="365" />
+                  <span matSuffix>days</span>
+                  <mat-error *ngIf="settingsForm.get('events_retention_days')?.hasError('required')">Required</mat-error>
+                  <mat-error *ngIf="settingsForm.get('events_retention_days')?.hasError('min') || settingsForm.get('events_retention_days')?.hasError('max')">Must be 1-365 days</mat-error>
+                </mat-form-field>
+                <p class="field-help">{{ getMeta('events_retention_days')?.help_text }}</p>
+              </div>
+
+              <div class="setting-field">
+                <div class="field-header">
+                  <label>Audit Trail Retention</label>
+                  <span class="badge-hot">Hot Reloaded</span>
+                </div>
+                <mat-form-field appearance="outline" class="w-full">
+                  <input matInput formControlName="audit_retention_days" type="number" min="7" max="365" />
+                  <span matSuffix>days</span>
+                  <mat-error *ngIf="settingsForm.get('audit_retention_days')?.hasError('required')">Required</mat-error>
+                  <mat-error *ngIf="settingsForm.get('audit_retention_days')?.hasError('min') || settingsForm.get('audit_retention_days')?.hasError('max')">Must be 7-365 days</mat-error>
+                </mat-form-field>
+                <p class="field-help">{{ getMeta('audit_retention_days')?.help_text }}</p>
+              </div>
+
+              <div class="setting-field">
+                <div class="field-header">
+                  <label>Terminal Transcript Retention</label>
+                  <span class="badge-hot">Hot Reloaded</span>
+                </div>
+                <mat-form-field appearance="outline" class="w-full">
+                  <input matInput formControlName="terminal_transcript_retention_days" type="number" min="1" max="365" />
+                  <span matSuffix>days</span>
+                  <mat-error *ngIf="settingsForm.get('terminal_transcript_retention_days')?.hasError('required')">Required</mat-error>
+                  <mat-error *ngIf="settingsForm.get('terminal_transcript_retention_days')?.hasError('min') || settingsForm.get('terminal_transcript_retention_days')?.hasError('max')">Must be 1-365 days</mat-error>
+                </mat-form-field>
+                <p class="field-help">{{ getMeta('terminal_transcript_retention_days')?.help_text }}</p>
+              </div>
+            </mat-card-content>
+          </mat-card>
+        </div>
+      </mat-tab>
+
+      <!-- Tab 3: Security & Masking -->
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <mat-icon class="tab-icon">security</mat-icon>
+          <span>Security</span>
+        </ng-template>
+
+        <div class="tab-body" [formGroup]="settingsForm">
+          <mat-card class="section-card">
+            <mat-card-header>
+              <mat-card-title>Security & Redaction Rules</mat-card-title>
+              <mat-card-subtitle>Configure secret masking glob patterns and authentication rate-limiting lockout rules</mat-card-subtitle>
+            </mat-card-header>
+
+            <mat-card-content class="form-grid">
+              <div class="setting-field col-span-2">
+                <div class="field-header">
+                  <label>Secret Masking Patterns (comma-separated)</label>
+                  <span class="badge-hot">Hot Reloaded</span>
+                </div>
+                <mat-form-field appearance="outline" class="w-full">
+                  <input matInput formControlName="secret_mask_patterns" placeholder="*PASSWORD*, *SECRET*, *TOKEN*" />
+                  <mat-error *ngIf="settingsForm.get('secret_mask_patterns')?.hasError('required')">At least one pattern is required</mat-error>
+                </mat-form-field>
+                <p class="field-help">{{ getMeta('secret_mask_patterns')?.help_text }}</p>
+              </div>
+
+              <div class="setting-field">
+                <div class="field-header">
+                  <label>Max Login Attempts</label>
+                  <span class="badge-hot">Hot Reloaded</span>
+                </div>
+                <mat-form-field appearance="outline" class="w-full">
+                  <input matInput formControlName="max_login_attempts" type="number" min="3" max="20" />
+                  <span matSuffix>attempts</span>
+                  <mat-error *ngIf="settingsForm.get('max_login_attempts')?.hasError('required')">Required</mat-error>
+                  <mat-error *ngIf="settingsForm.get('max_login_attempts')?.hasError('min') || settingsForm.get('max_login_attempts')?.hasError('max')">Must be 3-20</mat-error>
+                </mat-form-field>
+                <p class="field-help">{{ getMeta('max_login_attempts')?.help_text }}</p>
+              </div>
+
+              <div class="setting-field">
+                <div class="field-header">
+                  <label>Lockout Duration</label>
+                  <span class="badge-hot">Hot Reloaded</span>
+                </div>
+                <mat-form-field appearance="outline" class="w-full">
+                  <input matInput formControlName="lockout_duration_minutes" type="number" min="1" max="60" />
+                  <span matSuffix>minutes</span>
+                  <mat-error *ngIf="settingsForm.get('lockout_duration_minutes')?.hasError('required')">Required</mat-error>
+                  <mat-error *ngIf="settingsForm.get('lockout_duration_minutes')?.hasError('min') || settingsForm.get('lockout_duration_minutes')?.hasError('max')">Must be 1-60m</mat-error>
+                </mat-form-field>
+                <p class="field-help">{{ getMeta('lockout_duration_minutes')?.help_text }}</p>
+              </div>
+            </mat-card-content>
+          </mat-card>
+        </div>
+      </mat-tab>
+
+      <!-- Tab 4: Alerting Defaults -->
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <mat-icon class="tab-icon">notifications_active</mat-icon>
+          <span>Alert Defaults</span>
+        </ng-template>
+
+        <div class="tab-body" [formGroup]="settingsForm">
+          <mat-card class="section-card">
+            <mat-card-header>
+              <mat-card-title>Alert Engine Timing & Throttling</mat-card-title>
+              <mat-card-subtitle>Configure rule evaluation ticks and global default notification throttling</mat-card-subtitle>
+            </mat-card-header>
+
+            <mat-card-content class="form-grid">
+              <div class="setting-field">
+                <div class="field-header">
+                  <label>Rule Evaluation Interval</label>
+                  <span class="badge-hot">Hot Reloaded</span>
+                </div>
+                <mat-form-field appearance="outline" class="w-full">
+                  <input matInput formControlName="alert_eval_interval_seconds" type="number" min="5" max="300" />
+                  <span matSuffix>seconds</span>
+                  <mat-error *ngIf="settingsForm.get('alert_eval_interval_seconds')?.hasError('required')">Required</mat-error>
+                  <mat-error *ngIf="settingsForm.get('alert_eval_interval_seconds')?.hasError('min') || settingsForm.get('alert_eval_interval_seconds')?.hasError('max')">Must be 5-300s</mat-error>
+                </mat-form-field>
+                <p class="field-help">{{ getMeta('alert_eval_interval_seconds')?.help_text }}</p>
+              </div>
+
+              <div class="setting-field">
+                <div class="field-header">
+                  <label>Default Alert Cooldown</label>
+                  <span class="badge-hot">Hot Reloaded</span>
+                </div>
+                <mat-form-field appearance="outline" class="w-full">
+                  <input matInput formControlName="alert_default_cooldown_minutes" type="number" min="1" max="1440" />
+                  <span matSuffix>minutes</span>
+                  <mat-error *ngIf="settingsForm.get('alert_default_cooldown_minutes')?.hasError('required')">Required</mat-error>
+                  <mat-error *ngIf="settingsForm.get('alert_default_cooldown_minutes')?.hasError('min') || settingsForm.get('alert_default_cooldown_minutes')?.hasError('max')">Must be 1-1440m</mat-error>
+                </mat-form-field>
+                <p class="field-help">{{ getMeta('alert_default_cooldown_minutes')?.help_text }}</p>
+              </div>
+            </mat-card-content>
+          </mat-card>
+        </div>
+      </mat-tab>
+
+      <!-- Tab 5: Feature Flags -->
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <mat-icon class="tab-icon">toggle_on</mat-icon>
+          <span>Feature Flags</span>
+        </ng-template>
+
+        <div class="tab-body" [formGroup]="settingsForm">
+          <mat-card class="section-card">
+            <mat-card-header>
+              <mat-card-title>Subsystem Feature Flags</mat-card-title>
+              <mat-card-subtitle>Dynamically toggle modules on or off across the server without restart</mat-card-subtitle>
+            </mat-card-header>
+
+            <mat-card-content class="toggles-list">
+              <div class="toggle-item">
+                <div class="toggle-info">
+                  <div class="field-header">
+                    <strong>Interactive Web Terminal</strong>
+                    <span class="badge-hot">Hot Reloaded</span>
+                  </div>
+                  <p class="field-help">{{ getMeta('terminal_enabled')?.help_text }}</p>
+                </div>
+                <mat-slide-toggle formControlName="terminal_enabled" color="primary"></mat-slide-toggle>
+              </div>
+
+              <mat-divider></mat-divider>
+
+              <div class="toggle-item">
+                <div class="toggle-info">
+                  <div class="field-header">
+                    <strong>Metrics Collection Engine</strong>
+                    <span class="badge-hot">Hot Reloaded</span>
+                  </div>
+                  <p class="field-help">{{ getMeta('metrics_collection_enabled')?.help_text }}</p>
+                </div>
+                <mat-slide-toggle formControlName="metrics_collection_enabled" color="primary"></mat-slide-toggle>
+              </div>
+
+              <mat-divider></mat-divider>
+
+              <div class="toggle-item">
+                <div class="toggle-info">
+                  <div class="field-header">
+                    <strong>Automated Resource Pruning</strong>
+                    <span class="badge-hot">Hot Reloaded</span>
+                  </div>
+                  <p class="field-help">{{ getMeta('auto_prune_enabled')?.help_text }}</p>
+                </div>
+                <mat-slide-toggle formControlName="auto_prune_enabled" color="primary"></mat-slide-toggle>
+              </div>
+
+              <mat-divider></mat-divider>
+
+              <div class="toggle-item">
+                <div class="toggle-info">
+                  <div class="field-header">
+                    <strong>Public User Registration</strong>
+                    <span class="badge-hot">Hot Reloaded</span>
+                  </div>
+                  <p class="field-help">{{ getMeta('registration_enabled')?.help_text }}</p>
+                </div>
+                <mat-slide-toggle formControlName="registration_enabled" color="primary"></mat-slide-toggle>
+              </div>
+            </mat-card-content>
+          </mat-card>
+        </div>
+      </mat-tab>
+
+      <!-- Tab 6: Storage & Retention Engine -->
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <mat-icon class="tab-icon">storage</mat-icon>
+          <span>Storage & Purge</span>
+        </ng-template>
+
+        <div class="tab-body">
+          <!-- Overview Cards -->
+          <div class="storage-summary-grid" *ngIf="store.storage() as st">
+            <mat-card class="stat-card">
+              <span class="stat-label">Database Name</span>
+              <span class="stat-value font-mono">{{ st.database_name }}</span>
+            </mat-card>
+
+            <mat-card class="stat-card">
+              <span class="stat-label">Total Disk Usage</span>
+              <span class="stat-value text-primary">{{ st.database_size_human }}</span>
+            </mat-card>
+
+            <mat-card class="stat-card">
+              <span class="stat-label">Monitored Tables</span>
+              <span class="stat-value">{{ st.tables.length }}</span>
+            </mat-card>
+          </div>
+
+          <!-- Retention Action Card -->
+          <mat-card class="section-card mt-4">
+            <mat-card-header>
+              <div class="header-with-btn">
+                <div>
+                  <mat-card-title>Data Retention Engine</mat-card-title>
+                  <mat-card-subtitle>Downsamples raw metrics older than 24h into hourly rollups and purges expired records</mat-card-subtitle>
+                </div>
+                <button
+                  mat-flat-button
+                  color="warn"
+                  (click)="confirmRunRetention()"
+                  [disabled]="!canAdmin() || store.isRunningRetention()"
+                >
+                  <mat-spinner *ngIf="store.isRunningRetention()" diameter="18" class="inline-spinner"></mat-spinner>
+                  <span>Run Retention Now</span>
+                </button>
+              </div>
+            </mat-card-header>
+
+            <mat-card-content *ngIf="store.lastRetentionResult() as res">
+              <div class="retention-result-banner">
+                <mat-icon class="success-icon">check_circle</mat-icon>
+                <div class="res-details">
+                  <strong>{{ res.message }} (completed in {{ res.duration_seconds }}s)</strong>
+                  <p>
+                    Downsampled {{ res.metrics_downsampled }} metrics | Purged: {{ res.metrics_deleted }} metrics, {{ res.events_deleted }} events, {{ res.audit_logs_deleted }} audit logs, {{ res.terminal_sessions_deleted }} terminal sessions
+                  </p>
+                </div>
+              </div>
+            </mat-card-content>
+          </mat-card>
+
+          <!-- Table Storage Breakdown -->
+          <mat-card class="section-card mt-4" *ngIf="store.storage() as st">
+            <mat-card-header>
+              <mat-card-title>Table Storage Breakdown</mat-card-title>
+            </mat-card-header>
+
+            <mat-card-content>
+              <table mat-table [dataSource]="st.tables" class="storage-table w-full">
+                <ng-container matColumnDef="table_name">
+                  <th mat-header-cell *matHeaderCellDef>Table Name</th>
+                  <td mat-cell *matCellDef="let row">
+                    <code class="table-code">{{ row.table_name }}</code>
+                  </td>
+                </ng-container>
+
+                <ng-container matColumnDef="row_count">
+                  <th mat-header-cell *matHeaderCellDef>Row Count</th>
+                  <td mat-cell *matCellDef="let row">{{ row.row_count | number }}</td>
+                </ng-container>
+
+                <ng-container matColumnDef="size_human">
+                  <th mat-header-cell *matHeaderCellDef>Disk Size</th>
+                  <td mat-cell *matCellDef="let row" class="font-medium">{{ row.size_human }}</td>
+                </ng-container>
+
+                <tr mat-header-row *matHeaderRowDef="displayedTableColumns"></tr>
+                <tr mat-row *matRowDef="let row; columns: displayedTableColumns"></tr>
+              </table>
+            </mat-card-content>
+          </mat-card>
+        </div>
+      </mat-tab>
+    </mat-tab-group>
+  </div>
+</div>

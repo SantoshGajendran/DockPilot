@@ -24,6 +24,7 @@ from app.services.compose_service import ComposeService
 from app.services.terminal_service import TerminalService
 from app.services.audit_service import AuditService
 from app.services.users_service import UsersService
+from app.services.settings_service import SettingsService
 
 __all__ = [
     "authenticate_user",
@@ -49,6 +50,7 @@ __all__ = [
     "TerminalService",
     "AuditService",
     "UsersService",
+    "SettingsService",
 ]
 
 
