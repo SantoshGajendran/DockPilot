@@ -1,32 +1,120 @@
 @use '@angular/material' as mat;
 
-:root {
-  /* Core Palette */
-  --primary-color: #3b82f6;
-  --primary-hover: #2563eb;
-  --background-color: #0f172a;
-  --surface-color: #1e293b;
-  --surface-hover: #334155;
+:root,
+.dark-theme {
+  color-scheme: dark;
+
+  /* Backgrounds */
+  --bg-canvas: #080c14;
+  --bg-surface: rgba(15, 23, 42, 0.85);
+  --bg-surface-solid: #0f172a;
+  --bg-surface-elevated: #1e293b;
+  --bg-surface-hover: rgba(255, 255, 255, 0.05);
+
+  /* Borders & Dividers */
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-highlight: rgba(255, 255, 255, 0.14);
+  --border-color: var(--border-subtle);
+
+  /* Typography */
   --text-primary: #f8fafc;
   --text-secondary: #94a3b8;
   --text-muted: #64748b;
-  --border-color: #334155;
-  --border-subtle: #1e293b;
 
-  /* Semantic Status Colors */
-  --success-color: #22c55e;
-  --warning-color: #eab308;
-  --danger-color: #ef4444;
-  --info-color: #06b6d4;
+  /* Accents & Brand */
+  --primary-color: #3b82f6;
+  --primary-hover: #60a5fa;
+  --accent-glow: 0 0 20px rgba(59, 130, 246, 0.25);
+
+  /* Semantic Workload States */
+  --status-running: #10b981;
+  --status-running-halo: rgba(16, 185, 129, 0.25);
+  --status-danger: #ef4444;
+  --status-warning: #f59e0b;
+  --status-paused: #06b6d4;
+
+  /* Elevation Shadows */
+  --shadow-ambient: 0 4px 20px -2px rgba(0, 0, 0, 0.5);
+  --shadow-lifted: 0 12px 30px -4px rgba(0, 0, 0, 0.65);
 
   /* Layout Dimensions */
   --header-height: 64px;
   --sidebar-width: 240px;
   --sidebar-collapsed-width: 68px;
 
-  /* Angular Material Component Tokens */
-  --mat-sidenav-container-background-color: var(--background-color);
-  --mat-toolbar-container-background-color: var(--surface-color);
+  /* Backward Compatibility Aliases */
+  --background-color: var(--bg-canvas);
+  --surface-color: var(--bg-surface-solid);
+  --surface-hover: var(--bg-surface-hover);
+  --success-color: var(--status-running);
+  --warning-color: var(--status-warning);
+  --danger-color: var(--status-danger);
+  --info-color: var(--status-paused);
+
+  /* Angular Material Component Overrides */
+  --mat-sidenav-container-background-color: var(--bg-canvas);
+  --mat-toolbar-container-background-color: var(--bg-surface);
   --mat-toolbar-container-text-color: var(--text-primary);
-  --mat-sidenav-content-background-color: var(--background-color);
+  --mat-sidenav-content-background-color: var(--bg-canvas);
+  --mat-card-container-background-color: var(--bg-surface);
+  --mat-card-container-text-color: var(--text-primary);
+}
+
+.light-theme {
+  color-scheme: light;
+
+  /* Backgrounds */
+  --bg-canvas: #f8fafc;
+  --bg-surface: rgba(255, 255, 255, 0.9);
+  --bg-surface-solid: #ffffff;
+  --bg-surface-elevated: #f1f5f9;
+  --bg-surface-hover: rgba(15, 23, 42, 0.04);
+
+  /* Borders & Dividers */
+  --border-subtle: rgba(15, 23, 42, 0.08);
+  --border-highlight: rgba(255, 255, 255, 0.8);
+  --border-color: var(--border-subtle);
+
+  /* Typography */
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #94a3b8;
+
+  /* Accents & Brand */
+  --primary-color: #2563eb;
+  --primary-hover: #1d4ed8;
+  --accent-glow: 0 0 20px rgba(37, 99, 235, 0.18);
+
+  /* Semantic Workload States */
+  --status-running: #059669;
+  --status-running-halo: rgba(5, 150, 105, 0.2);
+  --status-danger: #dc2626;
+  --status-warning: #d97706;
+  --status-paused: #0891b2;
+
+  /* Elevation Shadows */
+  --shadow-ambient: 0 1px 3px rgba(0, 0, 0, 0.05), 0 8px 24px -4px rgba(0, 0, 0, 0.04);
+  --shadow-lifted: 0 12px 32px -4px rgba(0, 0, 0, 0.08);
+
+  /* Layout Dimensions */
+  --header-height: 64px;
+  --sidebar-width: 240px;
+  --sidebar-collapsed-width: 68px;
+
+  /* Backward Compatibility Aliases */
+  --background-color: var(--bg-canvas);
+  --surface-color: var(--bg-surface-solid);
+  --surface-hover: var(--bg-surface-hover);
+  --success-color: var(--status-running);
+  --warning-color: var(--status-warning);
+  --danger-color: var(--status-danger);
+  --info-color: var(--status-paused);
+
+  /* Angular Material Component Overrides */
+  --mat-sidenav-container-background-color: var(--bg-canvas);
+  --mat-toolbar-container-background-color: var(--bg-surface);
+  --mat-toolbar-container-text-color: var(--text-primary);
+  --mat-sidenav-content-background-color: var(--bg-canvas);
+  --mat-card-container-background-color: var(--bg-surface);
+  --mat-card-container-text-color: var(--text-primary);
 }
