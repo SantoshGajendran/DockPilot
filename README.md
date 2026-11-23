@@ -483,6 +483,37 @@ cd frontend && npm run build
     - Storage breakdown panel: database name, total disk footprint, table row counts, and interactive "Run Retention Now" button with confirmation.
   - All 301 frontend tests across 63 suites (`npm test`) passing with 0 warnings in production `ng build`.
 
+### Prompt 16: Hardening and Release
+- **Status:** Complete
+- **Container & Socket Proxy Hardening:**
+  - Scoped `docker-socket-proxy` allowing only required endpoints (`CONTAINERS`, `IMAGES`, `VOLUMES`, `NETWORKS`, `EXEC`, `INFO`, `EVENTS`, `PING`, `VERSION`, `POST`, `DELETE`, `SYSTEM`), explicitly disabling attack surfaces (`BUILD=0`, `COMMIT=0`, `CONFIGS=0`, `DISTRIBUTION=0`, `NODES=0`, `PLUGINS=0`, `SECRETS=0`, `SERVICES=0`, `SESSION=0`, `SWARM=0`, `TASKS=0`).
+  - Added `security_opt: [no-new-privileges:true]` across all Docker Compose services.
+  - Non-root container execution under UID 1001 (`dockpilot:dockpilot`).
+  - Strict host interface binding to `127.0.0.1` (`127.0.0.1:8000:8000`, `127.0.0.1:4200:80`).
+- **Backend Security & Telemetry:**
+  - Security headers middleware appending `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `X-XSS-Protection: 1; mode=block`, `Referrer-Policy: strict-origin-when-cross-origin`, `Content-Security-Policy`, and `Permissions-Policy`.
+  - Request body size limiter middleware enforcing a 10MB limit and returning HTTP 413 Payload Too Large.
+  - Structured JSON logging formatter (`JSONFormatter`) for production logging.
+  - Prometheus `/metrics` endpoint exporting OpenMetrics 0.0.4 text telemetry (`dockpilot_app_info`, `dockpilot_http_requests_total`, `dockpilot_http_request_duration_seconds`, `dockpilot_monitored_containers_total`, `dockpilot_active_sessions_total`, `dockpilot_active_alerts_total`).
+  - All 186 backend tests (`pytest -q`) passing across all suites.
+- **CI/CD Automation:**
+  - GitHub Actions workflow (`.github/workflows/ci.yml`) running backend pytest with coverage, frontend Jest tests and production build, `pip-audit` Python vulnerability scanning, `npm audit` frontend scanning, and Trivy container vulnerability scanner.
+- **End-to-End Testing (Playwright):**
+  - Configured `playwright.config.ts` and test suite in `e2e/`:
+    - `01-login.spec.ts`: Valid admin authentication flow and invalid credentials error.
+    - `02-dashboard.spec.ts`: Host CPU, memory, and telemetry overview cards.
+    - `03-containers.spec.ts`: Containers list, filter controls, and table rendering.
+    - `04-logs.spec.ts`: Logs explorer viewer and navigation.
+    - `05-alerts.spec.ts`: Alert rules list, create rule action, and channel navigation.
+    - `06-rbac.spec.ts`: Unauthenticated redirection and role-restricted settings verification.
+- **Operations & Runbook:**
+  - Automated disaster recovery scripts: `scripts/backup.sh` / `.ps1` and `scripts/restore.sh` / `.ps1` for PostgreSQL database with SHA256 integrity verification.
+  - One-page operations runbook: `docs/runbook.md` with service lifecycle commands, telemetry configuration, backup/restore procedures, emergency secret rotation, and emergency admin password reset.
+- **Release 1.0.0:**
+  - Version bumped to `1.0.0` across manifests and documentation.
+  - All 301 frontend tests across 63 suites (`npm test`) passing with 0 warnings in production `ng build`.
+
+
 
 
 

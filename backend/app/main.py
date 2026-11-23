@@ -5,11 +5,15 @@ from sqlalchemy import func, select
 
 from app.api.deps import get_docker_gateway
 from app.api.v1 import health
+from app.api.v1.metrics import router as metrics_router
 from app.api.v1.router import api_router
 from app.core.config import get_settings
 from app.core.constants import AuditResult, Role
 from app.core.database import async_session
+from app.core.logging_config import setup_logging
+from app.core.metrics import MetricsMiddleware
 from app.core.security import hash_password
+from app.core.security_headers import RequestSizeLimitMiddleware, SecurityHeadersMiddleware
 from app.models.audit import AuditLog
 from app.models.user import User
 from app.services.overview_service import OverviewCollectorService
@@ -86,6 +90,7 @@ async def lifespan(app: FastAPI):
 
 def create_app() -> FastAPI:
     settings = get_settings()
+    setup_logging(settings.environment)
     app = FastAPI(
         title=settings.app_name,
         docs_url="/docs" if settings.environment == "development" else None,
@@ -99,7 +104,12 @@ def create_app() -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
+    app.add_middleware(SecurityHeadersMiddleware)
+    app.add_middleware(RequestSizeLimitMiddleware, max_bytes=10 * 1024 * 1024)
+    app.add_middleware(MetricsMiddleware)
+
     app.include_router(health.router)
+    app.include_router(metrics_router)
     app.include_router(api_router, prefix="/api/v1")
     # Support both /api/v1/containers/{id}/exec and /containers/{id}/exec
     from app.api.v1.terminal import router as terminal_router

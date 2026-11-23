@@ -31,7 +31,10 @@ async def setup_test_db(monkeypatch):
     monkeypatch.setattr("app.main.async_session", session_factory)
 
     yield session_factory
-    await engine.dispose()
+    try:
+        await engine.dispose()
+    except Exception:
+        pass
 
 
 def auth_header(role: Role = Role.ADMIN, username: str = "admin") -> dict:

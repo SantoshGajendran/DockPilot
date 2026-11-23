@@ -27,7 +27,7 @@ async def test_version_endpoint():
         response = await client.get("/version")
         assert response.status_code == 200
         data = response.json()
-        assert data["version"] == "0.1.0"
+        assert data["version"] == "1.0.0"
         assert data["app"] == "DockPilot"
 
 @pytest.mark.asyncio
@@ -62,7 +62,7 @@ async def test_api_v1_prefix_endpoints():
 
         version_resp = await client.get("/api/v1/version")
         assert version_resp.status_code == 200
-        assert version_resp.json()["version"] == "0.1.0"
+        assert version_resp.json()["version"] == "1.0.0"
 
 
 @pytest.mark.asyncio
