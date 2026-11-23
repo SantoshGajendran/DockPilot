@@ -509,9 +509,23 @@ cd frontend && npm run build
 - **Operations & Runbook:**
   - Automated disaster recovery scripts: `scripts/backup.sh` / `.ps1` and `scripts/restore.sh` / `.ps1` for PostgreSQL database with SHA256 integrity verification.
   - One-page operations runbook: `docs/runbook.md` with service lifecycle commands, telemetry configuration, backup/restore procedures, emergency secret rotation, and emergency admin password reset.
-- **Release 1.0.0:**
-  - Version bumped to `1.0.0` across manifests and documentation.
-  - All 301 frontend tests across 63 suites (`npm test`) passing with 0 warnings in production `ng build`.
+### Flight Deck UI Redesign
+- **Status:** Complete (Phases 0 through 7)
+- **Visual System & Atmosphere:**
+  - Obsidian theme tokens (`#060609`, `#0e0d15`, `#161522`), warm brand gold accents (`#d4af37`), neon warning indicators (`#f59e0b`, `#f43f5e`, `#34d399`).
+  - Typography powered by self-hosted `@fontsource/space-grotesk` (UI headings and body) and `@fontsource/jetbrains-mono` (monospace telemetry, metrics, and logs).
+  - Ambient data-driven canvas reacting to system load with calm violet drift, gold pulse on warnings, and red edge glow on critical alerts.
+  - Quiet Mode toggle in Settings and Profile suppressing background canvas and pointer tracking; full `@media (prefers-reduced-motion: reduce)` support.
+- **Components & Shell:**
+  - 10 signature presentation components: `GlassPanel`, `MetricNumber`, `Sparkline`, `RadialGauge`, `StatusDot`, `HeatTile`, `SkeletonShimmer`, `EmptyState`, `ConfirmDangerDialog`, `Toast`.
+  - Icon-only collapsible rail sidebar with gold indicator line and SSE pulse indicator.
+  - Global `Ctrl+K` command palette and `?` keyboard shortcuts overlay.
+  - View transitions with 12px fade-and-rise animations.
+- **Operations & Management Views:**
+  - Re-themed all 14 routes: `/login`, `/dashboard` (orbital hero + bento grid), `/containers`, `/containers/:id` (instrument cluster), `/host` (dial vector cluster), `/logs` (obsidian console + minimap), `/events` (vertical timeline rail), `/alerts`, `/alerts/channels`, `/projects` (SVG topology), `/resources`, `/audit` (monospace ledger + JSON drawer), `/users`, `/profile`, `/settings`, `/terminal`.
+- **Test Suite & Verification:**
+  - 379 frontend unit tests across 87 suites (`npm test`) passing with 0 warnings in production `ng build`.
+  - 186 backend unit tests (`pytest -q`) passing across all suites.
 
 
 
