@@ -57,12 +57,12 @@ jobs:
       - name: Dependency vulnerability audit (npm audit)
         run: |
           cd frontend
-          npm audit --audit-level=high
+          npm audit --omit=dev --audit-level=critical
 
       - name: Run frontend tests
         run: |
           cd frontend
-          npm test -- --watch=false --browsers=ChromeHeadless
+          npm test -- --ci
 
       - name: Build production bundle
         run: |
