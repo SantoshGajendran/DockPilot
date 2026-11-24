@@ -24,6 +24,7 @@ import {
 } from '../../core/constants/resources.constants';
 import { PruneWizardDialogComponent } from './dialogs/prune-wizard-dialog.component';
 import { PullImageDialogComponent } from './dialogs/pull-image-dialog.component';
+import { GlassPanelComponent } from '../../shared/components/glass-panel/glass-panel.component';
 
 @Component({
   selector: 'dp-resources',
@@ -43,6 +44,7 @@ import { PullImageDialogComponent } from './dialogs/pull-image-dialog.component'
     MatDialogModule,
     MatSnackBarModule,
     MatBadgeModule,
+    GlassPanelComponent,
   ],
   providers: [ResourcesStore],
   templateUrl: './resources.component.html',

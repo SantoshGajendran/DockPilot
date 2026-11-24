@@ -1,82 +1,105 @@
 <div class="resources-page-container">
   <!-- Top Bar / Header -->
-  <header class="page-header">
+  <dp-glass-panel [padding]="'18px 24px'" class="page-header">
     <div class="header-titles">
       <div class="title-with-icon">
-        <mat-icon color="primary" class="main-icon">inventory_2</mat-icon>
-        <h1>Docker Resources</h1>
+        <div class="icon-bubble">
+          <mat-icon class="main-icon">inventory_2</mat-icon>
+        </div>
+        <div class="title-text-group">
+          <div class="status-indicator-row font-mono">
+            <span class="status-pulse-dot"></span>
+            <span class="status-heading">DOCKER STORAGE & NETWORKS</span>
+          </div>
+          <h1>Docker Resources</h1>
+          <p class="subtitle font-mono">
+            Inspect and clean up Docker images, persistent volumes, and networks.
+          </p>
+        </div>
       </div>
-      <p class="subtitle">
-        Inspect and clean up Docker images, persistent volumes, and networks.
-      </p>
     </div>
 
     <div class="header-actions">
       <button
-        mat-flat-button
-        color="primary"
+        mat-button
+        class="header-btn btn-pull font-mono"
         *ngIf="isOperator && store.activeTab() === 'images'"
         (click)="openPullDialog()"
       >
         <mat-icon>cloud_download</mat-icon>
-        Pull Image
+        <span>Pull Image</span>
       </button>
 
       <button
-        mat-flat-button
-        color="warn"
+        mat-button
+        class="header-btn btn-prune font-mono"
         *ngIf="isOperator"
         (click)="openPruneWizard()"
       >
         <mat-icon>cleaning_services</mat-icon>
-        Prune {{ store.activeTab() === 'images' ? 'Dangling' : 'Unused' }}
+        <span>Prune {{ store.activeTab() === 'images' ? 'Dangling' : 'Unused' }}</span>
       </button>
 
-      <button mat-icon-button (click)="store.loadAll()" matTooltip="Refresh resources" [disabled]="store.isLoading()">
-        <mat-icon>refresh</mat-icon>
+      <button
+        mat-icon-button
+        class="header-btn btn-refresh"
+        (click)="store.loadAll()"
+        matTooltip="Refresh resources"
+        [disabled]="store.isLoading()"
+      >
+        <mat-icon [class.spin-icon]="store.isLoading()">refresh</mat-icon>
       </button>
     </div>
-  </header>
+  </dp-glass-panel>
 
   <!-- Filter & Search Toolbar -->
-  <div class="toolbar-card">
-    <mat-form-field appearance="outline" subscriptSizing="dynamic" class="search-input">
-      <mat-icon matPrefix>search</mat-icon>
+  <dp-glass-panel [padding]="'12px 18px'" class="toolbar-card">
+    <div class="search-input-shell">
+      <mat-icon class="search-prefix-icon">search</mat-icon>
       <input
-        matInput
+        type="text"
+        class="search-input-field"
         [ngModel]="store.searchQuery()"
         (ngModelChange)="store.setSearchQuery($event)"
         placeholder="Filter resources by name, tag, driver, or container..."
       />
       <button
-        mat-icon-button
-        matSuffix
+        type="button"
+        class="clear-btn"
         *ngIf="store.searchQuery()"
         (click)="store.setSearchQuery('')"
         aria-label="Clear search"
       >
-        <mat-icon>clear</mat-icon>
+        <mat-icon>close</mat-icon>
       </button>
-    </mat-form-field>
+    </div>
 
-    <div class="stats-pills">
+    <div class="stats-pills font-mono">
       <span class="stat-pill" *ngIf="store.activeTab() === 'images'">
         Total Space: <strong>{{ formatBytes(store.totalImageSize()) }}</strong>
       </span>
       <span class="stat-pill warn-pill" *ngIf="store.activeTab() === 'images' && store.unusedImagesCount() > 0">
         Unused Images: <strong>{{ store.unusedImagesCount() }}</strong>
       </span>
+
+      <span class="stat-pill" *ngIf="store.activeTab() === 'volumes'">
+        Total Space: <strong>{{ formatBytes(totalVolumeSize()) }}</strong>
+      </span>
       <span class="stat-pill warn-pill" *ngIf="store.activeTab() === 'volumes' && store.unusedVolumesCount() > 0">
         Unused Volumes: <strong>{{ store.unusedVolumesCount() }}</strong>
+      </span>
+
+      <span class="stat-pill" *ngIf="store.activeTab() === 'networks'">
+        Total Networks: <strong>{{ store.networks().length }}</strong>
       </span>
       <span class="stat-pill warn-pill" *ngIf="store.activeTab() === 'networks' && store.unusedNetworksCount() > 0">
         Unused Networks: <strong>{{ store.unusedNetworksCount() }}</strong>
       </span>
     </div>
-  </div>
+  </dp-glass-panel>
 
   <!-- Action Error Banner -->
-  <div *ngIf="store.actionError()" class="action-error-banner">
+  <div *ngIf="store.actionError()" class="action-error-banner font-mono">
     <mat-icon>error_outline</mat-icon>
     <span>{{ store.actionError() }}</span>
   </div>
@@ -91,33 +114,33 @@
     <mat-tab>
       <ng-template mat-tab-label>
         <mat-icon class="tab-icon">layers</mat-icon>
-        <span>Images ({{ store.filteredImages().length }})</span>
+        <span class="tab-label">Images <span class="tab-count-pill">{{ store.filteredImages().length }}</span></span>
       </ng-template>
 
       <div class="tab-content">
         <!-- Loading State -->
         <div *ngIf="store.imagesLoading()" class="loading-state">
           <mat-spinner diameter="36"></mat-spinner>
-          <span>Loading images...</span>
+          <span class="font-mono">Loading images...</span>
         </div>
 
         <!-- Error State -->
         <div *ngIf="store.imagesError()" class="error-state">
           <mat-icon color="warn">error</mat-icon>
-          <span>{{ store.imagesError() }}</span>
-          <button mat-button color="primary" (click)="store.loadImages()">Retry</button>
+          <span class="font-mono">{{ store.imagesError() }}</span>
+          <button mat-button class="btn-retry font-mono" (click)="store.loadImages()">Retry</button>
         </div>
 
         <!-- Empty State -->
         <div *ngIf="!store.imagesLoading() && !store.imagesError() && store.filteredImages().length === 0" class="empty-state">
-          <mat-icon>layers_clear</mat-icon>
+          <mat-icon class="empty-icon">layers_clear</mat-icon>
           <h3>No Images Found</h3>
-          <p *ngIf="store.searchQuery()">No Docker images match your filter criteria.</p>
-          <p *ngIf="!store.searchQuery()">No Docker images are currently present on this host.</p>
+          <p class="font-mono" *ngIf="store.searchQuery()">No Docker images match your filter criteria.</p>
+          <p class="font-mono" *ngIf="!store.searchQuery()">No Docker images are currently present on this host.</p>
         </div>
 
         <!-- Images Table -->
-        <div *ngIf="!store.imagesLoading() && !store.imagesError() && store.filteredImages().length > 0" class="table-container">
+        <div *ngIf="!store.imagesLoading() && !store.imagesError() && store.filteredImages().length > 0" class="table-container dp-glass-panel">
           <table mat-table [dataSource]="store.filteredImages()" class="resource-table">
             <!-- Tags Column -->
             <ng-container matColumnDef="tags">
@@ -197,7 +220,7 @@
               <td mat-cell *matCellDef="let img" class="actions-cell">
                 <button
                   mat-icon-button
-                  color="warn"
+                  class="action-btn-delete"
                   *ngIf="isOperator"
                   [disabled]="img.is_protected || img.is_in_use"
                   [matTooltip]="
@@ -225,33 +248,33 @@
     <mat-tab>
       <ng-template mat-tab-label>
         <mat-icon class="tab-icon">storage</mat-icon>
-        <span>Volumes ({{ store.filteredVolumes().length }})</span>
+        <span class="tab-label">Volumes <span class="tab-count-pill">{{ store.filteredVolumes().length }}</span></span>
       </ng-template>
 
       <div class="tab-content">
         <!-- Loading State -->
         <div *ngIf="store.volumesLoading()" class="loading-state">
           <mat-spinner diameter="36"></mat-spinner>
-          <span>Loading volumes...</span>
+          <span class="font-mono">Loading volumes...</span>
         </div>
 
         <!-- Error State -->
         <div *ngIf="store.volumesError()" class="error-state">
           <mat-icon color="warn">error</mat-icon>
-          <span>{{ store.volumesError() }}</span>
-          <button mat-button color="primary" (click)="store.loadVolumes()">Retry</button>
+          <span class="font-mono">{{ store.volumesError() }}</span>
+          <button mat-button class="btn-retry font-mono" (click)="store.loadVolumes()">Retry</button>
         </div>
 
         <!-- Empty State -->
         <div *ngIf="!store.volumesLoading() && !store.volumesError() && store.filteredVolumes().length === 0" class="empty-state">
-          <mat-icon>storage</mat-icon>
+          <mat-icon class="empty-icon">storage</mat-icon>
           <h3>No Volumes Found</h3>
-          <p *ngIf="store.searchQuery()">No volumes match your filter criteria.</p>
-          <p *ngIf="!store.searchQuery()">No persistent volumes are currently created.</p>
+          <p class="font-mono" *ngIf="store.searchQuery()">No volumes match your filter criteria.</p>
+          <p class="font-mono" *ngIf="!store.searchQuery()">No persistent volumes are currently created.</p>
         </div>
 
         <!-- Volumes Table -->
-        <div *ngIf="!store.volumesLoading() && !store.volumesError() && store.filteredVolumes().length > 0" class="table-container">
+        <div *ngIf="!store.volumesLoading() && !store.volumesError() && store.filteredVolumes().length > 0" class="table-container dp-glass-panel">
           <table mat-table [dataSource]="store.filteredVolumes()" class="resource-table">
             <!-- Name Column -->
             <ng-container matColumnDef="name">
@@ -326,7 +349,7 @@
               <td mat-cell *matCellDef="let vol" class="actions-cell">
                 <button
                   mat-icon-button
-                  color="warn"
+                  class="action-btn-delete"
                   *ngIf="isOperator"
                   [disabled]="vol.is_protected || vol.is_in_use"
                   [matTooltip]="
@@ -354,33 +377,33 @@
     <mat-tab>
       <ng-template mat-tab-label>
         <mat-icon class="tab-icon">hub</mat-icon>
-        <span>Networks ({{ store.filteredNetworks().length }})</span>
+        <span class="tab-label">Networks <span class="tab-count-pill">{{ store.filteredNetworks().length }}</span></span>
       </ng-template>
 
       <div class="tab-content">
         <!-- Loading State -->
         <div *ngIf="store.networksLoading()" class="loading-state">
           <mat-spinner diameter="36"></mat-spinner>
-          <span>Loading networks...</span>
+          <span class="font-mono">Loading networks...</span>
         </div>
 
         <!-- Error State -->
         <div *ngIf="store.networksError()" class="error-state">
           <mat-icon color="warn">error</mat-icon>
-          <span>{{ store.networksError() }}</span>
-          <button mat-button color="primary" (click)="store.loadNetworks()">Retry</button>
+          <span class="font-mono">{{ store.networksError() }}</span>
+          <button mat-button class="btn-retry font-mono" (click)="store.loadNetworks()">Retry</button>
         </div>
 
         <!-- Empty State -->
         <div *ngIf="!store.networksLoading() && !store.networksError() && store.filteredNetworks().length === 0" class="empty-state">
-          <mat-icon>hub</mat-icon>
+          <mat-icon class="empty-icon">hub</mat-icon>
           <h3>No Networks Found</h3>
-          <p *ngIf="store.searchQuery()">No networks match your filter criteria.</p>
-          <p *ngIf="!store.searchQuery()">No networks found on Docker daemon.</p>
+          <p class="font-mono" *ngIf="store.searchQuery()">No networks match your filter criteria.</p>
+          <p class="font-mono" *ngIf="!store.searchQuery()">No networks found on Docker daemon.</p>
         </div>
 
         <!-- Networks Table -->
-        <div *ngIf="!store.networksLoading() && !store.networksError() && store.filteredNetworks().length > 0" class="table-container">
+        <div *ngIf="!store.networksLoading() && !store.networksError() && store.filteredNetworks().length > 0" class="table-container dp-glass-panel">
           <table mat-table [dataSource]="store.filteredNetworks()" class="resource-table">
             <!-- Name Column -->
             <ng-container matColumnDef="name">
@@ -425,7 +448,7 @@
                     {{ c.name }}
                   </span>
                 </div>
-                <span *ngIf="!net.in_use_by || net.in_use_by.length === 0" class="none-label">None</span>
+                <span *ngIf="!net.in_use_by || net.in_use_by.length === 0" class="none-label font-mono">None</span>
               </td>
             </ng-container>
 
@@ -459,7 +482,7 @@
               <td mat-cell *matCellDef="let net" class="actions-cell">
                 <button
                   mat-icon-button
-                  color="warn"
+                  class="action-btn-delete"
                   *ngIf="isOperator"
                   [disabled]="net.is_built_in || net.is_protected || net.is_in_use"
                   [matTooltip]="
