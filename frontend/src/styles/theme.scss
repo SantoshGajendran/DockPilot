@@ -169,6 +169,139 @@
   --mdc-plain-tooltip-container-shape: var(--radius-sm);
 }
 
+.light-theme {
+  color-scheme: light;
+
+  /* Clean Slate/Graphite Surfaces */
+  --bg-0: #F8FAFC; /* Base canvas */
+  --bg-1: #FFFFFF; /* High surface */
+  --bg-2: #F1F5F9; /* Card & panel surface */
+  --bg-3: #E2E8F0; /* Elevated surface / hover */
+  --bg-4: #CBD5E1; /* Muted surface */
+
+  /* Hairlines & Borders */
+  --line-soft: rgba(15, 23, 42, 0.05);
+  --line: rgba(15, 23, 42, 0.10);
+  --line-strong: rgba(15, 23, 42, 0.20);
+
+  /* Calibrated Typography */
+  --text: #0F172A;
+  --text-dim: #475569;
+  --text-mute: #64748B;
+
+  /* Brand Accents adjusted for light contrast */
+  --gold: #B45309;
+  --gold-hi: #92400E;
+  --gold-lo: #D97706;
+  --violet: #6D28D9;
+  --violet-hi: #5B21B6;
+  --violet-lo: #7C3AED;
+
+  /* Status Tokens */
+  --status-running: #059669;
+  --status-running-glow: rgba(5, 150, 105, 0.15);
+  --status-warning: #D97706;
+  --status-warning-glow: rgba(217, 119, 6, 0.15);
+  --status-critical: #E11D48;
+  --status-critical-glow: rgba(225, 29, 72, 0.15);
+  --status-stopped: #64748B;
+  --status-stopped-glow: rgba(100, 116, 139, 0.15);
+  --status-restarting: #2563EB;
+  --status-restarting-glow: rgba(37, 99, 235, 0.15);
+
+  /* Elevation: Clean neutral shadow & crisp border */
+  --elevation-inner-highlight: inset 0 1px 0 0 rgba(255, 255, 255, 0.8);
+  --elevation-glass: 0 1px 3px 0 rgba(15, 23, 42, 0.08), 0 1px 2px -1px rgba(15, 23, 42, 0.08);
+  --elevation-glass-elevated: 0 4px 6px -1px rgba(15, 23, 42, 0.1), 0 2px 4px -2px rgba(15, 23, 42, 0.06);
+  --glow-gold: 0 0 12px rgba(180, 83, 9, 0.20);
+  --glow-violet: 0 0 12px rgba(109, 40, 217, 0.20);
+  --glow-critical: 0 0 12px rgba(225, 29, 72, 0.20);
+
+  /* Component Aliases */
+  --bg-canvas: var(--bg-0);
+  --bg-surface: var(--bg-1);
+  --bg-surface-solid: var(--bg-1);
+  --bg-surface-elevated: var(--bg-2);
+  --bg-surface-hover: rgba(15, 23, 42, 0.04);
+  --border-subtle: var(--line-soft);
+  --border-highlight: var(--line-strong);
+  --border-color: var(--line);
+  --text-primary: var(--text);
+  --text-secondary: var(--text-dim);
+  --text-muted: var(--text-mute);
+  --primary-color: var(--gold);
+  --primary-hover: var(--gold-hi);
+  --accent-glow: var(--glow-gold);
+  --shadow-ambient: var(--elevation-glass);
+  --shadow-lifted: var(--elevation-glass-elevated);
+  --status-danger: var(--status-critical);
+  --danger-color: var(--status-critical);
+  --warning-color: var(--status-warning);
+  --success-color: var(--status-running);
+  --background-color: var(--bg-0);
+  --surface-color: var(--bg-1);
+  --surface-hover: var(--bg-surface-hover);
+  --info-color: var(--status-restarting);
+
+  /* Material Visual Overrides in Light Mode */
+  --mat-sidenav-container-background-color: var(--bg-0);
+  --mat-toolbar-container-background-color: rgba(255, 255, 255, 0.92);
+  --mat-toolbar-container-text-color: var(--text);
+  --mat-sidenav-content-background-color: var(--bg-0);
+  --mat-card-container-background-color: var(--bg-1);
+  --mat-card-container-text-color: var(--text);
+
+  --mdc-outlined-text-field-outline-color: var(--line);
+  --mdc-outlined-text-field-hover-outline-color: var(--line-strong);
+  --mdc-outlined-text-field-focus-outline-color: var(--gold);
+  --mdc-outlined-text-field-input-text-color: var(--text);
+  --mdc-outlined-text-field-input-text-placeholder-color: var(--text-mute);
+  --mdc-outlined-text-field-label-text-color: var(--text-dim);
+  --mdc-outlined-text-field-focus-label-text-color: var(--gold);
+  --mat-select-panel-background-color: var(--bg-1);
+  --mat-select-enabled-trigger-text-color: var(--text);
+  --mat-menu-container-color: var(--bg-1);
+
+  --mat-dialog-container-color: var(--bg-1);
+  --mdc-dialog-container-color: var(--bg-1);
+  --mdc-dialog-subhead-color: var(--text);
+  --mdc-dialog-supporting-text-color: var(--text-dim);
+
+  --mat-tooltip-container-color: var(--text);
+  --mat-tooltip-text-color: #FFFFFF;
+  --mdc-plain-tooltip-container-color: var(--text);
+  --mdc-plain-tooltip-supporting-text-color: #FFFFFF;
+
+  .glass-panel {
+    background: var(--bg-1);
+    border-color: var(--line);
+    box-shadow: var(--elevation-glass);
+  }
+
+  .btn-primary {
+    background-color: var(--gold);
+    color: #FFFFFF;
+    border-color: var(--gold);
+    box-shadow: 0 1px 3px rgba(180, 83, 9, 0.3);
+
+    &:hover {
+      background-color: var(--gold-hi);
+    }
+  }
+
+  .btn-secondary {
+    background-color: var(--bg-1);
+    color: var(--text);
+    border-color: var(--line-strong);
+
+    &:hover {
+      background-color: var(--bg-2);
+      border-color: var(--gold);
+      color: var(--gold);
+    }
+  }
+}
+
 /* Tabular figures rule for all live metrics, numbers, and timestamps */
 .tabular-nums,
 [data-metric],

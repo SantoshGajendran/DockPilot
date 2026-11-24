@@ -15,7 +15,6 @@ import { ThemeService } from '../../core/services/theme.service';
 import { CONTAINER_STATE_COLORS, CONTAINER_STATE_LABELS, HOST_THRESHOLDS } from '../../core/constants/overview.constants';
 import { EventsTimelineComponent } from '../events/components/events-timeline.component';
 import { EventItem } from '../../core/models/events.model';
-import { OrbitalVisualizationComponent, OrbitalNode } from './components/orbital-visualization.component';
 import { GlassPanelComponent } from '../../shared/components/glass-panel/glass-panel.component';
 import { MetricNumberComponent } from '../../shared/components/metric-number/metric-number.component';
 import { SparklineComponent } from '../../shared/components/sparkline/sparkline.component';
@@ -41,7 +40,6 @@ Chart.register(...registerables);
     MatTooltipModule,
     BaseChartDirective,
     EventsTimelineComponent,
-    OrbitalVisualizationComponent,
     GlassPanelComponent,
     MetricNumberComponent,
     SparklineComponent,
@@ -88,39 +86,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
       is_restart_loop: false,
       attributes: {},
     }));
-  });
-
-  readonly orbitalNodes = computed<OrbitalNode[]>(() => {
-    const data = this.store.data();
-    if (!data) return [];
-
-    const topCpu = data.top_cpu || [];
-    const topMem = data.top_memory || [];
-    const map = new Map<string, OrbitalNode>();
-
-    topCpu.forEach((c) => {
-      map.set(c.id, {
-        id: c.id,
-        name: c.name,
-        cpuPercent: c.cpu_percent,
-        memoryBytes: c.memory_bytes,
-        status: (c.status as any) || 'running'
-      });
-    });
-
-    topMem.forEach((c) => {
-      if (!map.has(c.id)) {
-        map.set(c.id, {
-          id: c.id,
-          name: c.name,
-          cpuPercent: c.cpu_percent,
-          memoryBytes: c.memory_bytes,
-          status: (c.status as any) || 'running'
-        });
-      }
-    });
-
-    return Array.from(map.values());
   });
 
   donutChartOptions: ChartOptions<'doughnut'> = {
@@ -357,6 +322,10 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   navigateToHost(): void {
     this.router.navigate(['/host']);
+  }
+
+  navigateToLogs(): void {
+    this.router.navigate(['/logs']);
   }
 
   navigateToContainers(state?: string): void {

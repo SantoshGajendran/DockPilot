@@ -23,11 +23,12 @@ import { AnsiParserService } from '../../../core/services/ansi-parser.service';
 import { SseService } from '../../../core/services/sse.service';
 import { CONTAINER_ENDPOINTS } from '../../../core/constants/container.constants';
 import { ToastService } from '../../../core/services/toast.service';
+import { IconComponent } from '../icon/icon.component';
 
 @Component({
   selector: 'dp-log-viewer',
   standalone: true,
-  imports: [CommonModule, ScrollingModule, MatButtonModule, MatIconModule, MatTooltipModule],
+  imports: [CommonModule, ScrollingModule, MatButtonModule, MatIconModule, MatTooltipModule, IconComponent],
   templateUrl: './log-viewer.component.html',
   styleUrls: ['./log-viewer.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,

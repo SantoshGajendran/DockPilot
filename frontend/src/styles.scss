@@ -11,6 +11,13 @@
 @import '@fontsource/jetbrains-mono/700.css';
 @import '@xterm/xterm/css/xterm.css';
 
+mat-icon {
+  font-family: 'Material Icons', 'Material Icons Outlined', sans-serif !important;
+  font-feature-settings: 'liga' !important;
+  -webkit-font-feature-settings: 'liga' !important;
+  text-rendering: optimizeLegibility;
+}
+
 html, body {
   height: 100%;
   margin: 0;

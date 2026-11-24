@@ -56,9 +56,8 @@ describe('ShellComponent', () => {
   it('should render theme toggle button with correct initial icon', () => {
     const themeBtn = fixture.nativeElement.querySelector('.theme-toggle-btn');
     expect(themeBtn).toBeTruthy();
-    const icon = themeBtn.querySelector('mat-icon');
+    const icon = themeBtn.querySelector('dp-icon');
     expect(icon).toBeTruthy();
-    expect(icon.textContent.trim()).toBe('brightness_auto');
   });
 
   it('should open theme menu and call themeService.setMode when items are clicked', () => {

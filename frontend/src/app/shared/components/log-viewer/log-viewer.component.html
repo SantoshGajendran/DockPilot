@@ -6,10 +6,10 @@
     </span>
 
     <div class="search-input-box">
-      <mat-icon>search</mat-icon>
+      <dp-icon name="search" [size]="14"></dp-icon>
       <input
         type="text"
-        placeholder="Search regex/tokens..."
+        placeholder="Filter logs..."
         [value]="filterQuery()"
         (input)="onFilterChange($event)"
       />
@@ -23,8 +23,9 @@
       mat-icon-button
       [matTooltip]="isPaused() ? 'Resume stream' : 'Pause stream'"
       (click)="togglePause()"
+      class="toolbar-btn"
     >
-      <mat-icon>{{ isPaused() ? 'play_arrow' : 'pause' }}</mat-icon>
+      <dp-icon [name]="isPaused() ? 'play' : 'pause'" [size]="16"></dp-icon>
     </button>
 
     <button
@@ -32,8 +33,9 @@
       [class.active]="wrapLines()"
       matTooltip="Toggle line wrap"
       (click)="wrapLines.set(!wrapLines())"
+      class="toolbar-btn"
     >
-      <mat-icon>wrap_text</mat-icon>
+      <dp-icon name="wrap" [size]="16"></dp-icon>
     </button>
 
     <button
@@ -41,40 +43,45 @@
       [class.active]="showTimestamps()"
       matTooltip="Toggle timestamps"
       (click)="showTimestamps.set(!showTimestamps())"
+      class="toolbar-btn"
     >
-      <mat-icon>schedule</mat-icon>
+      <dp-icon name="clock" [size]="16"></dp-icon>
     </button>
 
     <button
       mat-icon-button
       matTooltip="Scroll to bottom"
       (click)="scrollToBottom()"
+      class="toolbar-btn"
     >
-      <mat-icon>vertical_align_bottom</mat-icon>
+      <dp-icon name="arrow-down" [size]="16"></dp-icon>
     </button>
 
     <button
       mat-icon-button
       matTooltip="Copy all visible"
       (click)="copyLogs()"
+      class="toolbar-btn"
     >
-      <mat-icon>content_copy</mat-icon>
+      <dp-icon name="copy" [size]="16"></dp-icon>
     </button>
 
     <button
       mat-icon-button
       matTooltip="Download as .log"
       (click)="downloadLogs()"
+      class="toolbar-btn"
     >
-      <mat-icon>download</mat-icon>
+      <dp-icon name="download" [size]="16"></dp-icon>
     </button>
 
     <button
       mat-icon-button
       matTooltip="Clear display"
       (click)="clearLogs()"
+      class="toolbar-btn"
     >
-      <mat-icon>block</mat-icon>
+      <dp-icon name="trash" [size]="16"></dp-icon>
     </button>
   </div>
 </div>
@@ -90,8 +97,8 @@
 
   @if (filteredLines().length === 0) {
     <div class="empty-logs">
-      <mat-icon>waves</mat-icon>
-      <span>QUIET STREAM // NO LOG MESSAGES RECEIVED</span>
+      <dp-icon name="logs" [size]="28"></dp-icon>
+      <span>NO LOG MESSAGES MATCH CRITERIA</span>
     </div>
   } @else {
     <div class="viewport-with-minimap">

@@ -1,12 +1,12 @@
 import { Component, Input, computed, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import { MatIconModule } from '@angular/material/icon';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatTooltipModule } from '@angular/material/tooltip';
 
 import { DayGroupedEvents, EventItem } from '../../../core/models/events.model';
 import { EventActionMeta, getEventActionMeta } from '../../../core/constants/events.constants';
+import { IconComponent } from '../../../shared/components/icon/icon.component';
 
 @Component({
   selector: 'dp-events-timeline',
@@ -14,9 +14,9 @@ import { EventActionMeta, getEventActionMeta } from '../../../core/constants/eve
   imports: [
     CommonModule,
     RouterModule,
-    MatIconModule,
     MatChipsModule,
     MatTooltipModule,
+    IconComponent,
   ],
   templateUrl: './events-timeline.component.html',
   styleUrls: ['./events-timeline.component.scss'],
@@ -41,6 +41,16 @@ export class EventsTimelineComponent {
 
   getActionMeta(action: string): EventActionMeta {
     return getEventActionMeta(action);
+  }
+
+  getIconName(action: string): string {
+    const norm = (action || '').toLowerCase();
+    if (norm.includes('start') || norm === 'unpause') return 'play';
+    if (norm.includes('stop')) return 'stop';
+    if (norm.includes('restart')) return 'refresh-cw';
+    if (norm.includes('die') || norm.includes('kill') || norm.includes('oom')) return 'alert-triangle';
+    if (norm.includes('pause')) return 'pause';
+    return 'info';
   }
 
   formatTime(isoString: string): string {

@@ -71,16 +71,16 @@
       display: flex;
       align-items: center;
       padding: 6px 10px;
-      border-radius: 6px;
-      background: rgba(255, 255, 255, 0.02);
-      border: 1px solid rgba(255, 255, 255, 0.04);
+      border-radius: var(--radius-sm);
+      background: var(--bg-1);
+      border: 1px solid var(--line);
       cursor: pointer;
       user-select: none;
       transition: all 0.15s ease;
 
       &:hover {
-        background: rgba(212, 175, 55, 0.06);
-        border-color: rgba(212, 175, 55, 0.2);
+        background: var(--bg-3);
+        border-color: var(--gold);
       }
 
       .container-label {
@@ -90,17 +90,17 @@
         overflow: hidden;
 
         .c-name {
-          font-size: 12px;
+          font-size: 13px;
           font-weight: 600;
-          color: #F8FAFC;
+          color: var(--text);
           white-space: nowrap;
           overflow: hidden;
           text-overflow: ellipsis;
         }
 
         .c-img {
-          font-size: 10px;
-          color: #64748B;
+          font-size: 11px;
+          color: var(--text-mute);
           white-space: nowrap;
           overflow: hidden;
           text-overflow: ellipsis;
@@ -144,9 +144,9 @@
         display: flex;
         align-items: center;
         gap: 8px;
-        background: rgba(0, 0, 0, 0.4);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 6px;
+        background: var(--bg-1);
+        border: 1px solid var(--line);
+        border-radius: var(--radius-sm);
         padding: 6px 12px;
 
         input {
@@ -154,35 +154,36 @@
           background: transparent;
           border: none;
           outline: none;
-          font-family: 'JetBrains Mono', monospace;
-          font-size: 12px;
-          color: #F8FAFC;
+          font-family: var(--font-mono);
+          font-size: 13px;
+          color: var(--text);
 
           &::placeholder {
-            color: #475569;
+            color: var(--text-mute);
           }
         }
       }
 
       .regex-toggle-btn {
-        background: rgba(255, 255, 255, 0.04);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 6px;
+        background: var(--bg-1);
+        border: 1px solid var(--line);
+        border-radius: var(--radius-sm);
         padding: 6px 12px;
         font-size: 11px;
         font-weight: 600;
-        color: #94A3B8;
+        color: var(--text-dim);
         cursor: pointer;
         transition: all 0.2s ease;
 
         &:hover {
-          color: #F8FAFC;
+          color: var(--text);
+          border-color: var(--gold);
         }
 
         &.active {
           background: rgba(212, 175, 55, 0.15);
-          border-color: rgba(212, 175, 55, 0.4);
-          color: var(--gold, #D4AF37);
+          border-color: var(--gold);
+          color: var(--gold);
         }
       }
     }

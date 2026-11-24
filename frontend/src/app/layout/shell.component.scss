@@ -368,6 +368,23 @@
   padding: 24px;
 }
 
+::ng-deep .theme-menu-panel {
+  .mat-mdc-menu-item {
+    display: flex !important;
+    align-items: center;
+    gap: 12px;
+
+    .menu-icon {
+      color: var(--text-dim);
+    }
+
+    .check-icon {
+      margin-left: auto;
+      color: var(--gold);
+    }
+  }
+}
+
 @keyframes pulseHeartbeat {
   0% { transform: scale(1); opacity: 1; }
   50% { transform: scale(1.2); opacity: 0.75; }

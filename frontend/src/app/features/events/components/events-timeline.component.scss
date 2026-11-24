@@ -75,15 +75,15 @@
   align-items: center;
   justify-content: center;
   z-index: 1;
-  background: #0B0D14;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  color: #94A3B8;
+  background: var(--bg-1);
+  border: 1px solid var(--line);
+  color: var(--text-dim);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 
-  mat-icon {
-    font-size: 15px;
-    width: 15px;
-    height: 15px;
+  dp-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
   }
 
   &.text-success {
@@ -113,8 +113,7 @@
 
 .vertical-line {
   width: 2px;
-  background: linear-gradient(180deg, rgba(212, 175, 55, 0.35) 0%, rgba(255, 255, 255, 0.06) 100%);
-  box-shadow: 0 0 6px rgba(212, 175, 55, 0.15);
+  background: linear-gradient(180deg, var(--gold) 0%, var(--line) 100%);
   flex: 1;
   min-height: 24px;
   margin: 4px 0;
@@ -138,41 +137,42 @@
 }
 
 .event-time {
-  color: #64748B;
-  font-size: 11px;
+  color: var(--text-mute);
+  font-size: 12px;
   font-variant-numeric: tabular-nums;
+  font-family: var(--font-mono);
 }
 
 .container-chip {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 4px;
-  padding: 3px 8px;
-  color: #F8FAFC;
+  background: var(--bg-1);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 3px 10px;
+  color: var(--text);
   text-decoration: none;
   font-weight: 600;
+  font-size: 13px;
   transition: all 0.15s ease;
 
   .cont-icon {
-    font-size: 13px;
-    width: 13px;
-    height: 13px;
-    color: #38BDF8;
+    color: var(--gold);
   }
 
   &:hover {
-    background: rgba(56, 189, 248, 0.1);
-    border-color: rgba(56, 189, 248, 0.3);
+    background: var(--bg-3);
+    border-color: var(--gold);
+    color: var(--gold-hi);
   }
 
   &.static {
     cursor: default;
     &:hover {
-      background: rgba(255, 255, 255, 0.04);
-      border-color: rgba(255, 255, 255, 0.08);
+      background: var(--bg-1);
+      border-color: var(--line);
+      color: var(--text);
     }
   }
 }

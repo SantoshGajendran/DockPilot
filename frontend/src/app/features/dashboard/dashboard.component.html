@@ -1,16 +1,4 @@
-<div class="dashboard-container" [class.booting]="isBooting()">
-  <!-- Skippable Boot Sequence Overlay -->
-  @if (isBooting()) {
-    <div class="boot-sequence-overlay" (click)="skipBootSequence()" role="button" aria-label="Skip boot sequence">
-      <div class="boot-terminal-line">
-        <span class="boot-prompt">&gt;</span>
-        <span class="boot-text">INITIALIZING FLIGHT DECK TELEMETRY... ALL SYSTEMS ONLINE</span>
-      </div>
-      <div class="boot-scanner-bar"></div>
-      <span class="boot-skip-hint micro-label">PRESS ANYWHERE TO SKIP</span>
-    </div>
-  }
-
+<div class="dashboard-container">
   <!-- System Notification Banners -->
   <div class="banners-section" *ngIf="store.isStale() || ((store.data()?.active_alerts_count ?? 0) > 0)">
     <div class="banner banner-stale" *ngIf="store.isStale()">
@@ -46,16 +34,128 @@
       </dp-glass-panel>
     }
 
-    <!-- Hero Section: Orbital Visualization -->
+    <!-- Hero Section: Executive Fleet & System Overview Card -->
     @if (store.data()?.host; as host) {
-      <section class="orbital-hero-section">
-        <dp-glass-panel [padding]="'0'" [borderSweep]="true" class="orbital-hero-panel">
-          <dp-orbital-visualization
-            [hostCpu]="host.cpu_percent"
-            [hostMemory]="host.memory_percent"
-            [nodes]="orbitalNodes()"
-            (nodeSelect)="navigateToContainer($event)"
-          ></dp-orbital-visualization>
+      <section class="executive-hero-section">
+        <dp-glass-panel [padding]="'24px'" class="executive-hero-panel">
+          <div class="hero-header-row">
+            <div class="hero-identity">
+              <div class="host-badge">
+                <span class="live-indicator-dot"></span>
+                <span class="host-label">HOST SYSTEM</span>
+                <span class="host-name">Ubuntu Server</span>
+              </div>
+              <p class="hero-subtitle">Docker Daemon Telemetry • Fleet & Resource Summary</p>
+            </div>
+
+            <div class="hero-actions">
+              <button class="btn-secondary btn-sm" (click)="navigateToContainers()">
+                <dp-icon name="box" [size]="14"></dp-icon>
+                <span>Containers ({{ store.data()?.containers?.total ?? 0 }})</span>
+              </button>
+              <button class="btn-secondary btn-sm" (click)="navigateToLogs()">
+                <dp-icon name="logs" [size]="14"></dp-icon>
+                <span>Live Logs</span>
+              </button>
+              <button class="btn-primary btn-sm" (click)="navigateToHost()">
+                <dp-icon name="server" [size]="14"></dp-icon>
+                <span>Host Details</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Hero Metrics Grid -->
+          <div class="hero-metrics-grid">
+            <!-- CPU Metric -->
+            <div class="hero-metric-tile" (click)="navigateToHost()" tabindex="0" role="button">
+              <div class="metric-meta-row">
+                <span class="metric-title">
+                  <dp-icon name="cpu" [size]="14" class="metric-icon"></dp-icon>
+                  CPU Utilization
+                </span>
+                <span class="metric-value tabular-nums">{{ host.cpu_percent | number:'1.1-1' }}%</span>
+              </div>
+              <div class="progress-track">
+                <div
+                  class="progress-fill"
+                  [style.width.%]="host.cpu_percent"
+                  [class.warn]="host.cpu_percent >= thresholds.cpu.warn && host.cpu_percent < thresholds.cpu.danger"
+                  [class.danger]="host.cpu_percent >= thresholds.cpu.danger"
+                ></div>
+              </div>
+              <div class="metric-sub-row">
+                <span class="sub-label">Load Average</span>
+                <span class="sub-value tabular-nums">{{ formatLoadAvg(host.load_avg) }}</span>
+              </div>
+            </div>
+
+            <!-- Memory Metric -->
+            <div class="hero-metric-tile" (click)="navigateToHost()" tabindex="0" role="button">
+              <div class="metric-meta-row">
+                <span class="metric-title">
+                  <dp-icon name="layers" [size]="14" class="metric-icon"></dp-icon>
+                  Memory Usage
+                </span>
+                <span class="metric-value tabular-nums">{{ host.memory_percent | number:'1.1-1' }}%</span>
+              </div>
+              <div class="progress-track">
+                <div
+                  class="progress-fill fill-violet"
+                  [style.width.%]="host.memory_percent"
+                  [class.warn]="host.memory_percent >= thresholds.memory.warn && host.memory_percent < thresholds.memory.danger"
+                  [class.danger]="host.memory_percent >= thresholds.memory.danger"
+                ></div>
+              </div>
+              <div class="metric-sub-row">
+                <span class="sub-label">Used / Total</span>
+                <span class="sub-value tabular-nums">{{ formatBytes(host.memory_used_bytes) }} / {{ formatBytes(host.memory_total_bytes) }}</span>
+              </div>
+            </div>
+
+            <!-- Disk Metric -->
+            <div class="hero-metric-tile" (click)="navigateToHost()" tabindex="0" role="button">
+              <div class="metric-meta-row">
+                <span class="metric-title">
+                  <dp-icon name="hard-drive" [size]="14" class="metric-icon"></dp-icon>
+                  Disk Storage
+                </span>
+                <span class="metric-value tabular-nums">{{ host.disk_percent | number:'1.1-1' }}%</span>
+              </div>
+              <div class="progress-track">
+                <div
+                  class="progress-fill fill-blue"
+                  [style.width.%]="host.disk_percent"
+                  [class.warn]="host.disk_percent >= thresholds.disk.warn && host.disk_percent < thresholds.disk.danger"
+                  [class.danger]="host.disk_percent >= thresholds.disk.danger"
+                ></div>
+              </div>
+              <div class="metric-sub-row">
+                <span class="sub-label">Used / Total</span>
+                <span class="sub-value tabular-nums">{{ formatBytes(host.disk_used_bytes) }} / {{ formatBytes(host.disk_total_bytes) }}</span>
+              </div>
+            </div>
+
+            <!-- Fleet Health Metric -->
+            <div class="hero-metric-tile" (click)="navigateToContainers()" tabindex="0" role="button">
+              <div class="metric-meta-row">
+                <span class="metric-title">
+                  <dp-icon name="box" [size]="14" class="metric-icon"></dp-icon>
+                  Fleet Health
+                </span>
+                <span class="metric-value tabular-nums">{{ store.data()?.containers?.running ?? 0 }} / {{ store.data()?.containers?.total ?? 0 }}</span>
+              </div>
+              <div class="progress-track">
+                <div
+                  class="progress-fill fill-green"
+                  [style.width.%]="(store.data()?.containers?.total ?? 0) > 0 ? ((store.data()?.containers?.running ?? 0) / (store.data()?.containers?.total ?? 1) * 100) : 0"
+                ></div>
+              </div>
+              <div class="metric-sub-row">
+                <span class="sub-label">System Uptime</span>
+                <span class="sub-value tabular-nums">{{ formatUptime(host.uptime_seconds) }}</span>
+              </div>
+            </div>
+          </div>
         </dp-glass-panel>
       </section>
 
@@ -142,7 +242,7 @@
           <div class="tile-header">
             <div class="tile-title-group">
               <dp-icon name="ship" [size]="16" class="tile-icon"></dp-icon>
-              <h2 class="tile-title">CRAFT INVENTORY</h2>
+              <h2 class="tile-title">FLEET INVENTORY</h2>
             </div>
             <button class="btn-secondary inspect-btn" (click)="navigateToContainers()">
               <span>VIEW ALL</span>
@@ -159,7 +259,7 @@
             </canvas>
             <div class="donut-center-metric">
               <span class="donut-count tabular-nums">{{ store.data()?.containers?.total ?? 0 }}</span>
-              <span class="micro-label">TOTAL CRAFT</span>
+              <span class="micro-label">TOTAL CONTAINERS</span>
             </div>
           </div>
 
@@ -253,9 +353,9 @@
           <div class="tile-header">
             <div class="tile-title-group">
               <dp-icon name="clock" [size]="16" class="tile-icon"></dp-icon>
-              <h2 class="tile-title">OPERATIONAL LOG & TELEMETRY EVENTS</h2>
+              <h2 class="tile-title">RECENT EVENTS & TELEMETRY</h2>
             </div>
-            <button class="btn-secondary inspect-btn" (click)="navigateToContainers()">
+            <button class="btn-secondary inspect-btn" (click)="navigateToLogs()">
               <span>VIEW LOG STREAM</span>
               <dp-icon name="arrow-right" [size]="14"></dp-icon>
             </button>
