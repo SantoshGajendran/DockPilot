@@ -166,4 +166,19 @@ export class AuditComponent implements OnInit {
   closeDrawer(): void {
     this.store.selectItem(null);
   }
+
+  isExpanded(id: string): boolean {
+    return this.store.selectedItem()?.id === id;
+  }
+
+  toggleExpand(id: string): void {
+    if (this.isExpanded(id)) {
+      this.closeDrawer();
+    } else {
+      const item = this.store.items().find((i) => i.id === id);
+      if (item) {
+        this.openDrawer(item);
+      }
+    }
+  }
 }

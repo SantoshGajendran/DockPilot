@@ -159,4 +159,13 @@ describe('AuditComponent', () => {
     expect(component.store.filters().page_size).toBe(20);
     expect(component.store.filters().page).toBe(1);
   });
+
+  it('should render aria-label and aria-expanded on details toggle button', () => {
+    const expandBtns = fixture.nativeElement.querySelectorAll('.btn-expand');
+    expect(expandBtns.length).toBeGreaterThan(0);
+    expandBtns.forEach((btn: HTMLButtonElement) => {
+      expect(btn.getAttribute('aria-label')).toBeTruthy();
+      expect(btn.getAttribute('aria-expanded')).toBe('false');
+    });
+  });
 });

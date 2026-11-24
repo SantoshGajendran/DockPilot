@@ -113,4 +113,25 @@ describe('ResourcesComponent', () => {
     component.deleteNetwork('net-123', 'custom-net');
     expect(deleteSpy).toHaveBeenCalledWith('net-123', expect.any(Function));
   });
+
+  it('should render aria-label on delete buttons for resources', () => {
+    component.store.images.set([
+      {
+        id: 'sha256:1234567890abcdef',
+        short_id: '12345678',
+        tags: ['redis:latest'],
+        size_bytes: 1000000,
+        created: '2026-01-01',
+        is_in_use: false,
+        is_protected: false,
+        is_dangling: false,
+        in_use_by: [],
+      },
+    ]);
+    fixture.detectChanges();
+
+    const deleteBtn = fixture.nativeElement.querySelector('.action-btn-delete');
+    expect(deleteBtn).toBeTruthy();
+    expect(deleteBtn.getAttribute('aria-label')).toBe('Delete image redis:latest');
+  });
 });

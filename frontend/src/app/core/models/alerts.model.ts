@@ -10,6 +10,7 @@ export interface AlertRule {
   duration_minutes: number;
   cooldown_minutes: number;
   enabled: boolean;
+  is_silenced?: boolean;
   created_at: string;
   updated_at: string;
 }

@@ -1,9 +1,11 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { provideRouter } from '@angular/router';
 import { of } from 'rxjs';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatTabGroup } from '@angular/material/tabs';
 
 import { AlertsComponent } from './alerts.component';
 import { AlertsStore } from './alerts.store';
@@ -145,5 +147,26 @@ describe('AlertsComponent', () => {
       'Close',
       expect.any(Object)
     );
+  });
+
+  it('should render aria-label on slide toggle and rule action buttons', () => {
+    const tabGroup = fixture.debugElement.query(By.directive(MatTabGroup))?.componentInstance as MatTabGroup;
+    if (tabGroup) {
+      tabGroup.selectedIndex = 1;
+      fixture.detectChanges();
+    }
+    const toggles = fixture.nativeElement.querySelectorAll('mat-slide-toggle');
+    expect(toggles.length).toBeGreaterThan(0);
+    toggles.forEach((t: HTMLElement) => {
+      const ariaLabel = t.getAttribute('aria-label') || t.querySelector('button')?.getAttribute('aria-label');
+      expect(ariaLabel).toBeTruthy();
+      expect(ariaLabel).toContain('Sample Rule');
+    });
+
+    const editBtn = fixture.nativeElement.querySelector('button[aria-label="Edit alert rule Sample Rule"]');
+    expect(editBtn).toBeTruthy();
+
+    const deleteBtn = fixture.nativeElement.querySelector('button[aria-label="Delete alert rule Sample Rule"]');
+    expect(deleteBtn).toBeTruthy();
   });
 });

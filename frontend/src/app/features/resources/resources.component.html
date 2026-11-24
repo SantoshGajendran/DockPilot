@@ -222,6 +222,7 @@
                   mat-icon-button
                   class="action-btn-delete"
                   *ngIf="isOperator"
+                  [attr.aria-label]="'Delete image ' + (img.tags[0] || img.short_id)"
                   [disabled]="img.is_protected || img.is_in_use"
                   [matTooltip]="
                     img.is_protected
@@ -351,6 +352,7 @@
                   mat-icon-button
                   class="action-btn-delete"
                   *ngIf="isOperator"
+                  [attr.aria-label]="'Delete volume ' + vol.name"
                   [disabled]="vol.is_protected || vol.is_in_use"
                   [matTooltip]="
                     vol.is_protected
@@ -484,6 +486,7 @@
                   mat-icon-button
                   class="action-btn-delete"
                   *ngIf="isOperator"
+                  [attr.aria-label]="'Delete network ' + net.name"
                   [disabled]="net.is_built_in || net.is_protected || net.is_in_use"
                   [matTooltip]="
                     net.is_built_in
