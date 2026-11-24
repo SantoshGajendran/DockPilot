@@ -19,70 +19,73 @@
   </div>
 
   <div class="toolbar-right">
-    <button
-      mat-icon-button
-      [matTooltip]="isPaused() ? 'Resume stream' : 'Pause stream'"
-      (click)="togglePause()"
-      class="toolbar-btn"
-    >
-      <dp-icon [name]="isPaused() ? 'play' : 'pause'" [size]="16"></dp-icon>
-    </button>
+    <div class="action-dock">
+      <button
+        mat-icon-button
+        [matTooltip]="isPaused() ? 'Resume stream' : 'Pause stream'"
+        (click)="togglePause()"
+        class="toolbar-btn"
+        [class.is-paused]="isPaused()"
+      >
+        <dp-icon [name]="isPaused() ? 'play' : 'pause'" [size]="15"></dp-icon>
+      </button>
 
-    <button
-      mat-icon-button
-      [class.active]="wrapLines()"
-      matTooltip="Toggle line wrap"
-      (click)="wrapLines.set(!wrapLines())"
-      class="toolbar-btn"
-    >
-      <dp-icon name="wrap" [size]="16"></dp-icon>
-    </button>
+      <button
+        mat-icon-button
+        [class.active]="wrapLines()"
+        matTooltip="Toggle line wrap"
+        (click)="wrapLines.set(!wrapLines())"
+        class="toolbar-btn"
+      >
+        <dp-icon name="wrap" [size]="15"></dp-icon>
+      </button>
 
-    <button
-      mat-icon-button
-      [class.active]="showTimestamps()"
-      matTooltip="Toggle timestamps"
-      (click)="showTimestamps.set(!showTimestamps())"
-      class="toolbar-btn"
-    >
-      <dp-icon name="clock" [size]="16"></dp-icon>
-    </button>
+      <button
+        mat-icon-button
+        [class.active]="showTimestamps()"
+        matTooltip="Toggle timestamps"
+        (click)="showTimestamps.set(!showTimestamps())"
+        class="toolbar-btn"
+      >
+        <dp-icon name="clock" [size]="15"></dp-icon>
+      </button>
 
-    <button
-      mat-icon-button
-      matTooltip="Scroll to bottom"
-      (click)="scrollToBottom()"
-      class="toolbar-btn"
-    >
-      <dp-icon name="arrow-down" [size]="16"></dp-icon>
-    </button>
+      <button
+        mat-icon-button
+        matTooltip="Scroll to bottom"
+        (click)="scrollToBottom()"
+        class="toolbar-btn"
+      >
+        <dp-icon name="arrow-down" [size]="15"></dp-icon>
+      </button>
 
-    <button
-      mat-icon-button
-      matTooltip="Copy all visible"
-      (click)="copyLogs()"
-      class="toolbar-btn"
-    >
-      <dp-icon name="copy" [size]="16"></dp-icon>
-    </button>
+      <button
+        mat-icon-button
+        matTooltip="Copy all visible"
+        (click)="copyLogs()"
+        class="toolbar-btn"
+      >
+        <dp-icon name="copy" [size]="15"></dp-icon>
+      </button>
 
-    <button
-      mat-icon-button
-      matTooltip="Download as .log"
-      (click)="downloadLogs()"
-      class="toolbar-btn"
-    >
-      <dp-icon name="download" [size]="16"></dp-icon>
-    </button>
+      <button
+        mat-icon-button
+        matTooltip="Download as .log"
+        (click)="downloadLogs()"
+        class="toolbar-btn"
+      >
+        <dp-icon name="download" [size]="15"></dp-icon>
+      </button>
 
-    <button
-      mat-icon-button
-      matTooltip="Clear display"
-      (click)="clearLogs()"
-      class="toolbar-btn"
-    >
-      <dp-icon name="trash" [size]="16"></dp-icon>
-    </button>
+      <button
+        mat-icon-button
+        matTooltip="Clear display"
+        (click)="clearLogs()"
+        class="toolbar-btn btn-trash"
+      >
+        <dp-icon name="trash" [size]="15"></dp-icon>
+      </button>
+    </div>
   </div>
 </div>
 

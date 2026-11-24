@@ -3,8 +3,9 @@
   <dp-glass-panel [padding]="'16px'" class="containers-glass-panel">
     <div class="panel-header">
       <div class="panel-title-row">
-        <dp-icon name="box" [size]="16"></dp-icon>
-        <span class="panel-heading font-mono">TARGET FLEET ({{ store.selectedCount() }}/{{ store.containers().length }})</span>
+        <dp-icon name="box" [size]="16" class="title-icon"></dp-icon>
+        <span class="panel-heading font-mono">TARGET FLEET</span>
+        <span class="fleet-count-badge font-mono">{{ store.selectedCount() }}/{{ store.containers().length }}</span>
       </div>
       <button class="btn-text-gold font-mono" (click)="store.toggleAll()">
         {{ store.allSelected() ? 'DESELECT ALL' : 'SELECT ALL' }}
@@ -13,7 +14,7 @@
 
     <div class="containers-list font-mono">
       @for (c of store.containers(); track c.id) {
-        <div class="container-item" (click)="store.toggleContainer(c.id)">
+        <div class="container-item" [class.selected]="store.selectedContainerIds().has(c.id)" (click)="store.toggleContainer(c.id)">
           <mat-checkbox
             [checked]="store.selectedContainerIds().has(c.id)"
             (change)="store.toggleContainer(c.id)"
@@ -41,7 +42,7 @@
     <dp-glass-panel [padding]="'14px 18px'" class="search-filter-card">
       <div class="search-inputs">
         <div class="search-box">
-          <dp-icon name="search" [size]="16"></dp-icon>
+          <dp-icon name="search" [size]="16" class="search-icon"></dp-icon>
           <input
             type="text"
             placeholder="Search logs with regex or tokens..."
@@ -60,14 +61,16 @@
           .* REGEX
         </button>
 
-        <button class="btn-primary btn-sm font-mono" (click)="store.fetchLogs()">
-          EXECUTE SCAN
+        <button class="btn-primary btn-scan font-mono" (click)="store.fetchLogs()">
+          <dp-icon name="search" [size]="14"></dp-icon>
+          <span>EXECUTE SCAN</span>
         </button>
       </div>
 
       <div class="filters-group font-mono">
         <!-- Time Range -->
         <div class="range-toggles">
+          <span class="filter-group-label">WINDOW:</span>
           @for (r of ['15m', '1h', '6h', '24h']; track r) {
             <button
               class="range-pill"
@@ -79,27 +82,29 @@
           }
         </div>
 
-        <!-- Stream Filter -->
-        <mat-form-field appearance="outline" class="field-small" subscriptSizing="dynamic">
-          <mat-label>STREAM</mat-label>
-          <mat-select [value]="store.streamFilter()" (selectionChange)="store.setStreamFilter($event.value)">
-            <mat-option value="all">ALL STREAMS</mat-option>
-            <mat-option value="stdout">stdout</mat-option>
-            <mat-option value="stderr">stderr</mat-option>
-          </mat-select>
-        </mat-form-field>
+        <div class="filter-dropdowns">
+          <!-- Stream Filter -->
+          <mat-form-field appearance="outline" class="field-small" subscriptSizing="dynamic">
+            <mat-label>STREAM</mat-label>
+            <mat-select [value]="store.streamFilter()" (selectionChange)="store.setStreamFilter($event.value)">
+              <mat-option value="all">ALL STREAMS</mat-option>
+              <mat-option value="stdout">stdout</mat-option>
+              <mat-option value="stderr">stderr</mat-option>
+            </mat-select>
+          </mat-form-field>
 
-        <!-- Level Filter -->
-        <mat-form-field appearance="outline" class="field-small" subscriptSizing="dynamic">
-          <mat-label>SEVERITY</mat-label>
-          <mat-select [value]="store.levelFilter()" (selectionChange)="store.setLevelFilter($event.value)">
-            <mat-option value="ALL">ALL LEVELS</mat-option>
-            <mat-option value="ERROR">ERROR / FATAL</mat-option>
-            <mat-option value="WARN">WARNING</mat-option>
-            <mat-option value="INFO">INFO</mat-option>
-            <mat-option value="DEBUG">DEBUG</mat-option>
-          </mat-select>
-        </mat-form-field>
+          <!-- Level Filter -->
+          <mat-form-field appearance="outline" class="field-small" subscriptSizing="dynamic">
+            <mat-label>SEVERITY</mat-label>
+            <mat-select [value]="store.levelFilter()" (selectionChange)="store.setLevelFilter($event.value)">
+              <mat-option value="ALL">ALL LEVELS</mat-option>
+              <mat-option value="ERROR">ERROR / FATAL</mat-option>
+              <mat-option value="WARN">WARNING</mat-option>
+              <mat-option value="INFO">INFO</mat-option>
+              <mat-option value="DEBUG">DEBUG</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
       </div>
     </dp-glass-panel>
 
