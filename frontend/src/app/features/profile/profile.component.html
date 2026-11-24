@@ -247,6 +247,7 @@
                 *ngIf="!s.is_current"
                 mat-button
                 color="warn"
+                [attr.aria-label]="'Revoke session from ' + s.ip_address"
                 (click)="store.revokeSession(s.id)"
               >
                 Revoke

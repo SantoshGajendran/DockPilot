@@ -108,4 +108,10 @@ describe('UsersComponent', () => {
     expect(component.formatDate('')).toBe('—');
     expect(component.formatDate('2026-11-23T10:00:00Z')).toBeTruthy();
   });
+
+  it('should have aria-label on user table action buttons', () => {
+    const buttons = fixture.nativeElement.querySelectorAll('.actions-cell button');
+    expect(buttons.length).toBeGreaterThan(0);
+    buttons.forEach((btn: HTMLButtonElement) => expect(btn.getAttribute('aria-label')).toBeTruthy());
+  });
 });

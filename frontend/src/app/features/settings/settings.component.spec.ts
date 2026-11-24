@@ -155,4 +155,13 @@ describe('SettingsComponent', () => {
     component.confirmRunRetention();
     expect(settingsServiceMock.runRetention).toHaveBeenCalled();
   });
+
+  it('should have aria-label on retention period inputs', () => {
+    component.selectedSectionIndex = 1;
+    fixture.detectChanges();
+    const metricsInput = fixture.nativeElement.querySelector('input[formControlName="retention_days"]');
+    const eventsInput = fixture.nativeElement.querySelector('input[formControlName="events_retention_days"]');
+    expect(metricsInput?.getAttribute('aria-label')).toBe('Metrics retention period in days');
+    expect(eventsInput?.getAttribute('aria-label')).toBe('Event log retention period in days');
+  });
 });

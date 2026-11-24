@@ -45,7 +45,7 @@
   </div>
 
   <div *ngIf="!store.isLoading() && store.settings() as s">
-    <mat-tab-group animationDuration="200ms" class="settings-tab-group">
+    <mat-tab-group animationDuration="0ms" class="settings-tab-group" [(selectedIndex)]="selectedSectionIndex">
       <!-- Tab 1: Telemetry & Collection -->
       <mat-tab>
         <ng-template mat-tab-label>
@@ -170,7 +170,14 @@
                   <span class="badge-hot">Hot Reloaded</span>
                 </div>
                 <mat-form-field appearance="outline" class="w-full">
-                  <input matInput formControlName="retention_days" type="number" min="1" max="365" />
+                  <input
+                    matInput
+                    formControlName="retention_days"
+                    type="number"
+                    min="1"
+                    max="365"
+                    aria-label="Metrics retention period in days"
+                  />
                   <span matSuffix>days</span>
                   <mat-error *ngIf="settingsForm.get('retention_days')?.hasError('required')">Required</mat-error>
                   <mat-error *ngIf="settingsForm.get('retention_days')?.hasError('min') || settingsForm.get('retention_days')?.hasError('max')">Must be 1-365 days</mat-error>
@@ -184,7 +191,14 @@
                   <span class="badge-hot">Hot Reloaded</span>
                 </div>
                 <mat-form-field appearance="outline" class="w-full">
-                  <input matInput formControlName="events_retention_days" type="number" min="1" max="365" />
+                  <input
+                    matInput
+                    formControlName="events_retention_days"
+                    type="number"
+                    min="1"
+                    max="365"
+                    aria-label="Event log retention period in days"
+                  />
                   <span matSuffix>days</span>
                   <mat-error *ngIf="settingsForm.get('events_retention_days')?.hasError('required')">Required</mat-error>
                   <mat-error *ngIf="settingsForm.get('events_retention_days')?.hasError('min') || settingsForm.get('events_retention_days')?.hasError('max')">Must be 1-365 days</mat-error>

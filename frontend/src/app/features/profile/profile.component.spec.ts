@@ -132,4 +132,23 @@ describe('ProfileComponent', () => {
     const hoursAgo = new Date(Date.now() - 2 * 3600 * 1000).toISOString();
     expect(component.formatTimeAgo(hoursAgo)).toBe('2h ago');
   });
+
+  it('should have aria-label on revoke session button', () => {
+    component.store.sessions.set([
+      mockSession,
+      {
+        id: 's2',
+        user_id: 'u1',
+        ip_address: '192.168.1.100',
+        user_agent: 'Firefox',
+        created_at: '2026-11-23T10:00:00Z',
+        last_seen_at: '2026-11-23T10:30:00Z',
+        is_current: false,
+      },
+    ]);
+    fixture.detectChanges();
+    const revokeBtn = fixture.nativeElement.querySelector('.sessions-list button');
+    expect(revokeBtn).toBeTruthy();
+    expect(revokeBtn.getAttribute('aria-label')).toBe('Revoke session from 192.168.1.100');
+  });
 });
