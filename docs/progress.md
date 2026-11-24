@@ -561,3 +561,28 @@
   - 186/186 backend tests passing (`pytest`).
   - 379/379 frontend tests passing across 87 suites (`jest`).
   - Production `ng build` cleanly generated with zero compiler warnings or errors.
+
+
+## Presentation Layer Audit & Phase 1 Quick Wins + Light Theme Immersion
+- **Status:** Complete
+- **Design & Accessibility Audit:**
+  - Automated full-application audit across 16 routes, 5 viewports, 2 themes (170 captured screenshots, 82 prioritized findings).
+  - Recorded detailed route audits and executive summary in `docs/design-audit/`.
+- **Phase 1 Remediation (All 14 S1 Accessibility Blockers Fixed):**
+  - Containers (`DF-014`, `DF-015`): Added contextual `[attr.aria-label]` and `matTooltip` on container quick actions; wrapped inputs in accessible labels.
+  - Logs (`DF-029`, `DF-030`): Added accessible labels on log search inputs, level filters, and stream controls.
+  - Host (`DF-036`, `DF-037`): Added `role="progressbar"` with `aria-valuenow`, `aria-valuemin`, `aria-valuemax` to custom host gauges; calibrated process table header contrast.
+  - Compose (`DF-043`, `DF-045`, `DF-046`): Added accessible names to stack controls; isolated destructive `Compose Down` action with `.action-divider`, red danger styling, and confirmation modal; fixed light-theme running and warning chip contrast.
+  - Alerts, Audit & Resources (`DF-057`, `DF-058`, `DF-070`, `DF-077`): Added accessible names to alert rule toggles, notification channel test buttons, audit payload expanders with `aria-expanded`, and resource image/volume/network deletion buttons.
+  - Users, Profile, Settings & Login (`DF-001`, `DF-084`, `DF-087`, `DF-091`, `DF-097`, `DF-104`): Calibrated login subtitle contrast (>= 5.8:1); added accessible names to user role edit/delete buttons, profile avatar upload, settings retention numeric inputs, and test delivery buttons.
+- **Light Theme Visual Immersion & Contrast Elevation:**
+  - Synchronized `data-theme` attribute alongside `.light-theme` in `ThemeService` for full DOM root compatibility.
+  - Crystalline glass elevation (`--elevation-glass`, `--elevation-glass-elevated`) with inner specular highlight (`inset 0 1px 0 0 rgba(255, 255, 255, 0.95)`).
+  - In `Compose Projects`: Deep slate typography (`#0F172A`) on `h2` and project titles; elevated white card surfaces with subtle hover lift and gold border accent; tactile action buttons with scale feedback; crystalline inset `.meta-row`.
+  - In `Resources`: Fixed dark table container in light mode to pristine white flight deck table with slate headers (`#475569`), crisp hairlines, high-contrast monospace metrics, and calibrated cyan/emerald/amber status chips.
+  - Restyled Prune Wizard dialog (`DF-071`) from legacy Material palette to unified design tokens.
+- **Verification:**
+  - 390/390 frontend unit tests passing across 87 suites (`npm test`).
+  - Production `ng build` succeeded cleanly with exit code 0.
+  - Knowledge graph updated via `graphify update .`.
+  - Merged and pushed to `master`.
