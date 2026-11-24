@@ -105,4 +105,10 @@ export class ComposeProjectsComponent implements OnInit {
       },
     });
   }
+
+  onDownProject(projectName: string): void {
+    if (confirm(`Tear down all containers, networks, and services for project '${projectName}'?`)) {
+      this.store.downProject(projectName);
+    }
+  }
 }

@@ -179,4 +179,17 @@ describe('ComposeProjectsComponent', () => {
     expect(composeServiceMock.executeAction).not.toHaveBeenCalled();
     expect(toastMock.error).toHaveBeenCalledWith('Operator or admin role required for compose actions');
   });
+
+  it('should have explicit aria-label on compose action buttons and confirm before down', () => {
+    const buttons = fixture.nativeElement.querySelectorAll('.actions-cluster button');
+    buttons.forEach((btn: HTMLButtonElement) => {
+      expect(btn.getAttribute('aria-label')).toBeTruthy();
+    });
+
+    const confirmSpy = jest.spyOn(window, 'confirm').mockReturnValue(false);
+    const downSpy = jest.spyOn(component.store, 'downProject');
+    component.onDownProject('test-stack');
+    expect(confirmSpy).toHaveBeenCalled();
+    expect(downSpy).not.toHaveBeenCalled();
+  });
 });

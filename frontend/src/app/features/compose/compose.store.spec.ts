@@ -83,4 +83,10 @@ describe('ComposeStore', () => {
     expect(composeServiceMock.executeAction).toHaveBeenCalledWith('dockpilot', 'restart');
     expect(composeServiceMock.getProjects).toHaveBeenCalled();
   });
+
+  it('should down project and reload projects', () => {
+    store.downProject('dockpilot');
+    expect(composeServiceMock.executeAction).toHaveBeenCalledWith('dockpilot', 'down');
+    expect(composeServiceMock.getProjects).toHaveBeenCalled();
+  });
 });

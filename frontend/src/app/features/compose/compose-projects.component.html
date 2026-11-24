@@ -69,17 +69,35 @@
         </div>
 
         <!-- Action Buttons -->
-        <div class="actions-area">
+        <div class="actions-area actions-cluster">
+          <ng-container *ngFor="let act of actions">
+            <button
+              *ngIf="act.action !== 'down'"
+              type="button"
+              class="action-btn font-mono"
+              [ngClass]="'act-' + act.action"
+              [disabled]="!isOperatorOrAdmin()"
+              [attr.aria-label]="act.label + ' for project ' + p.name"
+              [matTooltip]="!isOperatorOrAdmin() ? 'Requires operator role' : (act.label + ' stack')"
+              (click)="triggerAction(p, act.action)"
+            >
+              <mat-icon class="act-icon">{{ act.icon }}</mat-icon>
+              <span>{{ act.label }}</span>
+            </button>
+          </ng-container>
+
+          <span class="action-divider"></span>
+
           <button
-            *ngFor="let act of actions"
-            class="action-btn font-mono"
-            [ngClass]="'act-' + act.action"
+            type="button"
+            class="action-btn btn-danger font-mono act-down"
             [disabled]="!isOperatorOrAdmin()"
-            [matTooltip]="!isOperatorOrAdmin() ? 'Requires operator role' : (act.label + ' stack')"
-            (click)="triggerAction(p, act.action)"
+            [attr.aria-label]="'Tear down all containers and networks for project ' + p.name"
+            [matTooltip]="!isOperatorOrAdmin() ? 'Requires operator role' : ('Tear down all containers and networks for ' + p.name)"
+            (click)="onDownProject(p.name)"
           >
-            <mat-icon class="act-icon">{{ act.icon }}</mat-icon>
-            <span>{{ act.label }}</span>
+            <mat-icon class="act-icon">stop</mat-icon>
+            <span>Down</span>
           </button>
         </div>
       </div>

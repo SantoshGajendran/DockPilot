@@ -52,4 +52,14 @@ export class ComposeStore {
       })
     );
   }
+
+  downProject(projectName: string): Observable<ComposeActionResponse> {
+    const obs = this.executeAction(projectName, 'down');
+    obs.subscribe({
+      error: (err) => {
+        this.error.set(err?.message || 'Failed to tear down compose project');
+      },
+    });
+    return obs;
+  }
 }
