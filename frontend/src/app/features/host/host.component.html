@@ -74,6 +74,11 @@
         <div class="gauges-flex">
           <div class="gauge-column">
             <dp-radial-gauge
+              role="progressbar"
+              aria-label="Host CPU utilization"
+              [attr.aria-valuenow]="live.cpu.overall_percent"
+              aria-valuemin="0"
+              aria-valuemax="100"
               [value]="live.cpu.overall_percent"
               [size]="130"
               [strokeWidth]="10"
@@ -87,6 +92,11 @@
 
           <div class="gauge-column">
             <dp-radial-gauge
+              role="progressbar"
+              aria-label="Host memory utilization"
+              [attr.aria-valuenow]="live.memory.percent"
+              aria-valuemin="0"
+              aria-valuemax="100"
               [value]="live.memory.percent"
               [size]="130"
               [strokeWidth]="10"
@@ -234,7 +244,14 @@
                   <div class="cell-label font-mono">
                     {{ formatBytes(m.used_bytes) }} / {{ formatBytes(m.total_bytes) }} ({{ m.percent }}%)
                   </div>
-                  <div class="segmented-bar-track">
+                  <div
+                    class="segmented-bar-track"
+                    role="progressbar"
+                    aria-label="Host disk storage utilization"
+                    [attr.aria-valuenow]="m.percent"
+                    aria-valuemin="0"
+                    aria-valuemax="100"
+                  >
                     <div
                       class="segmented-bar-fill"
                       [style.width.%]="m.percent"
@@ -250,7 +267,14 @@
                     <span *ngIf="m.isInodeCritical" class="inode-alert-chip critical">CRIT</span>
                     <span *ngIf="m.isInodeWarning" class="inode-alert-chip warning">WARN</span>
                   </div>
-                  <div class="segmented-bar-track inode-track">
+                  <div
+                    class="segmented-bar-track inode-track"
+                    role="progressbar"
+                    [attr.aria-label]="'Host inode utilization for ' + m.mountpoint"
+                    [attr.aria-valuenow]="m.inodes_percent"
+                    aria-valuemin="0"
+                    aria-valuemax="100"
+                  >
                     <div
                       class="segmented-bar-fill"
                       [style.width.%]="m.inodes_percent"
@@ -404,14 +428,14 @@
       <div class="table-container font-mono">
         <table class="flight-deck-table">
           <thead>
-            <tr>
-              <th>PID</th>
-              <th>PROCESS NAME</th>
-              <th>USER</th>
-              <th>CPU %</th>
-              <th>RAM %</th>
-              <th>RSS (RESIDENT)</th>
-              <th>STATUS</th>
+            <tr class="process-table-header">
+              <th class="process-table-header">PID</th>
+              <th class="process-table-header">PROCESS NAME</th>
+              <th class="process-table-header">USER</th>
+              <th class="process-table-header">CPU %</th>
+              <th class="process-table-header">RAM %</th>
+              <th class="process-table-header">RSS (RESIDENT)</th>
+              <th class="process-table-header">STATUS</th>
             </tr>
           </thead>
           <tbody>

@@ -154,4 +154,12 @@ describe('HostComponent', () => {
     component.onSortChange('memory');
     expect(component.store.processSortField()).toBe('memory');
   });
+
+  it('should have aria-label attributes on progressbar elements', () => {
+    const progressBars = fixture.nativeElement.querySelectorAll('[role="progressbar"]');
+    expect(progressBars.length).toBeGreaterThan(0);
+    progressBars.forEach((bar: HTMLElement) => {
+      expect(bar.getAttribute('aria-label')).toBeTruthy();
+    });
+  });
 });
