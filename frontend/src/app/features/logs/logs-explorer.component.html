@@ -46,6 +46,7 @@
           <input
             type="text"
             placeholder="Search logs with regex or tokens..."
+            aria-label="Search container logs"
             [value]="store.searchQuery()"
             (input)="onSearchInput($event)"
             (keyup.enter)="store.fetchLogs()"

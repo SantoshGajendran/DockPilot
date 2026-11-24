@@ -10,6 +10,7 @@
       <input
         type="text"
         placeholder="Filter logs..."
+        aria-label="Filter logs"
         [value]="filterQuery()"
         (input)="onFilterChange($event)"
       />
@@ -19,10 +20,11 @@
   </div>
 
   <div class="toolbar-right">
-    <div class="action-dock">
+    <div class="action-dock viewer-actions">
       <button
         mat-icon-button
         [matTooltip]="isPaused() ? 'Resume stream' : 'Pause stream'"
+        [attr.aria-label]="(isPaused() ? 'Resume' : 'Pause') + ' log streaming'"
         (click)="togglePause()"
         class="toolbar-btn"
         [class.is-paused]="isPaused()"
@@ -34,6 +36,7 @@
         mat-icon-button
         [class.active]="wrapLines()"
         matTooltip="Toggle line wrap"
+        [attr.aria-label]="(wrapLines() ? 'Disable' : 'Enable') + ' line wrapping'"
         (click)="wrapLines.set(!wrapLines())"
         class="toolbar-btn"
       >
@@ -44,6 +47,7 @@
         mat-icon-button
         [class.active]="showTimestamps()"
         matTooltip="Toggle timestamps"
+        [attr.aria-label]="(showTimestamps() ? 'Disable' : 'Enable') + ' timestamps'"
         (click)="showTimestamps.set(!showTimestamps())"
         class="toolbar-btn"
       >
@@ -53,6 +57,7 @@
       <button
         mat-icon-button
         matTooltip="Scroll to bottom"
+        aria-label="Scroll to bottom of log stream"
         (click)="scrollToBottom()"
         class="toolbar-btn"
       >
@@ -62,6 +67,7 @@
       <button
         mat-icon-button
         matTooltip="Copy all visible"
+        aria-label="Copy all visible logs"
         (click)="copyLogs()"
         class="toolbar-btn"
       >
@@ -71,6 +77,7 @@
       <button
         mat-icon-button
         matTooltip="Download as .log"
+        aria-label="Download log stream"
         (click)="downloadLogs()"
         class="toolbar-btn"
       >
@@ -80,6 +87,7 @@
       <button
         mat-icon-button
         matTooltip="Clear display"
+        aria-label="Clear visible logs"
         (click)="clearLogs()"
         class="toolbar-btn btn-trash"
       >

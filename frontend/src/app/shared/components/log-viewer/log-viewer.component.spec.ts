@@ -85,4 +85,12 @@ describe('LogViewerComponent', () => {
     component.clearLogs();
     expect(component.allLines().length).toBe(0);
   });
+
+  it('should bind aria-label attributes to stream control buttons', () => {
+    const buttons = fixture.nativeElement.querySelectorAll('.viewer-actions button');
+    expect(buttons.length).toBeGreaterThan(0);
+    buttons.forEach((btn: HTMLButtonElement) => {
+      expect(btn.getAttribute('aria-label')).toBeTruthy();
+    });
+  });
 });
