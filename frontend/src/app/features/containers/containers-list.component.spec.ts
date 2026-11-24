@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
+import { provideRouter } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { of } from 'rxjs';
 
@@ -77,6 +78,7 @@ describe('ContainersListComponent', () => {
       imports: [ContainersListComponent],
       providers: [
         provideNoopAnimations(),
+        provideRouter([]),
         { provide: ContainersStore, useValue: storeMock },
         { provide: AuthService, useValue: authMock },
         { provide: MatDialog, useValue: dialogMock },
@@ -134,5 +136,18 @@ describe('ContainersListComponent', () => {
       data: { containerId: 'c1', containerName: 'dockpilot-redis' },
     });
     expect(storeMock.deleteContainer).toHaveBeenCalledWith('c1', 'dockpilot-redis');
+  });
+
+  it('should have explicit aria-label attributes on action buttons and container links', () => {
+    const link = fixture.nativeElement.querySelector('.container-name-cell a');
+    expect(link).toBeTruthy();
+    if (link) {
+      expect(link.getAttribute('aria-label')).toContain('View details for container');
+    }
+    const actionButtons = fixture.nativeElement.querySelectorAll('.actions-cell button');
+    expect(actionButtons.length).toBeGreaterThan(0);
+    actionButtons.forEach((btn: HTMLButtonElement) => {
+      expect(btn.getAttribute('aria-label')).toBeTruthy();
+    });
   });
 });

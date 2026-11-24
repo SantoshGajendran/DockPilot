@@ -183,11 +183,12 @@
           <th mat-header-cell *matHeaderCellDef (click)="store.setSort('name')" class="sortable-header col-name">
             CRAFT IDENTIFIER &amp; IMAGE
           </th>
-          <td mat-cell *matCellDef="let c" class="col-name">
+          <td mat-cell *matCellDef="let c" class="col-name container-name-cell">
             <div class="name-col">
               <a
                 [routerLink]="['/containers', c.id]"
                 class="container-name"
+                [attr.aria-label]="'View details for container ' + c.name"
                 [style.view-transition-name]="'container-title-' + c.id"
                 [matTooltip]="'Inspect ' + c.name + ' (' + c.id + ')'">
                 {{ c.name }}
@@ -280,26 +281,29 @@
         <!-- Actions Column with Hover Fade-in Quick Controls -->
         <ng-container matColumnDef="actions">
           <th mat-header-cell *matHeaderCellDef class="col-actions">CONTROLS</th>
-          <td mat-cell *matCellDef="let c" class="col-actions">
+          <td mat-cell *matCellDef="let c" class="col-actions actions-cell">
             @if (authService.hasRole('operator')) {
               <div class="actions-wrapper">
                 <!-- Hover Quick Actions -->
                 <div class="quick-hover-actions">
                   @if (c.state !== 'running') {
-                    <button class="quick-btn start" (click)="onActionClick(c, 'start')" matTooltip="Start craft">
+                    <button class="quick-btn start" (click)="onActionClick(c, 'start')" [attr.aria-label]="'Start container ' + c.name" matTooltip="Start container">
                       <dp-icon name="play" [size]="14"></dp-icon>
                     </button>
                   }
                   @if (c.state === 'running') {
-                    <button class="quick-btn stop" (click)="onActionClick(c, 'stop')" matTooltip="Stop craft">
+                    <button class="quick-btn stop" (click)="onActionClick(c, 'stop')" [attr.aria-label]="'Stop container ' + c.name" matTooltip="Stop container">
                       <dp-icon name="square" [size]="13"></dp-icon>
                     </button>
-                    <button class="quick-btn restart" (click)="onActionClick(c, 'restart')" matTooltip="Restart craft">
+                    <button class="quick-btn restart" (click)="onActionClick(c, 'restart')" [attr.aria-label]="'Restart container ' + c.name" matTooltip="Restart container">
                       <dp-icon name="refresh-cw" [size]="13"></dp-icon>
                     </button>
                   }
-                  <a [routerLink]="['/containers', c.id]" [queryParams]="{tab: 'terminal'}" class="quick-btn terminal" matTooltip="Terminal">
+                  <a [routerLink]="['/containers', c.id]" [queryParams]="{tab: 'terminal'}" class="quick-btn terminal" [attr.aria-label]="'Open terminal for container ' + c.name" matTooltip="Terminal">
                     <dp-icon name="terminal" [size]="14"></dp-icon>
+                  </a>
+                  <a [routerLink]="['/containers', c.id]" [queryParams]="{tab: 'logs'}" class="quick-btn logs" [attr.aria-label]="'View logs for container ' + c.name" matTooltip="Logs">
+                    <dp-icon name="logs" [size]="14"></dp-icon>
                   </a>
                 </div>
 
@@ -309,38 +313,42 @@
                 </button>
                 <mat-menu #rowMenu="matMenu">
                   @if (c.state !== 'running') {
-                    <button mat-menu-item (click)="onActionClick(c, 'start')">
+                    <button mat-menu-item (click)="onActionClick(c, 'start')" [attr.aria-label]="'Start container ' + c.name">
                       <mat-icon>play_arrow</mat-icon>
                       <span>Start</span>
                     </button>
                   }
                   @if (c.state === 'running') {
-                    <button mat-menu-item (click)="onActionClick(c, 'stop')">
+                    <button mat-menu-item (click)="onActionClick(c, 'stop')" [attr.aria-label]="'Stop container ' + c.name">
                       <mat-icon>stop</mat-icon>
                       <span>Stop</span>
                     </button>
-                    <button mat-menu-item (click)="onActionClick(c, 'restart')">
+                    <button mat-menu-item (click)="onActionClick(c, 'restart')" [attr.aria-label]="'Restart container ' + c.name">
                       <mat-icon>replay</mat-icon>
                       <span>Restart</span>
                     </button>
-                    <button mat-menu-item (click)="onActionClick(c, 'pause')">
+                    <button mat-menu-item (click)="onActionClick(c, 'pause')" [attr.aria-label]="'Pause container ' + c.name">
                       <mat-icon>pause</mat-icon>
                       <span>Pause</span>
                     </button>
                   }
                   @if (c.state === 'paused') {
-                    <button mat-menu-item (click)="onActionClick(c, 'unpause')">
+                    <button mat-menu-item (click)="onActionClick(c, 'unpause')" [attr.aria-label]="'Unpause container ' + c.name">
                       <mat-icon>play_circle</mat-icon>
                       <span>Unpause</span>
                     </button>
                   }
-                  <button mat-menu-item (click)="onActionClick(c, 'kill')">
+                  <button mat-menu-item (click)="onActionClick(c, 'kill')" [attr.aria-label]="'Kill container ' + c.name">
                     <mat-icon color="warn">flash_on</mat-icon>
                     <span>Kill</span>
                   </button>
+                  <a mat-menu-item [routerLink]="['/containers', c.id]" [queryParams]="{tab: 'logs'}" [attr.aria-label]="'View logs for container ' + c.name" matTooltip="Logs">
+                    <mat-icon>article</mat-icon>
+                    <span>Logs</span>
+                  </a>
                   @if (authService.hasRole('admin')) {
                     <mat-divider></mat-divider>
-                    <button mat-menu-item (click)="onDeleteClick(c)">
+                    <button mat-menu-item (click)="onDeleteClick(c)" [attr.aria-label]="'Delete container ' + c.name" matTooltip="Delete container">
                       <mat-icon color="warn">delete_forever</mat-icon>
                       <span class="text-danger">Delete Container</span>
                     </button>
