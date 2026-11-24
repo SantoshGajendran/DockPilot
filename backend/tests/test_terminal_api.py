@@ -22,16 +22,20 @@ from app.models.terminal import TerminalSession
 from app.services.terminal_service import _ACTIVE_TERMINAL_SESSIONS
 
 
-@pytest_asyncio.fixture(autouse=True)
-async def setup_test_db(tmp_path, monkeypatch):
+@pytest.fixture(autouse=True)
+def setup_test_db(tmp_path, monkeypatch):
     _ACTIVE_TERMINAL_SESSIONS.clear()
     db_file = tmp_path / "test_terminal.db"
     engine = create_async_engine(
         f"sqlite+aiosqlite:///{db_file}",
         echo=False,
     )
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
+
+    async def init_db():
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
+
+    asyncio.run(init_db())
 
     session_factory = async_sessionmaker(engine, expire_on_commit=False, class_=AsyncSession)
     monkeypatch.setattr("app.core.database.async_session", session_factory)
@@ -40,7 +44,11 @@ async def setup_test_db(tmp_path, monkeypatch):
     monkeypatch.setattr("app.api.v1.terminal.async_session", session_factory)
 
     yield session_factory
-    await engine.dispose()
+
+    async def dispose_db():
+        await engine.dispose()
+
+    asyncio.run(dispose_db())
     _ACTIVE_TERMINAL_SESSIONS.clear()
 
 

@@ -324,7 +324,7 @@ class TerminalService:
             nonlocal exit_status
             try:
                 while not stop_event.is_set():
-                    await asyncio.sleep(1.0)
+                    await asyncio.sleep(0.2)
                     now = time.monotonic()
 
                     # Idle timeout
