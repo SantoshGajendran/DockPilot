@@ -48,10 +48,12 @@ export class ThemeService {
         if (theme === 'light') {
           root.classList.remove('dark-theme');
           root.classList.add('light-theme');
+          root.setAttribute('data-theme', 'light');
           root.style.colorScheme = 'light';
         } else {
           root.classList.remove('light-theme');
           root.classList.add('dark-theme');
+          root.setAttribute('data-theme', 'dark');
           root.style.colorScheme = 'dark';
         }
       }

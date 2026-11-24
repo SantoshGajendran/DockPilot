@@ -61,6 +61,7 @@ describe('ThemeService', () => {
     expect(service.activeTheme()).toBe('dark');
     expect(document.documentElement.classList.contains('dark-theme')).toBe(true);
     expect(document.documentElement.classList.contains('light-theme')).toBe(false);
+    expect(document.documentElement.getAttribute('data-theme')).toBe('dark');
     expect(document.documentElement.style.colorScheme).toBe('dark');
     expect(localStorage.getItem('dockpilot_theme_mode')).toBe('dark');
   });
@@ -72,6 +73,7 @@ describe('ThemeService', () => {
     expect(service.activeTheme()).toBe('light');
     expect(document.documentElement.classList.contains('light-theme')).toBe(true);
     expect(document.documentElement.classList.contains('dark-theme')).toBe(false);
+    expect(document.documentElement.getAttribute('data-theme')).toBe('light');
     expect(document.documentElement.style.colorScheme).toBe('light');
     expect(localStorage.getItem('dockpilot_theme_mode')).toBe('light');
   });
@@ -87,5 +89,6 @@ describe('ThemeService', () => {
     TestBed.flushEffects();
     expect(service.activeTheme()).toBe('light');
     expect(document.documentElement.classList.contains('light-theme')).toBe(true);
+    expect(document.documentElement.getAttribute('data-theme')).toBe('light');
   });
 });

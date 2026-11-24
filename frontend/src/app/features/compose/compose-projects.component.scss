@@ -671,29 +671,285 @@
   }
 }
 
-/* Light Theme Contrast Enhancements */
-:host-context(.light-theme),
-:host-context([data-theme='light']),
-:host-context(:root:not([data-theme='dark'])),
-.light-theme,
-[data-theme='light'],
-:root:not([data-theme='dark']) {
-  .service-count-chip {
-    color: var(--text-dim);
-    background: var(--bg-2);
-    border-color: var(--line);
+/* Light Theme Contrast & Immersion Enhancements */
+:host-context(.light-theme) {
+  .page-header {
+    background: #FFFFFF !important;
+    border: 1px solid rgba(15, 23, 42, 0.08) !important;
+    box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.95), 0 1px 3px 0 rgba(15, 23, 42, 0.04), 0 8px 24px -4px rgba(15, 23, 42, 0.05) !important;
+
+    .icon-bubble {
+      background: rgba(180, 83, 9, 0.08);
+      border: 1px solid rgba(180, 83, 9, 0.25);
+      color: #b45309;
+      box-shadow: 0 0 12px rgba(180, 83, 9, 0.12);
+    }
+
+    .status-indicator-row {
+      background: rgba(5, 150, 105, 0.08);
+      border: 1px solid rgba(5, 150, 105, 0.25);
+
+      .status-pulse-dot {
+        background: #059669;
+        box-shadow: 0 0 6px rgba(5, 150, 105, 0.4);
+      }
+
+      .status-heading {
+        color: #047857;
+      }
+    }
+
+    h2 {
+      color: #0f172a;
+    }
+
+    .subtitle {
+      color: #475569;
+    }
+
+    .btn-secondary {
+      background: #FFFFFF;
+      border: 1px solid rgba(15, 23, 42, 0.12);
+      color: #0f172a;
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
+
+      &:hover:not([disabled]) {
+        background: #f8fafc;
+        border-color: var(--gold);
+        color: var(--gold);
+        box-shadow: 0 2px 8px rgba(180, 83, 9, 0.15);
+      }
+    }
   }
 
-  .status-badge.running {
-    color: #047857;
-    background: rgba(16, 185, 129, 0.12);
-    border-color: rgba(16, 185, 129, 0.35);
+  .project-card {
+    background: #FFFFFF !important;
+    border: 1px solid rgba(15, 23, 42, 0.08) !important;
+    box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.95), 0 1px 3px 0 rgba(15, 23, 42, 0.04), 0 8px 24px -4px rgba(15, 23, 42, 0.05) !important;
+
+    &:hover {
+      border-color: rgba(180, 83, 9, 0.35) !important;
+      transform: translateY(-2px);
+      box-shadow: inset 0 1px 0 0 #FFFFFF, 0 8px 24px -4px rgba(15, 23, 42, 0.08), 0 2px 6px -1px rgba(15, 23, 42, 0.04) !important;
+    }
   }
 
-  .status-badge.partially_running,
-  .status-badge.degraded {
-    color: #b45309;
-    background: rgba(245, 158, 11, 0.12);
-    border-color: rgba(245, 158, 11, 0.35);
+  .project-title-area {
+    h3 {
+      color: #0f172a;
+    }
+
+    .service-count-chip {
+      color: #334155;
+      background: #f1f5f9;
+      border-color: rgba(15, 23, 42, 0.1);
+    }
+
+    .mini-service-strip {
+      background: #f1f5f9;
+      border-color: rgba(15, 23, 42, 0.1);
+    }
+
+    .status-badge.running {
+      color: #047857;
+      background: rgba(5, 150, 105, 0.1);
+      border-color: rgba(5, 150, 105, 0.3);
+    }
+
+    .status-badge.partially_running,
+    .status-badge.degraded {
+      color: #b45309;
+      background: rgba(180, 83, 9, 0.1);
+      border-color: rgba(180, 83, 9, 0.3);
+    }
+
+    .status-badge.stopped {
+      color: #be123c;
+      background: rgba(225, 29, 72, 0.1);
+      border-color: rgba(225, 29, 72, 0.3);
+    }
+  }
+
+  .actions-area {
+    .action-divider {
+      background: rgba(15, 23, 42, 0.1);
+    }
+
+    .action-btn {
+      background: #FFFFFF;
+      border: 1px solid rgba(15, 23, 42, 0.12);
+      color: #334155;
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
+
+      &:hover:not([disabled]) {
+        background: #FFFFFF;
+        border-color: var(--gold);
+        color: var(--gold);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px -2px rgba(180, 83, 9, 0.18);
+      }
+
+      &:active:not([disabled]) {
+        transform: translateY(1px) scale(0.97);
+      }
+    }
+
+    .action-btn.btn-danger {
+      background: rgba(244, 63, 94, 0.06);
+      border-color: rgba(244, 63, 94, 0.3);
+      color: #e11d48;
+
+      &:hover:not([disabled]) {
+        background: rgba(244, 63, 94, 0.15);
+        border-color: #e11d48;
+        color: #be123c;
+        box-shadow: 0 0 10px rgba(225, 29, 72, 0.2);
+      }
+    }
+  }
+
+  .meta-row {
+    background: rgba(241, 245, 249, 0.85);
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    color: #475569;
+
+    .path-section {
+      .path-icon {
+        color: #b45309;
+      }
+
+      .path-text {
+        color: #0f172a;
+      }
+    }
+
+    .copy-btn {
+      color: #64748b;
+
+      &:hover {
+        color: #b45309;
+        background: rgba(15, 23, 42, 0.06);
+        border-color: rgba(15, 23, 42, 0.12);
+      }
+    }
+
+    .audit-section {
+      color: #475569;
+
+      .audit-icon {
+        color: #b45309;
+      }
+
+      strong {
+        color: #b45309;
+      }
+    }
+  }
+
+  .expand-row {
+    border-top: 1px solid rgba(15, 23, 42, 0.08);
+
+    .expand-btn {
+      color: #b45309;
+
+      &:hover {
+        color: #92400e;
+        background: rgba(180, 83, 9, 0.06);
+      }
+    }
+
+    .view-mode-toggles {
+      .view-pill {
+        background: #FFFFFF;
+        border: 1px solid rgba(15, 23, 42, 0.12);
+        color: #475569;
+
+        &:hover {
+          background: #f8fafc;
+          color: #0f172a;
+        }
+
+        &.active {
+          background: rgba(180, 83, 9, 0.1);
+          border-color: #b45309;
+          color: #b45309;
+        }
+      }
+    }
+  }
+
+  .services-table {
+    background: #FFFFFF;
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
+
+    th {
+      background: #f8fafc;
+      color: #475569;
+      border-bottom: 1px solid rgba(15, 23, 42, 0.1);
+    }
+
+    td {
+      border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+      color: #0f172a;
+
+      strong {
+        color: #0f172a;
+      }
+
+      code {
+        color: #334155;
+        background: #f1f5f9;
+        border-color: rgba(15, 23, 42, 0.08);
+      }
+
+      .text-secondary {
+        color: #475569 !important;
+      }
+    }
+
+    tr:hover td {
+      background: rgba(15, 23, 42, 0.025);
+    }
+  }
+
+  .topology-canvas-enclosure {
+    background: #FFFFFF;
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
+
+    .topology-header {
+      .topology-title {
+        color: #b45309;
+      }
+
+      .network-notice {
+        color: #64748b;
+      }
+    }
+
+    .topology-svg-container .topology-svg {
+      .project-hub-outer {
+        fill: #f1f5f9;
+        stroke: #b45309;
+        filter: drop-shadow(0 0 6px rgba(180, 83, 9, 0.2));
+      }
+
+      .project-hub-inner {
+        fill: #e2e8f0;
+      }
+
+      .hub-text {
+        fill: #b45309;
+      }
+
+      .service-node-bg {
+        fill: #f1f5f9;
+      }
+
+      .service-name-text {
+        fill: #0f172a;
+      }
+    }
   }
 }

@@ -672,7 +672,7 @@
 }
 
 /* Dark theme specific color overrides for higher vibrancy */
-[data-theme='dark'] {
+:host-context(.dark-theme) {
   .page-header {
     .btn-pull {
       color: #38bdf8;
@@ -710,6 +710,272 @@
 
     &.chip-dangling {
       color: #f43f5e;
+    }
+  }
+}
+
+/* Light Theme Contrast & Flight Deck Console Enhancements */
+:host-context(.light-theme) {
+  .page-header {
+    background: #FFFFFF !important;
+    border: 1px solid rgba(15, 23, 42, 0.08) !important;
+    box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.95), 0 1px 3px 0 rgba(15, 23, 42, 0.04), 0 8px 24px -4px rgba(15, 23, 42, 0.05) !important;
+
+    h1 {
+      color: #0f172a;
+    }
+
+    .subtitle {
+      color: #475569;
+    }
+
+    .btn-pull {
+      background: rgba(2, 132, 199, 0.08);
+      border-color: rgba(2, 132, 199, 0.3);
+      color: #0284c7;
+
+      &:hover {
+        background: rgba(2, 132, 199, 0.16);
+        border-color: #0284c7;
+      }
+    }
+
+    .btn-prune {
+      background: rgba(225, 29, 72, 0.08);
+      border-color: rgba(225, 29, 72, 0.3);
+      color: #be123c;
+
+      &:hover {
+        background: rgba(225, 29, 72, 0.16);
+        border-color: #be123c;
+      }
+    }
+
+    .btn-refresh {
+      background: #FFFFFF;
+      border: 1px solid rgba(15, 23, 42, 0.12);
+      color: #334155;
+
+      &:hover {
+        background: #f8fafc;
+        border-color: var(--gold);
+        color: var(--gold);
+      }
+    }
+  }
+
+  .toolbar-card {
+    background: #FFFFFF !important;
+    border: 1px solid rgba(15, 23, 42, 0.08) !important;
+    box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.95), 0 1px 3px 0 rgba(15, 23, 42, 0.04), 0 8px 24px -4px rgba(15, 23, 42, 0.05) !important;
+
+    .search-box {
+      background: #f8fafc;
+      border-color: rgba(15, 23, 42, 0.1);
+
+      input {
+        color: #0f172a !important;
+
+        &::placeholder {
+          color: #64748b !important;
+        }
+      }
+    }
+
+    .stats-pills .stat-pill {
+      background: #f1f5f9;
+      border-color: rgba(15, 23, 42, 0.1);
+      color: #475569;
+
+      strong {
+        color: #0f172a;
+      }
+
+      &.warn-pill {
+        color: #b45309;
+
+        strong {
+          color: #b45309;
+        }
+      }
+    }
+  }
+
+  .resource-tabs {
+    ::ng-deep .mat-mdc-tab-header {
+      border-bottom: 1px solid rgba(15, 23, 42, 0.1);
+    }
+
+    ::ng-deep .mat-mdc-tab {
+      .mdc-tab__text-label {
+        color: #475569;
+      }
+
+      &.mdc-tab--active .mdc-tab__text-label {
+        color: #0f172a;
+      }
+    }
+
+    .tab-count-pill {
+      background: #f1f5f9;
+      border-color: rgba(15, 23, 42, 0.1);
+      color: #334155;
+    }
+  }
+
+  .table-container {
+    background: #FFFFFF !important;
+    border: 1px solid rgba(15, 23, 42, 0.08) !important;
+    box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.95), 0 1px 3px 0 rgba(15, 23, 42, 0.04), 0 8px 24px -4px rgba(15, 23, 42, 0.05) !important;
+  }
+
+  .resource-table {
+    background: #FFFFFF !important;
+
+    th.mat-mdc-header-cell {
+      background: #f8fafc !important;
+      color: #475569 !important;
+      border-bottom: 1px solid rgba(15, 23, 42, 0.1) !important;
+    }
+
+    td.mat-mdc-cell {
+      border-bottom: 1px solid rgba(15, 23, 42, 0.06) !important;
+      color: #0f172a !important;
+    }
+
+    tr.mat-mdc-row:hover {
+      background: rgba(15, 23, 42, 0.025) !important;
+    }
+  }
+
+  .tag-badges .tag-badge {
+    background: rgba(2, 132, 199, 0.08);
+    border-color: rgba(2, 132, 199, 0.25);
+    color: #0284c7;
+  }
+
+  .dangling-tag {
+    color: #64748b;
+  }
+
+  .mono-id {
+    background: #f1f5f9;
+    border-color: rgba(15, 23, 42, 0.1);
+    color: #334155;
+  }
+
+  .mono-name {
+    color: #0f172a;
+  }
+
+  .size-val {
+    color: #0f172a;
+  }
+
+  .date-val {
+    color: #475569;
+  }
+
+  .driver-badge {
+    background: #f1f5f9;
+    border-color: rgba(15, 23, 42, 0.1);
+    color: #334155;
+  }
+
+  .mount-path {
+    color: #475569;
+  }
+
+  .status-cell {
+    .status-chip {
+      &.chip-in-use {
+        background: rgba(5, 150, 105, 0.08);
+        border-color: rgba(5, 150, 105, 0.25);
+        color: #047857;
+      }
+
+      &.chip-unused {
+        background: rgba(180, 83, 9, 0.08);
+        border-color: rgba(180, 83, 9, 0.25);
+        color: #b45309;
+      }
+
+      &.chip-protected {
+        background: rgba(109, 40, 217, 0.08);
+        border-color: rgba(109, 40, 217, 0.25);
+        color: #6d28d9;
+      }
+
+      &.chip-dangling {
+        background: rgba(225, 29, 72, 0.08);
+        border-color: rgba(225, 29, 72, 0.25);
+        color: #be123c;
+      }
+
+      &.chip-builtin {
+        background: #f1f5f9;
+        border-color: rgba(15, 23, 42, 0.1);
+        color: #64748b;
+      }
+    }
+
+    .container-ref-chip {
+      background: #f1f5f9;
+      border-color: rgba(15, 23, 42, 0.1);
+      color: #334155;
+    }
+  }
+
+  .boolean-badge {
+    background: #f1f5f9;
+    border-color: rgba(15, 23, 42, 0.1);
+    color: #64748b;
+
+    &.internal-yes {
+      background: rgba(5, 150, 105, 0.08);
+      border-color: rgba(5, 150, 105, 0.25);
+      color: #047857;
+    }
+  }
+
+  .none-label {
+    color: #64748b;
+  }
+
+  .action-btn-delete {
+    color: #64748b;
+
+    &:hover:not([disabled]) {
+      color: #e11d48;
+      background: rgba(244, 63, 94, 0.1);
+      border-color: rgba(244, 63, 94, 0.3);
+    }
+  }
+
+  .loading-state,
+  .error-state,
+  .empty-state {
+    background: #FFFFFF;
+    border-color: rgba(15, 23, 42, 0.15);
+
+    h3 {
+      color: #0f172a;
+    }
+
+    p {
+      color: #64748b;
+    }
+
+    .btn-retry {
+      background: #FFFFFF;
+      border-color: rgba(15, 23, 42, 0.15);
+      color: #0f172a;
+
+      &:hover {
+        background: #f8fafc;
+        border-color: var(--gold);
+        color: var(--gold);
+      }
     }
   }
 }

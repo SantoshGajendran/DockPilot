@@ -68,6 +68,15 @@ import { CommonModule } from '@angular/common';
       );
     }
 
+    :host-context(.light-theme) .spotlight-layer,
+    :host-context([data-theme='light']) .spotlight-layer {
+      background: radial-gradient(
+        400px circle at var(--mx, 50%) var(--my, 50%),
+        rgba(180, 83, 9, 0.05),
+        transparent 60%
+      );
+    }
+
     .sweep-border-layer {
       position: absolute;
       inset: -1px;
