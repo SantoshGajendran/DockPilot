@@ -73,13 +73,12 @@
           <button
             *ngFor="let act of actions"
             class="action-btn font-mono"
-            [class.act-down]="act.action === 'down'"
-            [class.act-restart]="act.action === 'restart'"
+            [ngClass]="'act-' + act.action"
             [disabled]="!isOperatorOrAdmin()"
             [matTooltip]="!isOperatorOrAdmin() ? 'Requires operator role' : (act.label + ' stack')"
             (click)="triggerAction(p, act.action)"
           >
-            <mat-icon>{{ act.icon }}</mat-icon>
+            <mat-icon class="act-icon">{{ act.icon }}</mat-icon>
             <span>{{ act.label }}</span>
           </button>
         </div>
@@ -88,7 +87,7 @@
       <!-- Config Path & Audit Row -->
       <div class="meta-row font-mono">
         <div class="path-section" *ngIf="p.config_files && p.config_files.length > 0; else workingDirBlock">
-          <dp-icon name="file-text" [size]="14"></dp-icon>
+          <dp-icon name="file-text" [size]="14" class="path-icon"></dp-icon>
           <span class="path-text">{{ p.config_files.join(', ') }}</span>
           <button class="copy-btn" (click)="copyPath(p.config_files.join(', '))" matTooltip="Copy path">
             <dp-icon name="copy" [size]="12"></dp-icon>
@@ -96,7 +95,7 @@
         </div>
         <ng-template #workingDirBlock>
           <div class="path-section" *ngIf="p.working_dir">
-            <dp-icon name="folder" [size]="14"></dp-icon>
+            <dp-icon name="folder" [size]="14" class="path-icon"></dp-icon>
             <span class="path-text">{{ p.working_dir }}</span>
             <button class="copy-btn" (click)="copyPath(p.working_dir!)" matTooltip="Copy path">
               <dp-icon name="copy" [size]="12"></dp-icon>
@@ -105,12 +104,12 @@
         </ng-template>
 
         <div class="audit-section" *ngIf="p.last_action as lastAct; else noAudit">
-          <dp-icon name="clock" [size]="14"></dp-icon>
+          <dp-icon name="clock" [size]="14" class="audit-icon"></dp-icon>
           <span>LAST ACTION: <strong>{{ lastAct.action | uppercase }}</strong> ({{ lastAct.status | uppercase }}) BY {{ lastAct.username || 'system' }}</span>
         </div>
         <ng-template #noAudit>
           <div class="audit-section text-secondary">
-            <dp-icon name="clock" [size]="14"></dp-icon>
+            <dp-icon name="clock" [size]="14" class="audit-icon"></dp-icon>
             <span>NO PREVIOUS ACTIONS RECORDED</span>
           </div>
         </ng-template>
