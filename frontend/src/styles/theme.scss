@@ -102,6 +102,22 @@
   --sidebar-width: 240px;
   --sidebar-collapsed-width: 68px;
 
+  /* Top Bar & Header Surface Tokens (Dark Default) */
+  --toolbar-bg: rgba(11, 11, 17, 0.82);
+  --toolbar-border: rgba(255, 255, 255, 0.08);
+  --toolbar-specular: inset 0 1px 0 0 rgba(255, 255, 255, 0.08);
+  --toolbar-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.50);
+  --toolbar-item-bg: rgba(255, 255, 255, 0.035);
+  --toolbar-item-border: rgba(255, 255, 255, 0.08);
+  --toolbar-item-hover-bg: rgba(255, 255, 255, 0.07);
+  --toolbar-item-hover-border: rgba(212, 175, 55, 0.40);
+  --toolbar-text: #ECEAF4;
+  --toolbar-text-muted: #94A3B8;
+  --toolbar-text-subtle: #64748B;
+  --toolbar-kbd-bg: rgba(255, 255, 255, 0.08);
+  --toolbar-kbd-border: rgba(255, 255, 255, 0.16);
+  --toolbar-kbd-text: var(--gold-hi);
+
   /* Compatibility Aliases for Existing Components */
   --bg-canvas: var(--bg-0);
   --bg-surface: var(--bg-2);
@@ -242,6 +258,22 @@
   --surface-color: var(--bg-1);
   --surface-hover: var(--bg-surface-hover);
   --info-color: var(--status-restarting);
+
+  /* Top Bar & Header Surface Tokens (Light Mode - Crystalline Glass) */
+  --toolbar-bg: rgba(255, 255, 255, 0.88);
+  --toolbar-border: rgba(15, 23, 42, 0.08);
+  --toolbar-specular: inset 0 1px 0 0 rgba(255, 255, 255, 0.95);
+  --toolbar-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.06);
+  --toolbar-item-bg: rgba(15, 23, 42, 0.035);
+  --toolbar-item-border: rgba(15, 23, 42, 0.08);
+  --toolbar-item-hover-bg: rgba(15, 23, 42, 0.065);
+  --toolbar-item-hover-border: rgba(180, 83, 9, 0.40);
+  --toolbar-text: #0F172A;
+  --toolbar-text-muted: #475569;
+  --toolbar-text-subtle: #64748B;
+  --toolbar-kbd-bg: rgba(15, 23, 42, 0.06);
+  --toolbar-kbd-border: rgba(15, 23, 42, 0.14);
+  --toolbar-kbd-text: var(--gold);
 
   /* Material Visual Overrides in Light Mode */
   --mat-sidenav-container-background-color: var(--bg-0);

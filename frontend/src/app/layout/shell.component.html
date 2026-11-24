@@ -44,6 +44,7 @@
     <mat-toolbar class="shell-toolbar glass-panel">
       <!-- Breadcrumbs -->
       <div class="breadcrumb-container">
+        <span class="breadcrumb-mark">⬡</span>
         <span class="breadcrumb-text">{{ currentBreadcrumb() }}</span>
       </div>
 
@@ -62,7 +63,7 @@
       <span class="spacer"></span>
 
       <!-- Live Connection Indicator -->
-      <div class="connection-cluster">
+      <div class="connection-cluster" [class.is-connected]="sseService.connectionState() === 'connected'">
         <span
           class="pulse-dot"
           [class.connected]="sseService.connectionState() === 'connected'"
@@ -76,45 +77,48 @@
         </mat-chip-set>
       </div>
 
-      <!-- Alerts Bell -->
-      <button
-        mat-icon-button
-        routerLink="/alerts"
-        matTooltip="Active Alerts & Warnings"
-        class="alerts-bell-btn"
-        aria-label="View alerts"
-      >
-        <dp-icon name="bell" [size]="18"></dp-icon>
-        <span
-          class="alert-badge-count"
-          *ngIf="activeAlertsCount() > 0"
-          [attr.data-count]="activeAlertsCount()"
+      <!-- Precision Action Dock -->
+      <div class="action-dock">
+        <!-- Alerts Bell -->
+        <button
+          mat-icon-button
+          routerLink="/alerts"
+          matTooltip="Active Alerts & Warnings"
+          class="alerts-bell-btn action-dock-btn"
+          aria-label="View alerts"
         >
-          {{ activeAlertsCount() }}
-        </span>
-      </button>
+          <dp-icon name="bell" [size]="17"></dp-icon>
+          <span
+            class="alert-badge-count"
+            *ngIf="activeAlertsCount() > 0"
+            [attr.data-count]="activeAlertsCount()"
+          >
+            {{ activeAlertsCount() }}
+          </span>
+        </button>
 
-      <!-- Keyboard Shortcuts Trigger -->
-      <button
-        mat-icon-button
-        (click)="openShortcuts()"
-        matTooltip="Keyboard Shortcuts (?)"
-        class="shortcuts-btn"
-        aria-label="View keyboard shortcuts"
-      >
-        <span class="shortcuts-question">?</span>
-      </button>
+        <!-- Keyboard Shortcuts Trigger -->
+        <button
+          mat-icon-button
+          (click)="openShortcuts()"
+          matTooltip="Keyboard Shortcuts (?)"
+          class="shortcuts-btn action-dock-btn"
+          aria-label="View keyboard shortcuts"
+        >
+          <span class="shortcuts-question">?</span>
+        </button>
 
-      <!-- Theme Selector Menu Button -->
-      <button
-        mat-icon-button
-        [matMenuTriggerFor]="themeMenu"
-        matTooltip="Select Theme"
-        class="theme-toggle-btn"
-        aria-label="Theme mode selector"
-      >
-        <dp-icon [name]="themeService.activeTheme() === 'dark' ? 'moon' : 'sun'" [size]="18"></dp-icon>
-      </button>
+        <!-- Theme Selector Menu Button -->
+        <button
+          mat-icon-button
+          [matMenuTriggerFor]="themeMenu"
+          matTooltip="Select Theme"
+          class="theme-toggle-btn action-dock-btn"
+          aria-label="Theme mode selector"
+        >
+          <dp-icon [name]="themeService.activeTheme() === 'dark' ? 'moon' : 'sun'" [size]="17"></dp-icon>
+        </button>
+      </div>
 
       <mat-menu #themeMenu="matMenu" class="theme-menu-panel">
         <button mat-menu-item (click)="themeService.setMode('system')">
@@ -142,7 +146,9 @@
         class="user-info-btn"
         *ngIf="authService.currentUser() as user"
       >
-        <dp-icon name="account" [size]="16" class="profile-icon"></dp-icon>
+        <span class="user-avatar-badge">
+          <dp-icon name="account" [size]="14" class="profile-icon"></dp-icon>
+        </span>
         <span class="user-name">{{ user.username }}</span>
         <span class="user-role">({{ user.role }})</span>
       </a>
