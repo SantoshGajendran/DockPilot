@@ -109,6 +109,7 @@
   --toolbar-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.50);
   --toolbar-item-bg: rgba(255, 255, 255, 0.035);
   --toolbar-item-border: rgba(255, 255, 255, 0.08);
+  --toolbar-item-specular: inset 0 1px 0 0 rgba(255, 255, 255, 0.04);
   --toolbar-item-hover-bg: rgba(255, 255, 255, 0.07);
   --toolbar-item-hover-border: rgba(212, 175, 55, 0.40);
   --toolbar-text: #ECEAF4;
@@ -268,6 +269,7 @@
   --toolbar-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.06);
   --toolbar-item-bg: rgba(15, 23, 42, 0.035);
   --toolbar-item-border: rgba(15, 23, 42, 0.08);
+  --toolbar-item-specular: inset 0 1px 0 0 rgba(255, 255, 255, 0.95);
   --toolbar-item-hover-bg: rgba(15, 23, 42, 0.065);
   --toolbar-item-hover-border: rgba(180, 83, 9, 0.40);
   --toolbar-text: #0F172A;

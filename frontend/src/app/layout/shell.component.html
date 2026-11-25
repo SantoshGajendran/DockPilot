@@ -42,82 +42,110 @@
 
   <mat-sidenav-content class="shell-content">
     <mat-toolbar class="shell-toolbar glass-panel">
-      <!-- Breadcrumbs -->
-      <div class="breadcrumb-container">
-        <span class="breadcrumb-mark">⬡</span>
-        <span class="breadcrumb-text">{{ currentBreadcrumb() }}</span>
-      </div>
+      <!-- Left Navigation Pod: Breadcrumbs & Command Palette Trigger -->
+      <div class="nav-pod">
+        <!-- Breadcrumbs -->
+        <div class="breadcrumb-container">
+          <span class="breadcrumb-mark">⬡</span>
+          <span class="breadcrumb-text">{{ currentBreadcrumb() }}</span>
+        </div>
 
-      <!-- Global Search Command Palette Trigger -->
-      <button
-        type="button"
-        class="cmd-trigger-btn"
-        (click)="openCommandPalette()"
-        aria-label="Open command palette"
-      >
-        <dp-icon name="search" [size]="15" class="cmd-search-icon"></dp-icon>
-        <span class="cmd-trigger-label">Search fleet or protocols...</span>
-        <kbd class="cmd-kbd">Ctrl K</kbd>
-      </button>
+        <!-- Global Search Command Palette Trigger -->
+        <button
+          type="button"
+          class="cmd-trigger-btn"
+          (click)="openCommandPalette()"
+          aria-label="Open command palette"
+        >
+          <dp-icon name="search" [size]="15" class="cmd-search-icon"></dp-icon>
+          <span class="cmd-trigger-label">Search fleet or protocols...</span>
+          <kbd class="cmd-kbd">Ctrl K</kbd>
+        </button>
+      </div>
 
       <span class="spacer"></span>
 
-      <!-- Live Connection Indicator -->
-      <div class="connection-cluster" [class.is-connected]="sseService.connectionState() === 'connected'">
-        <span
-          class="pulse-dot"
-          [class.connected]="sseService.connectionState() === 'connected'"
-          [class.reconnecting]="sseService.connectionState() === 'reconnecting'"
-          [class.disconnected]="sseService.connectionState() === 'disconnected'"
-        ></span>
-        <mat-chip-set class="status-chip-set">
-          <mat-chip [ngClass]="'status-' + sseService.connectionState()">
-            {{ sseService.connectionState() }}
-          </mat-chip>
-        </mat-chip-set>
-      </div>
-
-      <!-- Precision Action Dock -->
-      <div class="action-dock">
-        <!-- Alerts Bell -->
-        <button
-          mat-icon-button
-          routerLink="/alerts"
-          matTooltip="Active Alerts & Warnings"
-          class="alerts-bell-btn action-dock-btn"
-          aria-label="View alerts"
+      <!-- Unified Flight Deck Console Dock -->
+      <div class="flight-deck-dock">
+        <!-- Live Connection Indicator -->
+        <div
+          class="connection-cluster"
+          [class.is-connected]="sseService.connectionState() === 'connected'"
+          matTooltip="Fleet SSE Telemetry Stream"
         >
-          <dp-icon name="bell" [size]="17"></dp-icon>
           <span
-            class="alert-badge-count"
-            *ngIf="activeAlertsCount() > 0"
-            [attr.data-count]="activeAlertsCount()"
+            class="pulse-dot"
+            [class.connected]="sseService.connectionState() === 'connected'"
+            [class.reconnecting]="sseService.connectionState() === 'reconnecting'"
+            [class.disconnected]="sseService.connectionState() === 'disconnected'"
+          ></span>
+          <mat-chip-set class="status-chip-set">
+            <mat-chip [ngClass]="'status-' + sseService.connectionState()">
+              {{ sseService.connectionState() }}
+            </mat-chip>
+          </mat-chip-set>
+        </div>
+
+        <div class="dock-divider" aria-hidden="true"></div>
+
+        <!-- Precision Action Controls -->
+        <div class="action-dock">
+          <!-- Alerts Bell -->
+          <button
+            mat-icon-button
+            routerLink="/alerts"
+            matTooltip="Active Alerts & Warnings"
+            class="alerts-bell-btn action-dock-btn"
+            aria-label="View alerts"
           >
-            {{ activeAlertsCount() }}
+            <dp-icon name="bell" [size]="16"></dp-icon>
+            <span
+              class="alert-badge-count"
+              *ngIf="activeAlertsCount() > 0"
+              [attr.data-count]="activeAlertsCount()"
+            >
+              {{ activeAlertsCount() }}
+            </span>
+          </button>
+
+          <!-- Keyboard Shortcuts Trigger -->
+          <button
+            mat-icon-button
+            (click)="openShortcuts()"
+            matTooltip="Keyboard Shortcuts (?)"
+            class="shortcuts-btn action-dock-btn"
+            aria-label="View keyboard shortcuts"
+          >
+            <span class="shortcuts-question">?</span>
+          </button>
+
+          <!-- Theme Selector Menu Button -->
+          <button
+            mat-icon-button
+            [matMenuTriggerFor]="themeMenu"
+            matTooltip="Select Theme"
+            class="theme-toggle-btn action-dock-btn"
+            aria-label="Theme mode selector"
+          >
+            <dp-icon [name]="themeService.activeTheme() === 'dark' ? 'moon' : 'sun'" [size]="16"></dp-icon>
+          </button>
+        </div>
+
+        <div class="dock-divider" aria-hidden="true" *ngIf="authService.currentUser()"></div>
+
+        <!-- User Profile Link -->
+        <a
+          routerLink="/profile"
+          matTooltip="User Profile & Security"
+          class="user-info-btn"
+          *ngIf="authService.currentUser() as user"
+        >
+          <span class="user-avatar-badge">
+            <dp-icon name="account" [size]="13" class="profile-icon"></dp-icon>
           </span>
-        </button>
-
-        <!-- Keyboard Shortcuts Trigger -->
-        <button
-          mat-icon-button
-          (click)="openShortcuts()"
-          matTooltip="Keyboard Shortcuts (?)"
-          class="shortcuts-btn action-dock-btn"
-          aria-label="View keyboard shortcuts"
-        >
-          <span class="shortcuts-question">?</span>
-        </button>
-
-        <!-- Theme Selector Menu Button -->
-        <button
-          mat-icon-button
-          [matMenuTriggerFor]="themeMenu"
-          matTooltip="Select Theme"
-          class="theme-toggle-btn action-dock-btn"
-          aria-label="Theme mode selector"
-        >
-          <dp-icon [name]="themeService.activeTheme() === 'dark' ? 'moon' : 'sun'" [size]="17"></dp-icon>
-        </button>
+          <span class="user-name">{{ user.username }}</span>
+          <span class="user-role">[{{ user.role }}]</span>
+        </a>
       </div>
 
       <mat-menu #themeMenu="matMenu" class="theme-menu-panel">
@@ -137,21 +165,6 @@
           <dp-icon name="check" [size]="16" class="check-icon" *ngIf="themeService.mode() === 'light'"></dp-icon>
         </button>
       </mat-menu>
-
-      <!-- User Profile Link -->
-      <a
-        mat-button
-        routerLink="/profile"
-        matTooltip="User Profile & Security"
-        class="user-info-btn"
-        *ngIf="authService.currentUser() as user"
-      >
-        <span class="user-avatar-badge">
-          <dp-icon name="account" [size]="14" class="profile-icon"></dp-icon>
-        </span>
-        <span class="user-name">{{ user.username }}</span>
-        <span class="user-role">({{ user.role }})</span>
-      </a>
     </mat-toolbar>
 
     <!-- Main Content Body -->
