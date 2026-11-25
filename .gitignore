@@ -6,3 +6,4 @@ dist/
 .angular/
 graphify-out/
 .superpowers/
+docs/design-audit/
